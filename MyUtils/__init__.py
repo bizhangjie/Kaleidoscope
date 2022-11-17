@@ -903,6 +903,7 @@ class Edge():
             path=f'D:/Kaleidoscope/error/current.png'
             self.driver.get_screenshot_as_file(path)
             look(path)
+            pyperclip.copy(self.driver.current_url)
             Exit(f't={t}')
 
     # 查看当前页面
