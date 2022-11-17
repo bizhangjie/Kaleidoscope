@@ -675,12 +675,21 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-def scroll(l, silent=None):
+def scroll(l, silent=None,x=None,y=None):
     """
-
     :param l: 页面，第二个参数小于1可不传
     :return:
     """
+    if not type(l)in [list]:
+        if not x==None:
+            pyautogui.moveTo(x,y)
+            time.sleep(0.2)
+        flag = l / abs(l)
+        while abs(l)>101:
+            l=abs(l)-100
+            x=flag*-100
+            pyautogui.scroll(int(x))
+        return
     log('滚动中..')
     ti = time.time()
     page = l[0]
@@ -1181,6 +1190,14 @@ def out(s,silent=False):
     if silent==False:
         Open(f.path)
 
+# 在固定文件进行持续输出
+def provisionalout(s,silent=True):
+    f = txt(desktoppath('provisional_out.txt'))
+    def do(s):
+        f.add(s)
+    do(s)
+    if silent==False:
+        Open(f.path)
 
 # 重命名文件
 def rename(s1, s2):
