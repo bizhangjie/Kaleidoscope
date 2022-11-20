@@ -36,7 +36,7 @@ def main():
         # 作品网页
         page.get(elementurl)
         MyUtils.delog(f' 探测 {elementurl} ...')
-        MyUtils.skip([page, By.ID, "captcha-verify-image"], strict=True)
+        MyUtils.skip([page, By.ID, "captcha-verify-image"])
 
         # 获取参数-标题
         # region

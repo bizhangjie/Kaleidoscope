@@ -3,14 +3,12 @@ import time
 
 import MyUtils
 import pyautogui
-import selenium.webdriver
-from selenium.webdriver.common.by import By
 
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
 # page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
-page = MyUtils.Chrome(Aurl, silent=True, mine=True)
-# page = MyUtils.Chrome(Aurl, silent=False, mine=True)
+# page = MyUtils.Chrome(Aurl, silent=True, mine=True)
+page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 time.sleep(2)
 
@@ -23,6 +21,8 @@ while True:
     page.click(answerurl)
     if len(page.windows())==2:
         page.switchto(-1)
+    else:
+        MyUtils.Exit()
     time.sleep(2)
     # 新窗口
     Answer = page.element(['//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[@class="ContentItem AnswerItem"]',
@@ -64,7 +64,7 @@ while True:
             MyUtils.Exit(e)
 
     # 取消收藏
-    page.driver.close()
+    page.close()
     page.switchto(0)
     e = page.element(['/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]/div/div/div/div[2]/div/button[2]',
                       '/html/body/div[1]/div/main/div/article/div[4]/div/div/button[3]'])
@@ -75,5 +75,7 @@ while True:
         MyUtils.Exit('取消收藏失败')
     page.click(e)
     time.sleep(2)
+    page.refresh()
 
     MyUtils.log(f'已保存回答：{title}')
+

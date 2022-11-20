@@ -2,17 +2,17 @@ import concurrent.futures
 import datetime
 import inspect
 import json
-import os
 import multiprocessing
+import os
 import random
-import subprocess
-from glob import glob
 import re
 import shutil
+import subprocess
 import sys
 import time
-import io
-import sys
+from glob import glob
+
+import PySimpleGUI
 import pyautogui
 import pyperclip
 import requests
@@ -20,7 +20,7 @@ import selenium
 import urllib3
 import win32api
 import win32con
-import PySimpleGUI
+from moviepy.editor import VideoFileClip
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -28,7 +28,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
-from moviepy.editor import VideoFileClip
+
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
 
 
@@ -186,13 +186,13 @@ class Time():
                     self.t = newself.t
                     return
             if len(a) in [3]:
-                if a[0]<30:
+                if a[0] < 30:
                     hour, min, sec = a
                     reset([self], hour=hour, min=min, sec=sec)
                 else:
-                    year,month,hour=a
+                    year, month, hour = a
                     reset([self], year=year, month=month, hour=hour)
-            if len(a) in [6,7]:
+            if len(a) in [6, 7]:
                 reset([self], *a)
         # 是通过*b传参，则忽略所有的*a
         else:
@@ -325,7 +325,7 @@ def timearr(s=nowstr()):
 
 # 调试模式
 # region
-def Exit(s):
+def Exit(s=''):
     warn(s)
     sys.exit(-1)
 
@@ -354,21 +354,22 @@ def retry(e):
 
 # 解释性语言，返回之前的程序上下文
 def context(step=0):
-    frame=inspect.currentframe().f_back
+    frame = inspect.currentframe().f_back
     for i in range(step):
-        frame=frame.f_back
-    ret= inspect.getframeinfo(frame)
-    d={}
-    d.update({'line':ret.lineno})
-    d.update({'file':ret.filename})
-    d.update({'code':ret.code_context})
-    d.update({'module':ret.function})
+        frame = frame.f_back
+    ret = inspect.getframeinfo(frame)
+    d = {}
+    d.update({'line': ret.lineno})
+    d.update({'file': ret.filename})
+    d.update({'code': ret.code_context})
+    d.update({'module': ret.function})
     return d
+
 
 # 命令行
 # https://blog.csdn.net/weixin_42133116/article/details/114371614
 class CMD():
-    def __init__(self,cmds='',coding='utf-8', silent=False):
+    def __init__(self, cmds='', coding='utf-8', silent=False):
         cmd = [self._where('PowerShell.exe'),
                "-NoLogo", "-NonInteractive",  # Do not print headers
                "-Command", "-"]  # Listen commands from stdin
@@ -376,7 +377,7 @@ class CMD():
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         self.popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, startupinfo=startupinfo)
         self.coding = coding
-        self.run(cmds,silent=silent)
+        self.run(cmds, silent=silent)
 
     def __enter__(self):
         return self
@@ -384,7 +385,7 @@ class CMD():
     def __exit__(self, a, b, c):
         self.popen.kill()
 
-    def run(self, cmd, silent=False,timeout=15):
+    def run(self, cmd, silent=False, timeout=15):
         b_cmd = cmd.encode(encoding=self.coding)
         try:
             b_outs, errs = self.popen.communicate(b_cmd, timeout=timeout)
@@ -392,8 +393,8 @@ class CMD():
             self.popen.kill()
             b_outs, errs = self.popen.communicate()
         outs = b_outs.decode(encoding=self.coding)
-        if errs==None:
-            out(outs,silent=silent)
+        if errs == None:
+            out(outs, silent=silent)
             return True
         else:
             return False
@@ -426,20 +427,23 @@ def look(path):
         warn(f'不存在文件{path}')
         return
     os.startfile(path)
+
+
 def Open(path):
     return look(path)
 
 
 def WARN(s):
-    now=Time()
-    win32api.MessageBox(None,s,f'Kaleidoscope{now.time()}',win32con.MB_OK)
+    now = Time()
+    win32api.MessageBox(None, s, f'Kaleidoscope{now.time()}', win32con.MB_OK)
+
 
 # 返回bit
 def size(a, sum=0):
     if type(a) in [str]:
-        s=a
+        s = a
         # 磁盘
-        if len(s)==1:
+        if len(s) == 1:
             gb = 1024 ** 3  # GB == gigabyte
             try:
                 total_b, used_b, free_b = shutil.disk_usage(s.strip('\n') + ':')  # 查看磁盘的使用情况
@@ -448,17 +452,17 @@ def size(a, sum=0):
             return (free_b / gb)
         #     文件
         if isfile(s):
-            return os.stat(s).st_size/1024/1024
+            return os.stat(s).st_size / 1024 / 1024
 
-    #     文件夹
+        #     文件夹
         if isdir(s):
-            sum=0
+            sum = 0
             for i in listfile(s):
-                sum+=size(i)
+                sum += size(i)
             for i in listdir(s):
-                sum+=size(i)
+                sum += size(i)
             return sum
-        
+
     #     其它类型
 
     elif type(a) in [list, tuple]:
@@ -516,12 +520,14 @@ def cutvideo(inputpath, outputpath, start, end):
     print(command)
     os.system('"%s"' % command)
 
+
 # 使用ffmpeg提取音频
-def extractaudio(inputpath,outputpath):
+def extractaudio(inputpath, outputpath):
     sourcepath = os.path.abspath(standarlizedPath(inputpath))
     command = f'ffmpeg -i {inputpath} -vn -codec copy {outputpath}'
     print(command)
     os.system('"%s"' % command)
+
 
 # 返回音频的秒数
 def videolength(s):
@@ -529,10 +535,11 @@ def videolength(s):
         Exit(s)
     return VideoFileClip(s).duration
 
+
 def info(s):
     # 如果是类，列举属性和方法
-    if not type(s)in [int,str,list,dict,float,tuple,]:
-        att=[]
+    if not type(s) in [int, str, list, dict, float, tuple, ]:
+        att = []
         for i in dir(s):
             if not i in dir(object):
                 att.append(i)
@@ -555,7 +562,7 @@ def info(s):
         #     文件（夹）
         if isfile(s) or isdir(s):
             s = standarlizedPath(s)
-            sss=''
+            sss = ''
             if isdir(s):
                 sss = '夹'
             log(f'路径：{s}（文件{sss}）')
@@ -565,16 +572,17 @@ def info(s):
             log(f'大小：{size(s)}MB')
 
             # 是视频
-            if tail(s,'.')in['wmv','mp4']:
-                t=videolength(s)
-                log(f'{filename(s)} 时长{int(t/60)}:{t-int(t/60)}')
+            if tail(s, '.') in ['wmv', 'mp4']:
+                t = videolength(s)
+                log(f'{filename(s)} 时长{int(t / 60)}:{t - int(t / 60)}')
             return size(s)
     # 其它类型
-    elif type(s) in [list,tuple,dict]:
+    elif type(s) in [list, tuple, dict]:
         tip(f'{s[0:2]}...{s[-1]}')
         tip(f'类型：{type(s)} 大小：{int(int(sys.getsizeof(s) / 1024 / 1024 * 100) / 100.0)}MB 内存地址：{id(s)} 长度{len(list(s))}')
-    elif type(s)in [int,str,float,]:
+    elif type(s) in [int, str, float, ]:
         tip(f'类型：{type(s)} 大小：{int(sys.getsizeof(s))}Byte 内存地址：{id(s)}')
+
 
 # endregion
 
@@ -662,7 +670,7 @@ def Elements(l, depth=5, silent=None):
 
 
 # 必须要跳过的
-def skip(l):
+def skip(l,strict=False):
     """
     简单跳过，不做操作，等待人工操作来跳过，否则一直等待
     :param l:列表：页面，XPATH/ID，字符串
@@ -692,19 +700,19 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-def scroll(l, silent=None,x=None,y=None):
+def scroll(l, silent=None, x=None, y=None):
     """
     :param l: 页面，第二个参数小于1可不传
     :return:
     """
-    if not type(l)in [list]:
-        if not x==None:
-            pyautogui.moveTo(x,y)
+    if not type(l) in [list]:
+        if not x == None:
+            pyautogui.moveTo(x, y)
             time.sleep(0.2)
         flag = l / abs(l)
-        while abs(l)>101:
-            l=abs(l)-100
-            x=flag*-100
+        while abs(l) > 101:
+            l = abs(l) - 100
+            x = flag * -100
             pyautogui.scroll(int(x))
         return
     log('滚动中..')
@@ -837,12 +845,12 @@ class Edge():
                     warn(['clickelement error！', e])
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一个
-    def element(self, s,depth=9,silent=True,strict=True):
+    def element(self, s, depth=9, silent=True, strict=True):
         if not type(s) == list:
-            ret = Element([self.driver, By.XPATH, s],depth=depth,silent=True)
+            ret = Element([self.driver, By.XPATH, s], depth=depth, silent=True)
         else:
             for i in s:
-                ret = Element([self.driver, By.XPATH, i],depth=depth,silent=True)
+                ret = Element([self.driver, By.XPATH, i], depth=depth, silent=True)
                 if not ret == None:
                     break
         if strict:
@@ -850,7 +858,7 @@ class Edge():
             return ret
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一组
-    def elements(self, s,depth=9,silent=True,strict=True):
+    def elements(self, s, depth=9, silent=True, strict=True):
         '''
 
         @param s:
@@ -860,10 +868,10 @@ class Edge():
         @return:
         '''
         if not type(s) == list:
-            ret = Elements([self.driver, By.XPATH, s],depth=depth,silent=True)
+            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=True)
         else:
             for i in s:
-                ret = Elements([self.driver, By.XPATH, i],depth=depth,silent=True)
+                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=True)
                 if not ret == []:
                     break
         if strict:
@@ -900,8 +908,8 @@ class Edge():
         Edge.switchto(self, )
 
     def get(self, url):
-        if not'https://'in url:
-            url='https://'+url
+        if not 'https://' in url:
+            url = 'https://' + url
         self.driver.get(url)
 
     def switchto(self, n=-1):
@@ -926,17 +934,17 @@ class Edge():
     def errorscr(self, t):
         if t in [None, False]:
             print(nowstr())
-            path=f'D:/Kaleidoscope/error/current.png'
+            path = f'D:/Kaleidoscope/error/current.png'
             self.driver.get_screenshot_as_file(path)
             look(path)
             pyperclip.copy(self.driver.current_url)
-            Exit(f'{self.url()}   t={t}')
+            Exit(f'{self.url()}   {context(2)}  t={t}')
 
     # 查看当前页面
-    def look(self,a=None):
+    def look(self, a=None):
         path = f'D:/Kaleidoscope/error/current.png'
-        if not a==None:
-            self.screenshot(path,a)
+        if not a == None:
+            self.screenshot(path, a)
             look(path)
             return
         deletedirandfile([path])
@@ -946,8 +954,9 @@ class Edge():
     def close(self):
         self.driver.close()
 
-    def skip(self,s):
-        return skip([self.driver,By.XPATH,s])
+    def skip(self, s):
+        return skip([self.driver, By.XPATH, s])
+
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
@@ -977,7 +986,7 @@ def edge(url='', silent=None):
 
 
 # 点击屏幕
-def click(x, y, button='left',silent=True):
+def click(x, y, button='left', silent=True):
     try:
         pyautogui.click(x, y, button=button)
         if not silent:
@@ -988,8 +997,9 @@ def click(x, y, button='left',silent=True):
         warn(e)
         sys.exit(-1)
 
+
 # 右击屏幕
-def rclick(x,y):
+def rclick(x, y):
     try:
         pyautogui.rightClick(x, y)
         print(f'{x}   {y}')
@@ -998,6 +1008,7 @@ def rclick(x,y):
             Exit(f'可能是选取点击的坐标过于极端。 x:{x}    y:{y}')
         warn(e)
         sys.exit(-1)
+
 
 # 点击元素
 def clickelement(l):
@@ -1155,24 +1166,28 @@ def scrshot(l):
 def projectpath(s=''):
     return f'D:/Kaleidoscope/{s}'
 
+
 # 返回项目临时文件根目录
 def cachepath(s=''):
-    return f'{projectpath("cache/"+s)}'
+    return f'{projectpath("cache/" + s)}'
+
 
 # 返回文件夹和文件b
 def listall(path):
-    return extend(listfile(path),listdir(path))
+    return extend(listfile(path), listdir(path))
+
 
 # 判断是否是空的文件夹
 def isemptydir(path):
-    path=standarlizedPath(path)
+    path = standarlizedPath(path)
     if not isdir(path):
         warn(f'{path}是文件夹？请检查路径。')
         return False
-    if []==extend(listfile(path),listdir(path)):
+    if [] == extend(listfile(path), listdir(path)):
         return True
     else:
         return False
+
 
 # 访问时间
 def accesstime(path):
@@ -1196,25 +1211,30 @@ def modifytime(path):
 
 
 # 新建文件以进行标准输出
-def out(s,silent=False):
+def out(s, silent=False):
     f = txt(projectpath('out.txt'))
-    f.l=[]
+    f.l = []
     f.save()
+
     def do(s):
         f.add(s)
 
     do(s)
-    if silent==False:
+    if silent == False:
         Open(f.path)
+
 
 # 在固定文件进行持续输出
-def provisionalout(s,silent=True):
+def provisionalout(s, silent=True):
     f = txt(desktoppath('pout.txt'))
+
     def do(s):
         f.add(s)
+
     do(s)
-    if silent==False:
+    if silent == False:
         Open(f.path)
+
 
 # 重命名文件
 def rename(s1, s2):
@@ -1223,14 +1243,14 @@ def rename(s1, s2):
 
 # 判断文件
 def isfile(s):
-    if not type(s)in [str]:
+    if not type(s) in [str]:
         return False
     return os.path.isfile(s)
 
 
 # 判断文件夹
 def isdir(s):
-    if not type(s)in [str]:
+    if not type(s) in [str]:
         return False
     return os.path.isdir(s)
 
@@ -1329,11 +1349,11 @@ class csv():
 
 def deletedirandfile(l, silent=None):
     # 删除txt里的文件
-    if isfile(l)and l[-4:]in '.txt':
-        f=txt(l)
-        dlis=[]
+    if isfile(l) and l[-4:] in '.txt':
+        f = txt(l)
+        dlis = []
         for i in f.l:
-            if i in ['\n','']:
+            if i in ['\n', '']:
                 continue
             dlis.append(i)
         deletedirandfile(dlis)
@@ -1528,8 +1548,8 @@ class txt():
         i = str(i)
         for k in i.split('\n'):
             k = str(k)
-                # 如果原来是空的，就不另起一行
-            if not self.l==[]:
+            # 如果原来是空的，就不另起一行
+            if not self.l == []:
                 file('a', self.path, ['\n' + k], encoding='utf-8')
             else:
                 file('a', self.path, [k], encoding='utf-8')
@@ -1662,8 +1682,8 @@ class Json(txt):
                 sys.exit(-1)
 
     def get(self):
-        ret=self.l[0]
-        if ret=='':
+        ret = self.l[0]
+        if ret == '':
             self.l.pop(0)
             self.save()
             return Json.get(self)
@@ -1708,13 +1728,13 @@ class RefreshJson(Json, RefreshTXT):
 
     # 返回列表，所有的record，一个value对应一个key
     def all(self):
-        ret=[]
+        ret = []
         for i in range(self.length()):
-            extend(ret,self.get())
+            extend(ret, self.get())
         return ret
 
     # 返回值的键
-    def find(self,v):
+    def find(self, v):
         for i in self.all():
             if v == value(i):
                 return key(i)
@@ -1739,8 +1759,8 @@ class RefreshJson(Json, RefreshTXT):
             else:
                 Exit(f'{e}')
         ret = []
-        if value(d)==[]:
-            return [{key(d):None}]
+        if value(d) == []:
+            return [{key(d): None}]
         for i in value(d):
             ret.append({key(d): i})
         return ret
@@ -1890,34 +1910,37 @@ def alert(s=''):
 
     p.execute(do, )
 
-def console(s,duration=999,text_color='#F08080',font=('Hack',14),size=28):
+
+def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
     #  每当新的控制台启动后，改内容，然后开新进程，将0改为1，1改为0
     # 控制台每隔一段时间刷新，如果变为0则退出。
     # 新的控制台计时结束后，将1改为0
-    refreshtime=0.6
-    consoletxt.add({nowstr():s})
-    while 3600<Now().counttime(Time(key(jsontodict(consoletxt.get())))):
+    refreshtime = 0.6
+    consoletxt.add({nowstr(): s})
+    while 3600 < Now().counttime(Time(key(jsontodict(consoletxt.get())))):
         consoletxt.l.pop(0)
     consoletxt.save()
-    #短暂显示桌面控制台
+
+    # 短暂显示桌面控制台
     def show():
         # 系统默认颜色
         # COLOR_SYSTEM_DEFAULT='1234567890'=='ADD123'
         global win
-        outs=''
-        inc=0
+        outs = ''
+        inc = 0
         for i in consoletxt.l:
-            outs+=f'[{inc}]  {value(i)}\n'
-            inc+=1
+            outs += f'[{inc}]  {value(i)}\n'
+            inc += 1
         layout = [[PySimpleGUI.Text(outs, background_color='#add123', pad=(0, 0),
-                                    text_color=text_color,font=font)]]
+                                    text_color=text_color, font=font)]]
         win = PySimpleGUI.Window('', layout, no_titlebar=True, keep_on_top=True,
-            location=(120*16/3*2, 0), auto_close=True, auto_close_duration=duration,
-            transparent_color='#add123', margins=(0, 0))
+                                 location=(120 * 16 / 3 * 2, 0), auto_close=True, auto_close_duration=duration,
+                                 transparent_color='#add123', margins=(0, 0))
         event, values = win.read(timeout=0)
         time.sleep(0.3)
         return win
-    def func(duration,):
+
+    def func(duration, ):
         delog('1')
         return
         # 更改consolerunning
@@ -1931,9 +1954,11 @@ def console(s,duration=999,text_color='#F08080',font=('Hack',14),size=28):
             time.sleep(refreshtime)
             duration -= refreshtime
             show()
-    process=multiprocessing.Process(target=func,args=(duration,))
+
+    process = multiprocessing.Process(target=func, args=(duration,))
     # process.daemon=True
     process.start()
+
 
 def Log(s, x1, x2, x3=7, x4=30, x5=30):
     s = str(s)
@@ -1965,12 +1990,13 @@ def Log(s, x1, x2, x3=7, x4=30, x5=30):
     global Logcount
     t = now()
     try:
-        s2.replace(u'\xa0',u'<?>')
+        s2.replace(u'\xa0', u'<?>')
         print(
             f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m {pp4} {pp5}  <line {pp6}> ==》 {pp1} {pp2}  <line {pp3}> \033[0m' + s2)
     except Exception as e:
         print(f'这条日志输出失败了。原因{e}')
     Logcount += 1
+
 
 @listed
 def log(*a):
@@ -2059,7 +2085,7 @@ class MyError(BaseException):
 def jsontodict(s):
     if type(s) == dict:
         return s
-    if s == '' or s == None or s==[]:
+    if s == '' or s == None or s == []:
         warn(f'{s, type(s)}')
         return
     try:
@@ -2113,11 +2139,14 @@ def cuttail(l, mark='_'):
     l = l[:(l.rfind(mark) - len(mark) + 1)]
     return l, ret
 
+
 def splittail(s, mark):
     return cuttail(s, mark)
 
+
 def removetail(l, mark='.'):
     return cuttail(l, mark)[0]
+
 
 def strip(s, mark):
     pass
@@ -2131,7 +2160,7 @@ def tail(s, mark='/'):
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
     if not mark in s:
-        Exit((s,mark))
+        Exit((s, mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -2186,7 +2215,7 @@ def getdiskname():
 # region
 debug = True
 # 获取计算机用户名
-user=txt(projectpath('user.txt')).l[0]
+user = txt(projectpath('user.txt')).l[0]
 headers = {
     'user-agent': \
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36',

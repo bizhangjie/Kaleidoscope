@@ -70,7 +70,7 @@ def HostPiecesNum(l):
     page = l[0]
     MyUtils.setscrolltop([page, 0])
     time.sleep(0.2)
-    l1 = MyUtils.Element([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div[4]/div[1]/div[1]/div[1]/span'], depth=9, silent=True)
+    l1 = MyUtils.Element([page, By.XPATH, '//*[@id="douyin-right-container"]//h2/span[2]'], depth=9, silent=True)
     l2 = MyUtils.Element([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div/div[2]/div[1]/div[2]/div/div/div[1]/span[2]'], depth=9, silent=True)
     ret = 0
     if not l1 == None:
