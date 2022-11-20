@@ -1829,9 +1829,6 @@ class RefreshJson(Json, RefreshTXT):
                 RefreshJson.delete(self, {key(i): j})
             return
 
-            warn(f'尝试删除{i}但是{key(i)}不在记录{self.path}中')
-            return
-
         for j in self.l:
             din = jsontodict(j)
             if not key(din) == key(i):
