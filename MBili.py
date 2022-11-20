@@ -129,18 +129,30 @@ def count():
 # 先查用户所有的bv号，再核对，没有的报错，然后进行人工检查
 def mistake():
     for i in MyUtils.listdir('./bili'):
-        if 'bili/cache' in i:
+        if 'bili/cache' in i or 'bili/trash'in i:
             continue
         author,useruid=MyUtils.splittail(i,'_')
         author=MyUtils.gettail(author,'/')
-        up=BUtils.up(useruid,author)
+        print((useruid,author))
+        up=BUtils.up(uid=useruid)
         vlist=[]
+        movelist=[]
         for j in up.vlist:
             vlist.append(j.bvid)
         for j in MyUtils.listdir(i):
             bvid=MyUtils.gettail(j,'_')
+            # 这个bv号是不属于这个upid对应的up主
             if not bvid in vlist:
                 MyUtils.warn(f'{author} {bvid}')
+                movelist.append(j)
+#         移动文件夹
+        for j in movelist:
+            MyUtils.move(j,f'./bili/trash/{MyUtils.filename(j)}')
+#             批量重命名
+        for f in MyUtils.listdir('./bili/trash'):
+            MyUtils.move(f,f'./bili/{up.author}_{up.uid}/{MyUtils.filename(f)}')
+
+
 
 if __name__ == '__main__':
     # count()

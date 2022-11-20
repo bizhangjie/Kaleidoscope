@@ -1,9 +1,8 @@
-import inspect
+import MyUtils
 
 
 def fun():
-    print(inspect.getframeinfo(inspect.currentframe()))
-    print(inspect.getframeinfo(inspect.currentframe().f_back))
+    print(MyUtils.context())
 
 
 if __name__ == '__main__':

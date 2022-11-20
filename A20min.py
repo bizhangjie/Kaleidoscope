@@ -4,7 +4,7 @@
 import time
 
 import pyperclip
-import MyUtilsU
+import MyUtils
 
 
 def next(t):

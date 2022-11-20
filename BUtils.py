@@ -88,9 +88,10 @@ def uidtoid(UID):
     res = requests.get(url, headers=MyUtils.headers)
     # 这个就是第一个作者author
     # print(f"[upid] {res.json()['data']['list']['vlist'][0]['author']}")
-    # 由于存在可能有合作，多个author，因此要遍历
     try:
         for i in res.json()['data']['list']['vlist']:
+        # 由于存在可能有合作，多个author，因此要遍历
+            # 一般来说只会有一个mid，对应相应的author
             if not i['mid'] == int(UID):
                 continue
             return MyUtils.standarlizedFileName(i['author'])
@@ -107,9 +108,16 @@ def skipdownloaded(bvid):
 
 # up主
 class up():
-    def __init__(self,uid,author=None):
-        self.uid=uid
-        self.author=author
+    def __init__(self,uid=None,author=None):
+        if not uid==None:
+            self.uid=uid
+        else:
+            self.uid=idtouid(author)
+        if not author==None:
+            self.author=author
+        else:
+            self.author=uidtoid(uid)
+
         self.getvlist()
 
     def getvlist(self):

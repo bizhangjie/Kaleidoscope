@@ -351,6 +351,20 @@ def retry(e):
 
 # 特殊功能函数
 # region
+
+# 解释性语言，返回之前的程序上下文
+def context(step=0):
+    frame=inspect.currentframe().f_back
+    for i in range(step):
+        frame=frame.f_back
+    ret= inspect.getframeinfo(frame)
+    d={}
+    d.update({'line':ret.lineno})
+    d.update({'file':ret.filename})
+    d.update({'code':ret.code_context})
+    d.update({'module':ret.function})
+    return d
+
 # 命令行
 # https://blog.csdn.net/weixin_42133116/article/details/114371614
 class CMD():
@@ -405,6 +419,9 @@ class CMD():
 
 # 打开文件
 def look(path):
+    if isdir(path):
+        os.startfile(path)
+        return
     if not isfile(path) and not 'https' in path:
         warn(f'不存在文件{path}')
         return
@@ -913,7 +930,7 @@ class Edge():
             self.driver.get_screenshot_as_file(path)
             look(path)
             pyperclip.copy(self.driver.current_url)
-            Exit(f't={t}')
+            Exit(f'{self.url()}   t={t}')
 
     # 查看当前页面
     def look(self,a=None):
@@ -1192,7 +1209,7 @@ def out(s,silent=False):
 
 # 在固定文件进行持续输出
 def provisionalout(s,silent=True):
-    f = txt(desktoppath('provisional_out.txt'))
+    f = txt(desktoppath('pout.txt'))
     def do(s):
         f.add(s)
     do(s)
@@ -2087,20 +2104,20 @@ def value(d):
 # region
 
 # 截取字符串末尾
-def cuttail(s, mark='_'):
-    if type(s) == list:
+def cuttail(l, mark='_'):
+    if type(l) == list:
         warn('用法错误。')
         sys.exit(-1)
-    s, mark = str(s), str(mark)
-    ret = tail(s, mark)
-    s = s[:(s.rfind(mark) - len(mark) + 1)]
-    return s, ret
+    l, mark = str(l), str(mark)
+    ret = tail(l, mark)
+    l = l[:(l.rfind(mark) - len(mark) + 1)]
+    return l, ret
 
 def splittail(s, mark):
     return cuttail(s, mark)
 
-def removetail(s, mark='.'):
-    return cuttail(s, mark)[0]
+def removetail(l, mark='.'):
+    return cuttail(l, mark)[0]
 
 def strip(s, mark):
     pass
@@ -2113,6 +2130,8 @@ def tail(s, mark='/'):
 
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
+    if not mark in s:
+        Exit((s,mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -2128,6 +2147,7 @@ def strre(s, pattern):
 #   更改工作目录
 def setRootPath():
     if not os.path.exists(f'{activedisk.l[0]}:/'):
+        Open(activedisk.path)
         Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
     for i in activedisk.l:
         if info(i) >= 0.2:
