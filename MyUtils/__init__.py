@@ -351,6 +351,22 @@ def retry(e):
 
 # 特殊功能函数
 # region
+# 键盘输入
+def typein(s):
+    for i in str(s):
+        hotkey(i)
+
+# pyperclip
+def copyto(s):
+    pyperclip.copy(s)
+    time.sleep(0.1)
+def pastefrom():
+    return pyperclip.paste()
+
+# 键盘
+def hotkey(*a):
+    pyautogui.hotkey(*a)
+    time.sleep(0.2)
 
 # 解释性语言，返回之前的程序上下文
 def context(step=0):
@@ -620,6 +636,40 @@ class pool():
 
 # 爬虫
 # region
+
+# 转到已经打开的edge并保存全部截屏
+def getpics(loop,path):
+    for i in range(loop):
+        hotkey('ctrl','shift','s')
+        time.sleep(1)
+        click(1146,174)
+        # 截图生成时间
+        time.sleep(4)
+        old=listfile('D:/')
+        click(1700,112)
+        # 截图下载时间
+        time.sleep(2)
+        new=listfile('D:/')
+        for j in new:
+            if j in old:
+                continue
+            else:
+                break
+        move(j,f'{path}.{gettail(j,".")}')
+
+def geturls(loop=1):
+    ret=[]
+    hotkey('alt','tab')
+    for i in range(loop):
+        click(420,62)
+        hotkey('ctrl','c')
+        ret.append(pyperclip.paste())
+        hotkey('ctrl','w')
+    hotkey('alt', 'tab')
+    return ret
+
+
+# 将网页置顶显示
 def alertpage(l):
     page = l[0]
     page.switch_to.window(page.window_handles[0])
@@ -900,7 +950,8 @@ class Edge():
         try:
             self.driver.quit()
         except Exception as e:
-            warn(e)
+            print(e)
+            # warn(e)
 
     def open(self, url):
         url = 'https://' + url.strip('https://')
@@ -957,6 +1008,8 @@ class Edge():
     def skip(self, s):
         return skip([self.driver, By.XPATH, s])
 
+    def title(self):
+        return title([self.driver])
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
@@ -989,6 +1042,7 @@ def edge(url='', silent=None):
 def click(x, y, button='left', silent=True):
     try:
         pyautogui.click(x, y, button=button)
+        time.sleep(0.2)
         if not silent:
             print(f'{x}   {y}')
     except Exception as e:
@@ -1232,8 +1286,14 @@ def provisionalout(s, silent=True):
         f.add(s)
 
     do(s)
+    log(f.path)
     if silent == False:
         Open(f.path)
+
+# 在固定文件进行输入
+def provisionalin():
+    f = txt(desktoppath('pout.txt'))
+    return f.l
 
 
 # 重命名文件
