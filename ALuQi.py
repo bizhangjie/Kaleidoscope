@@ -1,6 +1,6 @@
 import MyUtils
 
-# 规整移动操作盘中的文件
+# 规整移动的文件
 for file in MyUtils.listfile(['./', './璐琪/']):
     if 'Scree' in file or 'SVID' in file:
         filename = MyUtils.filename(file)
@@ -12,9 +12,9 @@ for file in MyUtils.listfile(['./', './璐琪/']):
         if not MyUtils.isfile(targetdir + filename):
             MyUtils.move(file, targetdir)
 
-# 对规整路径的操作盘文件进行记录添加
-f = MyUtils.rjson(MyUtils.root + '璐琪/record')
-for dir in MyUtils.listdir(['./璐琪/']):
-    for file in MyUtils.listfile(dir):
-        f.add({MyUtils.filename(file): MyUtils.diskname})
+# # 对规整路径的操作盘文件进行记录添加
+# f = MyUtils.rjson(MyUtils.root + '璐琪/record')
+# for dir in MyUtils.listdir(['./璐琪/']):
+#     for file in MyUtils.listfile(dir):
+#         f.add({MyUtils.filename(file): MyUtils.diskname})
 

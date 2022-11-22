@@ -117,7 +117,7 @@ def main():
             douyinSum += 1
 
             #     持续性休眠
-            while readytodownload.length() > 5:
+            while readytodownload.length() > 10:
                 MyUtils.log('下载队列已满。Detect 等待中...')
                 time.sleep(10)
 

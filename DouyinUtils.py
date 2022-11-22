@@ -182,7 +182,8 @@ def skipdownloaded(flag, record, VideoNum, title, author):
         record.add(simplinfo(VideoNum, author, title))
         MyUtils.log(f' {path}/{title}.mp4已存在磁盘中，补全记录')
         return True
-    if (flag and os.path.exists(f'{path}/{VideoNum}_{title}/{len(VideoNum) - 1}.png')):
+    # if (flag and os.path.exists(f'{path}/{VideoNum}_{title}/{len(VideoNum) - 1}.png')):
+    if (flag and len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==VideoNum):
         record.add(simplinfo(VideoNum, author, title))
         MyUtils.log(f' {path}/{title}共{len(VideoNum)}张图片已存在磁盘中，补全记录')
         return True

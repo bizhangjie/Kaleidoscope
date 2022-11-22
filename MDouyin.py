@@ -24,12 +24,14 @@ def deleteRecorded():
             if not i['disk'] == MyUtils.diskname:
                 continue
             author, title = i['author'], i['title']
+            if '7128697787717405965' in str(d):
+                print('isin')
             if [] == MyUtils.listfile(f'./抖音/{author}/{d}_{title}') and not os.path.exists(f'./抖音/{author}/{d}_{title}.mp4'):
                 j = ({d: {"disk": MyUtils.diskname, 'author': author, "title": title}})
                 deletelis.append(j)
                 missing.add(j)
     print(len(deletelis))
-    print(deletelis)
+    # print(deletelis)
     for i in deletelis:
         allpieces.delete(i)
 
@@ -72,11 +74,11 @@ def count():
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
 
-# [6]   22:50:32  [<module>] MDouyin.py  <line 114> ==》 [count] MDouyin.py  <line 69> 作品总数：46994
-# [7]   22:50:32  [<module>] MDouyin.py  <line 114> ==》 [count] MDouyin.py  <line 70> 作者总数：453
-# [8]   22:50:32  [<module>] MDouyin.py  <line 114> ==》 [count] MDouyin.py  <line 71> 失败总数：4646
-# [9]   22:50:32  [<module>] MDouyin.py  <line 114> ==》 [count] MDouyin.py  <line 72> 视频总数：44781
-# [10]   22:50:32  [<module>] MDouyin.py  <line 114> ==》 [count] MDouyin.py  <line 73> 图片总数：917
+# [10]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 69> 作品总数：47202
+# [11]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 70> 作者总数：453
+# [12]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 71> 失败总数：4647
+# [13]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 72> 视频总数：46101
+# [14]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 73> 图片总数：1093
 
 # 统计重复的作品
 def findduplicate():
@@ -108,7 +110,7 @@ def findduplicate():
 
 
 if __name__ == '__main__':
-    # deleteRecorded()
+    deleteRecorded()
     # deleteMissing()
-    count()
+    # count()
     # findduplicate()

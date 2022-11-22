@@ -436,6 +436,7 @@ class CMD():
 
 # 打开文件
 def look(path):
+    path=standarlizedPath(path)
     if isdir(path):
         os.startfile(path)
         return
@@ -1116,6 +1117,7 @@ def setscrolltop(l):
 @consume
 def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     # 如果下载失败，再下载一次
+    # t：下载和下载后浏览器自动安全检查的时间
     def recursive():
         time.sleep(t)
         page.quit()

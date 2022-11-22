@@ -30,7 +30,7 @@ def download():
         if DouyinUtils.skipdownloaded(flag, allpieces, VideoNum, title, author):
             MyUtils.warn('已下载。弹回。', f'VideoNum={VideoNum} HostID={author} title={title} VideoUrl={VideoUrl}')
             return
-        path = '../抖音/' + author
+        path = './抖音/' + author
         MyUtils.delog(f'VideoNum={VideoNum} HostID={author} title={title} VideoUrl={VideoUrl}')
         # endregion
         # 判断是否图文
@@ -53,7 +53,7 @@ def download():
                 i += 1
                 MyUtils.delog(f'开始下载，url={url}')
                 try:
-                    t = MyUtils.pagedownload(url=url, path=f'{path}/{VideoNum}_{title}/{i}.png', t=0) and t
+                    t = MyUtils.pagedownload(url=url, path=f'{path}/{VideoNum}_{title}/{i}.png', t=2) and t
                 except Exception as e:
                     MyUtils.warn(e)
                     t = False
@@ -62,6 +62,10 @@ def download():
         # 是否下载成功
         if t:
             # region
+            if not len(VideoUrl) > 1:
+                MyUtils.Open(f'{path}/{VideoNum}_{title}.mp4')
+            else:
+                MyUtils.Open(f'{path}/{VideoNum}_{title}')
             allpieces.addpiece(VideoNum, author, title)
             MyUtils.log(f'下载成功，{VideoNum}记录补全.\n{allpieces}]{author}  :作品编号：{VideoNum}     作品标题：{title}\n{VideoUrl}')
             # endregion

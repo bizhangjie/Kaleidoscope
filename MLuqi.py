@@ -16,10 +16,5 @@ def makerecord():
             else:
                 allpieces.add({s: list(set(MyUtils.extend(allpieces.d[s], [MyUtils.diskname])))})
 
-
-def main():
-    makerecord()
-
-
 if __name__ == '__main__':
-    main()
+    makerecord()
