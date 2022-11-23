@@ -6,8 +6,8 @@ import MyUtils
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
 # page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
-page = MyUtils.Chrome(Aurl, silent=True, mine=True)
-# page = MyUtils.Chrome(Aurl, silent=False, mine=True)
+# page = MyUtils.Chrome(Aurl, silent=True, mine=True)
+page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 time.sleep(2)
 
