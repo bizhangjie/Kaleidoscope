@@ -7,8 +7,8 @@ import pyautogui
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
 # page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
-# page = MyUtils.Chrome(Aurl, silent=True, mine=True)
-page = MyUtils.Chrome(Aurl, silent=False, mine=True)
+page = MyUtils.Chrome(Aurl, silent=True, mine=True)
+# page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 time.sleep(2)
 
@@ -40,7 +40,12 @@ while True:
         MyUtils.txt(f'./知乎/plaintext/{title}').add(te)
 
     # 截屏
-    page.set_window_size(800, 2000 + Answer.size['height'])
+    height=2000 + Answer.size['height']
+    page.set_window_size(800, height)
+    #    需要滚动一下，否则图片会虚化
+    for i in range(height):
+        i+=100
+        page.scroll(height)
     MyUtils.scrshot([page.element(['/html/body/div[1]/div/main/div/div/div[3]/div[1]/div/div[2]/div/div',
                                    '/html/body/div[1]/div/main/div/article',
                                    '/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]']), (f'./知乎/{title}/{title}.png')])
