@@ -2,7 +2,6 @@ import os
 import time
 
 import MyUtils
-import pyautogui
 
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
@@ -70,7 +69,7 @@ while True:
 
     # 取消收藏
     page.close()
-    page.switchto(0)a
+    page.switchto(0)
     e = page.element(['/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]/div/div/div/div[2]/div/button[2]',
                       '/html/body/div[1]/div/main/div/article/div[4]/div/div/button[3]'])
     if not e.text == '取消收藏':
