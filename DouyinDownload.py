@@ -62,10 +62,10 @@ def download():
         # 是否下载成功
         if t:
             # region
-            if not len(VideoUrl) > 1:
-                MyUtils.Open(f'{path}/{VideoNum}_{title}.mp4')
-            else:
-                MyUtils.Open(f'{path}/{VideoNum}_{title}')
+            # if not len(VideoUrl) > 1:
+            #     MyUtils.Open(f'{path}/{VideoNum}_{title}.mp4')
+            # else:
+            #     MyUtils.Open(f'{path}/{VideoNum}_{title}')
             allpieces.addpiece(VideoNum, author, title)
             MyUtils.log(f'下载成功，{VideoNum}记录补全.\n{allpieces}]{author}  :作品编号：{VideoNum}     作品标题：{title}\n{VideoUrl}')
             # endregion
