@@ -327,7 +327,13 @@ def timearr(s=nowstr()):
 # region
 def Exit(s=''):
     warn(s)
-    sys.exit(-1)
+    try:
+        sys.exit(-1)
+    except:
+        warn('终止程序失败。请手动终止。')
+        time.sleep(9999)
+        time.sleep(9999)
+        time.sleep(9999)
 
 
 def Debug():
@@ -865,8 +871,15 @@ class Edge():
     def windows(self):
         return self.driver.window_handles
 
+    # 新建窗口
+    def newwindow(self,url=''):
+        if not 'https://' in url:
+            url='https://'+url
+        self.driver.execute_script(f'window.open("{url}")')
+
     def refresh(self):
         self.driver.refresh()
+        time.sleep(1)
 
     def url(self):
         return self.driver.current_url

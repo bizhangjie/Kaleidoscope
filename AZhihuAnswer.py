@@ -6,18 +6,19 @@ import MyUtils
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
 # page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
-# page = MyUtils.Chrome(Aurl, silent=True, mine=True)
-page = MyUtils.Chrome(Aurl, silent=False, mine=True)
+page = MyUtils.Chrome(Aurl, silent=True, mine=True)
+# page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 time.sleep(2)
 
 while True:
     # 获取标题
-    answerurl = page.element(['//*[@id="root"]//main//*[@class="ContentItem-title"]',# 回答的标题
-                              ])
-    title = answerurl.text
+    answertitle = page.element(['//*[@id="root"]//main//*[@class="ContentItem-title"]'])
+    title = answertitle.text
+    answerurl=page.element(['//*[@id="root"]//main//*[@class="ContentItem-title"]//a']).get_attribute('href')
     # 点击标题产生新窗口
-    page.click(answerurl)
+    # 不一定能点击成功，我也不知道为什么
+    page.newwindow(answerurl)
     if len(page.windows())==2:
         page.switchto(-1)
     else:

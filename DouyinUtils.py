@@ -9,6 +9,7 @@ import MyUtils
 
 # 文件定义
 allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
+specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
 allpieces = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllPieces.txt')
 
 readytodownload = MyUtils.cache('D:/Kaleidoscope/抖音/ReadytoDownload.txt')
