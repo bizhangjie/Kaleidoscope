@@ -159,9 +159,9 @@ def dislike(l):
     # ???貌似要等很久？
 
 
-# def pieceinfo(l):
-#     page=l[0]
-#     url=l[1]
+# def pieceinfo(s):
+#     page=s[0]
+#     url=s[1]
 #     if 'note' in url:
 #         author=page.element('/html/body/div[1]/div/div[2]/div/main/div[2]/div[1]/div[1]/a').get_attribute('href')
 #         if 'live'in author:

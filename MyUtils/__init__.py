@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 from glob import glob
+import re
 
 import PySimpleGUI
 import pyautogui
@@ -47,6 +48,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 def listed(func):
     def inner(*a):
         res = []
+        if a in [None,(),[]]:
+            return func()
         if type(a[-1]) == list:
             b = a[:-1]
             for i in a[-1]:
@@ -144,19 +147,19 @@ def counttime(*args):
     else:
         return a[0].counttime(a[1])
 
-    # if l.find('hms') >= 0:
+    # if s.find('hms') >= 0:
     #     return time.strftime("%H:%M:%S", time.localtime())
-    # if l.find('ms') >= 0:
+    # if s.find('ms') >= 0:
     #     return time.strftime("%M:%S", time.localtime())
-    # if l.find('hm') >= 0:
+    # if s.find('hm') >= 0:
     #     return time.strftime("%H:%M", time.localtime())
-    # if l.find('h') >= 0:
+    # if s.find('h') >= 0:
     #     return time.strftime("%H", time.localtime())
-    # if l.find('m') >= 0:
+    # if s.find('m') >= 0:
     #     return time.strftime("%M", time.localtime())
-    # if l.find('l') >= 0:
+    # if s.find('s') >= 0:
     #     return time.strftime("%S", time.localtime())
-    # if l=='all':
+    # if s=='all':
     #     return str(datetime.datetime.nowstr())
 
 
@@ -825,8 +828,7 @@ def scroll(l, silent=None, x=None, y=None):
     log(f'滚动完毕。 {time.time() - ti} s.')
 
 
-def requestdownload(LocalPath, mode, url):
-    return
+def requestdownload(LocalPath, url,mode='rb'):
     CreatePath(LocalPath)
     try:
         with open(LocalPath, mode) as f:
@@ -893,11 +895,11 @@ class Edge():
 
     def click(self, *a):
         if len(a) > 1:
-            # ActionChains(self.driver).move_to_element(to_element=Element(l)).click().perform()
+            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
             Exit(' 未实现')
         s = a[0]
         if type(s) in [str]:
-            return Edge.click(Edge.element(s))
+            return Edge.click(self,Edge.element(self,s))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -940,14 +942,17 @@ class Edge():
                     break
         if strict:
             self.errorscr(ret)
-            return ret
+        return ret
 
-    def scroll(self, a=0):
+    def scroll(self, a=-1):
         if type(a) in [int]:
-            setscrolltop([self.driver, a])
+            if a==-1:
+                scroll([(self.driver)])
+            else:
+                setscrolltop([self.driver, a])
             return
         if type(a) in [str]:
-            e = Edge.element(a)
+            e = Edge.element(self,a)
             setscrolltop([self.driver, e.location('y')])
             return
         if type(a) in [selenium.webdriver.remote.webelement.WebElement]:
@@ -976,6 +981,7 @@ class Edge():
         if not 'https://' in url:
             url = 'https://' + url
         self.driver.get(url)
+        time.sleep(0.4)
 
     def switchto(self, n=-1):
         self.driver.switch_to.window(self.driver.window_handles[n])
@@ -992,7 +998,7 @@ class Edge():
             file('wb', path, s.screenshot_as_png)
             return
         if type(s) in [str]:
-            Edge.screenshot(path, Edge.element(self, s))
+            Edge.screenshot(self,path, Edge.element(self, s))
             return
 
     # 遇到异常（元素为空时），终止并检查当前页面截图
@@ -2088,6 +2094,9 @@ def tip(*a):
 
 @listed
 def delog(*a):
+    if a in [(),[],None]:
+        Log('continuing', 7, 34)
+        return
     s = a[0]
     if not s in [0, -1, 'beign', 'end', 'a', 'z']:
         s = ''
@@ -2141,7 +2150,15 @@ def simplinfo(num, author, title):
     return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
 
-def extend(l1, l2):
+def mergelist(*a):
+    return extend(*a)
+
+def extend(*a):
+    if len(a)>2:
+        for i in a[1:]:
+            extend(a[0],i)
+        return a[0]
+    l1,l2=a
     if l1 == None:
         warn(f'l1: None  l2: {l2}')
         return l2
@@ -2201,15 +2218,20 @@ def value(d):
 # 字符串
 # region
 
+# 正则查找
+def refind(s,re):
+    return re.findall(s,re)
+
+
 # 截取字符串末尾
-def cuttail(l, mark='_'):
-    if type(l) == list:
+def cuttail(s, mark='_'):
+    if type(s) == list:
         warn('用法错误。')
         sys.exit(-1)
-    l, mark = str(l), str(mark)
-    ret = tail(l, mark)
-    l = l[:(l.rfind(mark) - len(mark) + 1)]
-    return l, ret
+    s, mark = str(s), str(mark)
+    t = tail(s, mark)
+    s = s[:(s.rfind(mark))]
+    return s, t
 
 
 def splittail(s, mark):

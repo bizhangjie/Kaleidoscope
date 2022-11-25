@@ -26,13 +26,8 @@ VideoSpectrum = BUtils.videospectrum
 UserSpectrum = BUtils.videouserspectrum
 readytodownload=BUtils.readytodownload
 MAX = 30
-cachepath = './bili/cache'
 
-# 添加新的用户
-def step0():
-    BUtils.addwebuser()
-
-# step0()
+BUtils.addwebuser()
 
 
 @retry(retry_on_exception=MyUtils.retry)
@@ -44,11 +39,7 @@ def main():
     author=BUtils.uidtoid(useruid)
     # 准备工作 - 检查为空，添加下载列表
     def step1():
-        def checkempty():
-            if not [] == MyUtils.listdir(cachepath):
-                pyperclip.copy(MyUtils.standarlizedPath(cachepath))
-                MyUtils.Exit('cache不为空。')
-        checkempty()
+        BUtils.checkempty()
         res = detect(useruid)
 
         # 获取json中的量

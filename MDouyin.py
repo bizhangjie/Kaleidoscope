@@ -68,17 +68,17 @@ def count():
     for i in MyUtils.listdir('./抖音'):
         dir+=len(MyUtils.listdir(i))
         file+=len(MyUtils.listfile(i))
-    MyUtils.log(f'作品总数：{allpieces.length()}')
+    MyUtils.log(f'记录总数：{allpieces.length()}')
     MyUtils.log(f"作者总数：{allusers.length()}")
     MyUtils.log(f"失败总数：{missing.length()}")
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
 
-# [10]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 69> 作品总数：47202
-# [11]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 70> 作者总数：453
-# [12]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 71> 失败总数：4647
-# [13]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 72> 视频总数：46101
-# [14]   22:24:56  [<module>] MDouyin.py  <line 113> ==》 [count] MDouyin.py  <line 73> 图片总数：1093
+# [6]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 71> 作品总数：46302
+# [7]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 72> 作者总数：453
+# [8]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 73> 失败总数：4836
+# [9]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 74> 视频总数：48803
+# [10]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 75> 图片总数：1535
 
 # 统计重复的作品
 def findduplicate():
@@ -110,7 +110,7 @@ def findduplicate():
 
 
 if __name__ == '__main__':
-    deleteRecorded()
+    # deleteRecorded()
     # deleteMissing()
-    # count()
+    count()
     # findduplicate()

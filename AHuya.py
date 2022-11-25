@@ -65,10 +65,10 @@ for i in range(max(l)):
 
 # 批处理
 # i=0
-# for l in slist:
+# for s in slist:
 #     i+=1
-#     ss=(f'ffmpeg -i "concat:{l}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.mp4')
-#     os.system(f'ffmpeg -i "concat:{l}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.ts')
+#     ss=(f'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.mp4')
+#     os.system(f'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.ts')
 
 # mp4->ts
 path = 'F:/虎牙'

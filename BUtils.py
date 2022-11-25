@@ -52,6 +52,16 @@ def hostjson(uid, pagenum, ):
         return False
     return res
 
+# 获得收藏夹的response （暂时不是json - request
+def collectionjson(uid, pagenum, ):
+    url = (f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
+    MyUtils.delog(f'探测收藏夹{uid}视频页的第{pagenum}页')
+    res = requests.get(url, headers=MyUtils.headers)
+    # 如果结束就退出
+    if pagenum * 30 > res.json()['data']['info']['media_count'] and not pagenum == 1:
+        return False
+    return res.json()
+
 
 # 从url中获得useruid
 def urltouseruid(c):
@@ -104,7 +114,7 @@ def idtouid(id):
     return videouserspectrum.find(id)
 
 def skipdownloaded(bvid):
-    return str(bvid) in MyUtils.keys(videouserspectrum.d)
+    return str(bvid) in MyUtils.keys(videospectrum.d)
 
 # up主
 class up():
@@ -145,3 +155,33 @@ class video():
         # self.description=d['description']
         # self.pic=d['pic']
         # self.subtitle=d['subtitle']
+
+# 检查cache是否为空
+def checkempty():
+    cachepath='./bili/cache'
+    if not [] == MyUtils.listdir(cachepath):
+        MyUtils.Open(MyUtils.standarlizedPath(cachepath))
+        MyUtils.Exit('cache不为空。')
+
+# 下载器打开情况下MyUtils下载
+def download(bvid,author=None):
+    MyUtils.copyto(f'https://www.bilibili.com/video/{bvid}')
+    MyUtils.click(1449, 214)
+    MyUtils.sleep(0.7)
+    MyUtils.click(988, 500)
+    MyUtils.sleep(1)
+    MyUtils.hotkey('ctrl', 'v')
+    MyUtils.sleep(0.7)
+    MyUtils.hotkey('enter')
+    MyUtils.sleep(5)
+
+    MyUtils.click(708, 504)
+    MyUtils.sleep(0.7)
+    MyUtils.click(1208, 576)
+    MyUtils.sleep(0.7)
+    # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
+    MyUtils.click(1208, 606)
+    MyUtils.sleep(0.7)
+    MyUtils.log(f'{author} {bvid}已加入下载器')
+    MyUtils.click(1246, 722)
+    MyUtils.sleep(1.5)

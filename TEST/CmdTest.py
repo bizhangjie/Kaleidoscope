@@ -34,7 +34,7 @@ def upid(UID):
 # MyUtils.MyDeleteEmpty('./bili/cover')
 t = MyUtils.RefreshTXT(f'D:/Kaleidoscope/bili/CoverSpectrum.txt')
 # path='E:/bili/cover/'
-# for i in count.l:
+# for i in count.s:
 #     id=upid(i)
 #     if not os.path.exists(path+id):
 #         continue
