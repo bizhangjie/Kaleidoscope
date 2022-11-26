@@ -107,8 +107,8 @@ def uidtoid(UID):
             if not i['mid'] == int(UID):
                 continue
             return MyUtils.standarlizedFileName(i['author'])
-    except:
-        MyUtils.Exit(f"[upid] error when trying mid(UID)={UID}")
+    except Exception as e:
+        MyUtils.Exit(f"{e}\n[upid] error when trying mid(UID)={UID}")
 
 
 # 通过up名称从记录中获取up uid
