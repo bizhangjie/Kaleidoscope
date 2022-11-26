@@ -50,6 +50,6 @@ class CMD:
 
 if __name__ == '__main__':
     with PowerShell() as ps:
-        outs, errs = ps.run('cd d:;ls')
+        outs, errs = ps.run('cd a:;ls')
     print(errs)
     print(outs)

@@ -1,3 +1,5 @@
+import time
+
 import MyUtils
 import sys
 import requests
@@ -50,7 +52,7 @@ def hostjson(uid, pagenum, ):
     # 如果结束就退出
     if pagenum * 30 > res.json()['data']['page']['count'] and not pagenum == 1:
         return False
-    return res
+    return res.json()
 
 # 获得收藏夹的response （暂时不是json - request
 def collectionjson(uid, pagenum, ):
@@ -147,14 +149,19 @@ class up():
 
 # 视频
 class video():
-    def __init__(self,d):
-        self.bvid=d['bvid']
-        # self.length=d['length']
-        # self.author=d['author']
-        # self.title=d['title']
-        # self.description=d['description']
-        # self.pic=d['pic']
-        # self.subtitle=d['subtitle']
+    def __init__(self, a):
+        # 用网页视频列表json构建
+        if type(a)in[dict]:
+            self.bvid=a['bvid']
+            self.length=a['length']
+            self.author=a['author']
+            self.title=a['title']
+            self.description=a['description']
+            self.pic=a['pic']
+            self.subtitle=a['subtitle']
+        if type(a)in [str] and 'BV'in a:
+            self.bvid=a
+
 
 # 检查cache是否为空
 def checkempty():
@@ -164,7 +171,15 @@ def checkempty():
         MyUtils.Exit('cache不为空。')
 
 # 下载器打开情况下MyUtils下载
-def download(bvid,author=None):
+def download(bvid,author=None,useruid=None):
+    skipdownloaded(bvid)
+    if author==None:
+        if useruid==None:
+            author=video(bvid).author
+        else:
+            author=uidtoid(useruid)
+    if useruid==None:
+        useruid=idtouid(author)
     MyUtils.copyto(f'https://www.bilibili.com/video/{bvid}')
     MyUtils.click(1449, 214)
     MyUtils.sleep(0.7)
@@ -185,3 +200,40 @@ def download(bvid,author=None):
     MyUtils.log(f'{author} {bvid}已加入下载器')
     MyUtils.click(1246, 722)
     MyUtils.sleep(1.5)
+
+    # 等待下载完毕后转移文件
+def move(a=True):
+    # 等待下载完毕
+    fsize=0
+    while True:
+        newsize=MyUtils.size('./bili/cache')
+        if newsize==fsize:
+            MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
+            break
+        fsize=newsize
+        time.sleep(20)
+    if not a==True:
+        useruid=a
+    for i in MyUtils.listdir('./bili/cache'):
+        # 如果里面有.m4s文件就跳过
+        b=True
+        for j in MyUtils.listfile(i):
+            if '.m4s'in j:
+                b=False
+                MyUtils.deletedirandfile([i])
+        if not b:
+            continue
+        j = MyUtils.filename(i)
+        j = MyUtils.removetail(j, '-')
+        j, bvid = MyUtils.cuttail(j, '-')
+        title, author = MyUtils.cuttail(j, '-')
+        MyUtils.move(i, f'./bili/{author}_{useruid}/{title}_{bvid}')
+    
+
+def quitdownloader():
+    MyUtils.hotkey('alt','tab')
+    time.sleep(0.4)
+
+def opendownloader():
+    MyUtils.hotkey('alt','tab')
+    time.sleep(0.4)

@@ -228,7 +228,7 @@ if __name__ == '__main__':
             # endregion
             # 跳过已下载
             # region
-            # if (VideoNum in Distripute.d.keys()):
+            # if (VideoNum in Distripute.a.keys()):
             #     MyUtils.log(f'{author}的作品{VideoNum}在记录中，跳过')
             #     continue
             # endregion

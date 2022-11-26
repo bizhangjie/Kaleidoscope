@@ -19,7 +19,7 @@ if __name__ == '__main__':
         MyUtils.typein('edge')
         MyUtils.hotkey('enter')
         time.sleep(2)
-        MyUtils.hotkey('alt','d')
+        MyUtils.hotkey('alt','a')
         MyUtils.copyto(url)
         MyUtils.hotkey('ctrl','v')
         MyUtils.hotkey('enter')

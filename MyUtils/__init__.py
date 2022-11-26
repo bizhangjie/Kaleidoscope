@@ -274,7 +274,7 @@ class Time():
 
 # 字符串构造Time
 def strtotime(s=nowstr()):
-    # return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # return time.strftime("%Y-%m-%a %H:%M:%S", time.localtime())
     if not type(s) == str:
         warn(f'用法错误。s不是字符串而是{info(s)}')
         return
@@ -293,14 +293,14 @@ def strtotime(s=nowstr()):
 
 # timestamp构造Time
 def timestamptotime(s):
-    return datetime.datetime.fromtimestamp(eval(s) / 1000).strftime("%Y-%m-%d %H:%M:%S.%f")
+    return datetime.datetime.fromtimestamp(eval(s) / 1000).strftime("%Y-%m-%a %H:%M:%S.%f")
 
 
 # 工具
 # 转换为timestamp
 def timestamp(s=None):
     if type(s) == str:
-        return time.mktime(time.strptime(s, "%Y-%m-%d %H:%M:%S.%f"))
+        return time.mktime(time.strptime(s, "%Y-%m-%a %H:%M:%S.%f"))
     if type(s) == Time:
         return Time.timestamp()
     if s == None:
@@ -309,7 +309,7 @@ def timestamp(s=None):
 
 # 转换为数组（未写完）
 def timearr(s=nowstr()):
-    # return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # return time.strftime("%Y-%m-%a %H:%M:%S", time.localtime())
 
     if len(s) > 10:
         (year, month, day, hour, min) = (

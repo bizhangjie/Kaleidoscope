@@ -160,6 +160,6 @@ if __name__ == '__main__':
     # checkweb()
     # delete()
     # checkisindisk()
-    mistake()
-    # makerecord()
+    # mistake()
+    makerecord()
     pass

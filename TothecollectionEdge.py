@@ -17,7 +17,7 @@ if __name__ == '__main__':
     MyUtils.hotkey('alt','tab')
 
     for i in range(10):
-        MyUtils.hotkey('ctrl','d')
+        MyUtils.hotkey('ctrl','a')
         time.sleep(0.5)
         MyUtils.hotkey('ctrl','w')
         MyUtils.hotkey('ctrl','w')
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     MyUtils.hotkey('alt','tab')
 
     for i in range(10):
-        MyUtils.hotkey('ctrl','d')
+        MyUtils.hotkey('ctrl','a')
         time.sleep(0.5)
         MyUtils.hotkey('ctrl','w')
         MyUtils.hotkey('ctrl','w')
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     MyUtils.hotkey('alt','tab')
 
     for i in range(10):
-        MyUtils.hotkey('ctrl','d')
+        MyUtils.hotkey('ctrl','a')
         time.sleep(0.5)
         MyUtils.hotkey('ctrl','w')
         MyUtils.hotkey('ctrl','w')
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     MyUtils.hotkey('alt','tab')
 
     for i in range(10):
-        MyUtils.hotkey('ctrl','d')
+        MyUtils.hotkey('ctrl','a')
         time.sleep(0.5)
         MyUtils.hotkey('ctrl','w')
         MyUtils.hotkey('ctrl','w')
