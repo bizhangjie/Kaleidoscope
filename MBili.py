@@ -155,11 +155,11 @@ def mistake():
 
 
 if __name__ == '__main__':
-    # count()
+    count()
     # adduser()
     # checkweb()
     # delete()
     # checkisindisk()
     # mistake()
-    makerecord()
+    # makerecord()
     pass

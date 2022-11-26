@@ -1,13 +1,11 @@
-import time
-
 import MyUtils
+import BUtils
+count=0
+for i in MyUtils.listdir('./bili'):
+    useruid=MyUtils.gettail(i,'_')
+    author=BUtils.uidtoid(useruid)
+    for j in MyUtils.listdir(i):
+        bvid=MyUtils.gettail(j,'_')
+        video=BUtils.video(bvid)
 
-# path0='C:/Users/17371/Desktop/地理空间数据库/hw2/jsonData'
-# path1='C:/Users/17371/Desktop/地理空间数据库/zhaoxiang/hw2/jsonData'
-# for i in lis1:
-#     flis=[]
-#     MyUtils.file('rb',i,flis)
-#     name=path0+f'/{MyUtils.gettail(i,"/")}'
-#     MyUtils.file('wb',name,flis)
-
-# path = r"C:\Users\17371\Desktop\地理空间数据库\hw2"
+        count+=1

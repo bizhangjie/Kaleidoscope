@@ -867,7 +867,7 @@ def chrome(url='', mine=None, silent=None, t=100):
 
 class Edge():
     def __init__(self, url='', silent=None):
-        self.driver = edge(url=url, silent=silent)
+            self.driver = edge(url=url, silent=silent)
 
     # 返回窗口列表
     def windows(self):
@@ -1051,10 +1051,13 @@ def edge(url='', silent=None):
         pyperclip.copy('https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/')
         delog('点击 edge://version/ 以查看浏览器版本。')
         sys.exit(-1)
-    finally:
-        ()
     if not url == '':
-        driver.get(url)
+        try:
+            driver.get(url)
+        except selenium.common.exceptions.InvalidArgumentException:
+            if not 'https://' in url:
+                url = 'https://' + url
+                driver.get(url)
     return driver
 
 

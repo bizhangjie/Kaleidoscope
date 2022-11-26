@@ -150,6 +150,7 @@ class up():
 # 视频
 class video():
     def __init__(self, a):
+
         # 用网页视频列表json构建
         if type(a)in[dict]:
             self.bvid=a['bvid']
@@ -159,9 +160,22 @@ class video():
             self.description=a['description']
             self.pic=a['pic']
             self.subtitle=a['subtitle']
+
+        #     用网页即时搜索构建
         if type(a)in [str] and 'BV'in a:
             self.bvid=a
-
+            page=MyUtils.Edge(f'https://www.bilibili.com/video/{a}',silent=True)
+            if '出错啦'in page.title():
+                MyUtils.Exit(a)
+            self.title=page.element('//*[@id="viewbox_report"]/h1').text
+            es=page.elements("//*[@id='v_upinfo']//a[starts-with(@href,'//space')]")
+            authors=[]
+            for i in es:
+                authors.append(MyUtils.gettail(i.get_attribute('href'),'/'))
+            self.authors=list(set(authors))
+            if len(self.authors)==1:
+                self.author=self.authors[0]
+            page.quit()
 
 # 检查cache是否为空
 def checkempty():
