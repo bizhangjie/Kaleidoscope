@@ -83,7 +83,7 @@ def main():
         MyUtils.skip([Host, By.ID, "login-pannel"])
         author = MyUtils.Element([Host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
-        DouyinUtils.addauthor(useruid, author, users)d
+        DouyinUtils.addauthor(useruid, author, users)
         #     continue
         MyUtils.log(f'  ------转到{author}的主页-----')
         MyUtils.delog(HostUrl)
