@@ -168,7 +168,7 @@ class video():
             if '出错啦'in page.title():
                 MyUtils.Exit(bvid)
             self.title=page.element('//*[@id="viewbox_report"]/h1').text
-            es=page.elements("//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip')]")
+            es=page.elements("//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip') or starts-with(@href,'//space') and contains(@class,'user') or starts-with(@href,'//space') and contains(@class,'up')]")
             useruids=[]
             authors=[]
             for i in es:
