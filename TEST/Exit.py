@@ -11,4 +11,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    MyUtils.Exit(1,2,3,4,5)

@@ -44,6 +44,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 # endregion
 # 注解
 # region
+# 多名函数
+def newname(func):
+    def inner(originalfunc,*a,**b):
+        return originalfunc(*a,**b)
+    return inner
+
+# 只有一个参数，如果有多个，则重复执行函数，或者空参数
+def multisingleargs(func):
+    def inner(*a):
+        res=[]
+        if a in [None,(),[]]:
+            return func()
+        for i in a:
+            res.append(func(i))
+        return res
+    return inner
 # 最后一个参数可以是列表以重复执行
 def listed(func):
     def inner(*a):
@@ -328,12 +344,14 @@ def timearr(s=nowstr()):
 
 # 调试模式
 # region
-def Exit(s=''):
-    warn(s)
+def Exit(*a):
+    for s in a:
+        warn(s)
     try:
         sys.exit(-1)
     except:
-        warn('终止程序失败。请手动终止。')
+        warn('程序失败。请手动终止。')
+        context(2)
         time.sleep(9999)
         time.sleep(9999)
         time.sleep(9999)
@@ -379,6 +397,8 @@ def hotkey(*a):
 
 # 解释性语言，返回之前的程序上下文
 def context(step=0):
+    if step<0:
+        return None
     frame = inspect.currentframe().f_back
     for i in range(step):
         frame = frame.f_back
@@ -388,7 +408,10 @@ def context(step=0):
     d.update({'file': ret.filename})
     d.update({'code': ret.code_context})
     d.update({'module': ret.function})
-    return d
+    warn(d)
+    ret=[]
+    ret.append(d)
+    return ret.append(context(step-1))
 
 
 # 命令行
@@ -1002,8 +1025,8 @@ class Edge():
             return
 
     # 遇到异常（元素为空时），终止并检查当前页面截图
-    def errorscr(self, t):
-        if t in [None, False]:
+    def errorscr(self, t=None):
+        if t in [None, False,[]]:
             print(nowstr())
             path = f'D:/Kaleidoscope/error/current.png'
             self.driver.get_screenshot_as_file(path)
@@ -1303,8 +1326,10 @@ def out(s, silent=False):
 
 
 # 在固定文件进行持续输出
+def pout(*a):
+    return provisionalout(*a)
 def provisionalout(s, silent=True):
-    f = txt(desktoppath('pout.txt'))
+    f = txt(projectpath('pout.txt'))
 
     def do(s):
         f.add(s)
@@ -2072,8 +2097,10 @@ def Log(s, x1, x2, x3=7, x4=30, x5=30):
     t = now()
     try:
         s2.replace(u'\xa0', u'<?>')
+        # print(
+        #     f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m {pp4} {pp5}  <line {pp6}> ==》 {pp1} {pp2}  <line {pp3}> \033[0m' + s2)
         print(
-            f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m {pp4} {pp5}  <line {pp6}> ==》 {pp1} {pp2}  <line {pp3}> \033[0m' + s2)
+            f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m \033[0m' + s2)
     except Exception as e:
         print(f'这条日志输出失败了。原因{e}')
     Logcount += 1
@@ -2127,7 +2154,6 @@ def delog(*a):
         Log(s, 7, 34)
 
 
-@listed
 def warn(*a):
     s = ''
     for i in a:

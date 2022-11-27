@@ -163,18 +163,26 @@ class video():
 
         #     用网页即时搜索构建
         if type(a)in [str] and 'BV'in a:
-            self.bvid=a
-            page=MyUtils.Edge(f'https://www.bilibili.com/video/{a}',silent=True)
+            self.bvid=bvid=a
+            page=MyUtils.Edge(f'https://www.bilibili.com/video/{bvid}',silent=True)
             if '出错啦'in page.title():
-                MyUtils.Exit(a)
+                MyUtils.Exit(bvid)
             self.title=page.element('//*[@id="viewbox_report"]/h1').text
-            es=page.elements("//*[@id='v_upinfo']//a[starts-with(@href,'//space')]")
+            es=page.elements("//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip')]")
+            useruids=[]
             authors=[]
             for i in es:
-                authors.append(MyUtils.gettail(i.get_attribute('href'),'/'))
-            self.authors=list(set(authors))
-            if len(self.authors)==1:
-                self.author=self.authors[0]
+                useruids.append(MyUtils.gettail(i.get_attribute('href'),'/'))
+            self.useruids=useruids=list(set(useruids))
+            for i in useruids:
+                authors.append(uidtoid(i))
+            self.authors=authors
+            if authors==[]:
+                page.look()
+                MyUtils.Exit(authors,es)
+            if len(self.useruids)==1:
+                self.useruid=useruids[0]
+                self.author=authors[0]
             page.quit()
 
 # 检查cache是否为空

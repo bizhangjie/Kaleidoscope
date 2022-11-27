@@ -4,11 +4,10 @@ import MyUtils
 def fun():
     pass
 
-
-def main():
-    fun()
+@MyUtils.multisingleargs
+def main(a):
+    print(a)
 
 
 if __name__ == '__main__':
-    main()
-    MyUtils.pout('refreshed')
+    main(1,2,3)
