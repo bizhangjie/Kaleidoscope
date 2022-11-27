@@ -1085,7 +1085,15 @@ def edge(url='', silent=None):
 
 
 # 点击屏幕
-def click(x, y, button='left', silent=True):
+def click(x, y=10, button='left', silent=True):
+    if type(x)in [str]:
+        if not '.png'in x:
+            x+='.png'
+        path=projectpath(x)
+        if isfile(path=projectpath(path)):
+            pos = pyautogui.locateOnScreen(path)
+            click(pos)
+            return
     try:
         pyautogui.click(x, y, button=button)
         time.sleep(0.2)
@@ -1265,6 +1273,8 @@ def scrshot(l):
 # region
 # 返回项目源代码根目录
 def projectpath(s=''):
+    if './'in s:
+        s=s[2:]
     return f'D:/Kaleidoscope/{s}'
 
 
@@ -1326,6 +1336,7 @@ def out(s, silent=False):
 
 
 # 在固定文件进行持续输出
+@multisingleargs
 def pout(*a):
     return provisionalout(*a)
 def provisionalout(s, silent=True):

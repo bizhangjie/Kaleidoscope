@@ -3,4 +3,4 @@ import time
 import MyUtils
 
 while True:
-    time.sleep(2)
+    print(MyUtils.projectpath('./1'))

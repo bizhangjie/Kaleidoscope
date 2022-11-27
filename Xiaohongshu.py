@@ -7,7 +7,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    page=MyUtils.Chrome()
+    page=MyUtils.Chrome(mine=True)
     for i in allusers.l:
         # 转到网页
         page.get(f'https://www.xiaohongshu.com/user/profile/{i}')

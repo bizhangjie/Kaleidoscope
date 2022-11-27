@@ -7,8 +7,8 @@ import time
 
 
 def main():
-    time.sleep(2)
-    path = MyUtils.desktoppath('111.png')
+    YUtils.
+    path = MyUtils.projecttapth('./youtube/111.png')
     pos = pyautogui.locateOnScreen(path)
     print(pos)
     pyautogui.center(pos)

@@ -11,4 +11,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    MyUtils.pout('refreshed')
+    MyUtils.pout('refreshed\nrefreshed')

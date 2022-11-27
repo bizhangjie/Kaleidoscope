@@ -4,3 +4,7 @@ import MyUtils
 print(len('2k-cD0Yoohs'))
 
 readytodownload = MyUtils.cache('D:/Kaleidoscope/youtube/readytodownload.txt')
+
+def turntodownloader():
+    MyUtils.hotkey('alt','tab')
+
