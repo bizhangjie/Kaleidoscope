@@ -166,7 +166,7 @@ class video():
         if type(a)in [str] and 'BV'in a:
             self.bvid=bvid=a
             page=MyUtils.Edge(f'https://www.bilibili.com/video/{bvid}',silent=True)
-            if '出错啦'in page.title():
+            if '出错啦'in page.title() or '视频去哪了呢'in page.title():
                 self.exist=False
                 return
             self.title=page.element('//*[@id="viewbox_report"]/h1').text

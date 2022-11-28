@@ -2031,14 +2031,36 @@ class Edge():
         self.driver = edge(url=url, silent=silent)
         self.silent = silent
         self.set_window_size(900, 1000)
+        self.skipsystemwarn()
+
+    # 避开不安全网页警告
+    def skipsystemwarn(self):
+        if '受到举报的不安全网站'in self.title():
+            self.click('//*[@id="moreInformationDropdownLink"]')
+            self.click('//*[@id="overrideLink"]')
+        time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     def save(self,video=True, filter=0,t=3):
         path=userpath(f'Pictures/集锦/{self.title()}/')
         createpath(path)
         self.ctrlshifts(path,t)
-        # self.savepics()
+        self.savepics(path,7)
         # self.savevideos()
+
+    # 保存页面上的所有图片
+    def savepics(self,path,t=5):
+        if gettail(self.url())in ['jpg','jpeg','png']:
+            pass
+        res=[]
+        extend(res,elements('//pic'),elements('//img'),elements('//pic'))
+        count=0
+        for i in res:
+            count+=1
+            url=i.get_attribute('src')
+            if url==None:
+                url=i.get_attribute('href')
+            pagedownload(url,f'{path}/{count}.{gettail(url,".")}',t=t)
 
     # 快捷键保存截屏
     def ctrlshifts(self, path,t=3):
@@ -2059,7 +2081,7 @@ class Edge():
 
     # 到上层显示窗口
     def top(self):
-        if self.silent == False:
+        if self.silent == True:
             Exit()
         hotkey('win', 'd')
         self.switchto()
@@ -2172,6 +2194,7 @@ class Edge():
     def down(self):
         scroll([self.driver], silent=True)
 
+    # 如果不退出，可能报错 py sys path likely shutdown balabala...
     def quit(self):
         self.driver.quit()
 
