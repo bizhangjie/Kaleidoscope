@@ -212,7 +212,7 @@ def checkisindisk(record, func, ):
 
 
 try:
-    SeleniumSpace(silent=True)
+    SeleniumSpace(silent=False)
 except:
     pass
 # storagemove()

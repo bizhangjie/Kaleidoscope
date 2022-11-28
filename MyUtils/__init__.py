@@ -2030,8 +2030,28 @@ class Edge():
     def __init__(self, url='', silent=None):
         self.driver = edge(url=url, silent=silent)
         self.silent = silent
+        self.mine=None
+        self.type='edge'
+        self.resinit()
+
+    def resinit(self):
         self.set_window_size(900, 1000)
         self.skipsystemwarn()
+        time.sleep(1)
+
+    # 获取全屏
+    def fullscreen(self,path=''):
+        if not self.silent==True:
+            Exit()
+        if path=='':
+            path=userpath(f'Pictures/集锦/{self.title()}/basic.png')
+        print(path)
+        e=self.element('/html/body')
+        print(e.size)
+        self.set_window_size(e.size['width'],e.size['height'])
+        sleep(e.size['height']/700)
+        self.elementshot(path,e)
+
 
     # 避开不安全网页警告
     def skipsystemwarn(self):
@@ -2044,7 +2064,10 @@ class Edge():
     def save(self,video=True, filter=0,t=3):
         path=userpath(f'Pictures/集锦/{self.title()}/')
         createpath(path)
-        self.ctrlshifts(path,t)
+        if self.type=='edge':
+            self.ctrlshifts(path,t)
+        else:
+            Exit()
         self.savepics(path,7)
         # self.savevideos()
 
@@ -2053,7 +2076,7 @@ class Edge():
         if gettail(self.url())in ['jpg','jpeg','png']:
             pass
         res=[]
-        extend(res,elements('//pic'),elements('//img'),elements('//pic'))
+        extend(res,self.elements('//pic',strict=False),self.elements('//img',strict=False),self.elements('//pic',strict=False))
         count=0
         for i in res:
             count+=1
@@ -2066,6 +2089,7 @@ class Edge():
     def ctrlshifts(self, path,t=3):
         self.top()
         self.maxwindow()
+        sleep(0.5)
         hotkey('ctrl', 'shift', 's')
         sleep(1)
         click('browser/捕获整页.png')
@@ -2222,17 +2246,18 @@ class Edge():
     def set_window_size(self, *a, **b):
         self.driver.set_window_size(*a, **b)
 
-    # 取决于当前窗口大小
-    def screenshot(self, path, s):
+    # 取决于当前窗口大小位置
+    def elementshot(self, path, s):
         path = standarlizedPath(path)
         if isfile(path):
             warn(f'{path}已存在。即将覆盖下载')
-        path = path.strip('.png') + '.png'
+        if not '.png'in path:
+            path+='.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             file('wb', path, s.screenshot_as_png)
             return
         if type(s) in [str]:
-            Edge.screenshot(self, path, Edge.element(self, s))
+            Edge.elementshot(self, path, Edge.element(self, s))
             return
 
     # 遇到异常（元素为空时），终止并检查当前页面截图
@@ -2249,7 +2274,7 @@ class Edge():
     def look(self, a=None):
         path = f'D:/Kaleidoscope/error/current.png'
         if not a == None:
-            self.screenshot(path, a)
+            self.elementshot(path, a)
             look(path)
             return
         deletedirandfile([path])
@@ -2269,7 +2294,11 @@ class Edge():
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
         self.driver = chrome(url, mine=mine, silent=silent, t=t)
-        sleep(1)
+        self.mine=mine
+        self.silent = silent
+        self.resinit()
+        self.type='chrome'
+
 
     def maximize(self):
         self.driver.maximize_window()
@@ -2371,7 +2400,7 @@ def title(l):
     page = l[0]
     element = Element([page, By.XPATH, '/html/head/title'])
     if element == None:
-        return None
+        return ''
     return standarlizedFileName(element.get_attribute('text'))
 
 
