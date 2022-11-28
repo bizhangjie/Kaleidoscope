@@ -1916,7 +1916,11 @@ def getscrolltop(l):
     page = l[0]
     return page.execute_script('var q=document.documentElement.scrollTop;return(q)')
 
+def scrollwidth(l):
+    page = l[0]
+    return page.execute_script('var q=document.documentElement.scrollWidth;return(q)')
 
+# 获取页面最大高度（通过滚动条
 def scrollheight(l):
     page = l[0]
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
@@ -2046,10 +2050,9 @@ class Edge():
         if path=='':
             path=userpath(f'Pictures/集锦/{self.title()}/basic.png')
         print(path)
-        e=self.element('/html/body')
-        print(e.size)
-        self.set_window_size(e.size['width'],e.size['height'])
-        sleep(e.size['height']/700)
+        x,y=scrollwidth([self.driver]), scrollheight([self.driver])
+        self.set_window_size(x,y)
+        sleep(y/700)
         self.elementshot(path,e)
 
 
