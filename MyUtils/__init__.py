@@ -356,9 +356,9 @@ def Exit(*a):
     except:
         warn('程序失败。请手动终止。')
         context(2)
-        time.sleep(9999)
-        time.sleep(9999)
-        time.sleep(9999)
+        sleep(9999)
+        sleep(9999)
+        sleep(9999)
 
 
 def Debug():
@@ -382,47 +382,6 @@ def retry(e):
 
 # 特殊功能函数
 # region
-# 键盘输入
-def typein(s):
-    for i in str(s):
-        hotkey(i)
-
-
-# pyperclip
-def copyto(s):
-    pyperclip.copy(s)
-    time.sleep(0.1)
-
-
-def pastefrom():
-    return pyperclip.paste()
-
-
-# 键盘
-def hotkey(*a):
-    pyautogui.hotkey(*a)
-    time.sleep(0.2)
-
-
-# 解释性语言，返回之前的程序上下文
-def context(step=0):
-    if step < 0:
-        return None
-    frame = inspect.currentframe().f_back
-    for i in range(step):
-        frame = frame.f_back
-    ret = inspect.getframeinfo(frame)
-    d = {}
-    d.update({'line': ret.lineno})
-    d.update({'file': ret.filename})
-    d.update({'code': ret.code_context})
-    d.update({'module': ret.function})
-    warn(d)
-    ret = []
-    ret.append(d)
-    return ret.append(context(step - 1))
-
-
 # 命令行
 # https://blog.csdn.net/weixin_42133116/article/details/114371614
 class CMD():
@@ -475,25 +434,30 @@ class CMD():
             raise IOError("File not found: %s" % filename)
 
 
-# 打开文件
-def look(path):
-    path = standarlizedPath(path)
-    if isdir(path):
-        os.startfile(path)
-        return
-    if not isfile(path) and not 'https' in path:
-        warn(f'不存在文件{path}')
-        return
-    os.startfile(path)
+#         endregion
+
+# 键鼠互动
+# region
+# 键盘输入
+def typein(s):
+    for i in str(s):
+        hotkey(i)
 
 
-def Open(path):
-    return look(path)
+# pyperclip
+def copyto(s):
+    pyperclip.copy(s)
+    sleep(0.1)
 
 
-def WARN(s):
-    now = Time()
-    win32api.MessageBox(None, s, f'Kaleidoscope{now.time()}', win32con.MB_OK)
+def pastefrom():
+    return pyperclip.paste()
+
+
+# 键盘
+def hotkey(*a):
+    pyautogui.hotkey(*a)
+    sleep(0.2)
 
 
 # 返回bit
@@ -535,42 +499,19 @@ def size(a, sum=0):
     return sum + sys.getsizeof(a)
 
 
+# 在屏幕指定位置进行剪贴板复制粘贴并按下回车
 def Input(x, y, s):
-    # 在屏幕指定位置进行剪贴板复制粘贴并按下回车
     pyperclip.copy(s)
     pyautogui.click(x, y)
-    time.sleep(1)
+    sleep(1)
     pyautogui.hotkey('ctrl' + 'v')
-    time.sleep(0.5)
+    sleep(0.5)
     pyautogui.hotkey('Enter')
-    time.sleep(1)
+    sleep(1)
 
 
-def TellStringSame(s1, s2, ratio=1):
-    s1 = str(s1)
-    s2 = str(s2)
-    if len(s1) > 3 and len(s2) > 3:
-        if s1.rfind(s2) >= 0 or s2.rfind(s1) >= 0:
-            return True
-    if len(s1) / len(s2) < ratio / 2 or len(s2) / len(s1) < ratio / 2:
-        return False
-
-    if len(s1) > 5:
-        for i in range(max(int(len(s1) * (1 - ratio)), 1)):
-            if s1[i:min(len(s1), i + int(len(s1) * ratio))] in s2:
-                return True
-    if len(s2) > 5:
-        for i in range(max(int(len(s1) * (1 - ratio)), 1)):
-            if s2[i:min(len(s2), i + int(len(s2) * ratio))] in s1:
-                return True
-    return False
-
-
-def tellstringsame(s1, s2):
-    # 只对中文开放
-    return TellStringSame(s1, s2)
-
-
+# 音视频
+# region
 # 使用ffmpeg剪切视频
 def cutvideo(inputpath, outputpath, start, end):
     sourcepath = os.path.abspath(inputpath)
@@ -593,6 +534,8 @@ def videolength(s):
         Exit(s)
     return VideoFileClip(s).duration
 
+
+# endregion
 
 def info(s):
     # 如果是类，列举属性和方法
@@ -676,665 +619,30 @@ class pool():
 
 # endregion
 
-# 爬虫
+
+
+# 文件系统读写
 # region
-# 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-# 最高占用
-def savepage(url,t=3,video=True,filter=0,):
-    page = Edge(url)
-    title=page.title()
-
-    # 全屏保存
-    page.maxwindow()
-    time.sleep(t)
-    hotkey('ctrl','shift','s')
-    sleep(1)
-    click('browser/捕获整页.png')
-    time.sleep(t)
-    lis1=listfile(userpath('Downloads'))
-    hotkey('ctrl','s')
-    time.sleep(t*2)
-    lis2=listfile(userpath('Downloads'))
-    for i in lis2:
-        if not i in lis1:
-            break
-    print(i,userpath(f'./Pictures/集锦/{title}.{gettail(i,".")}'))
-
-
-
-
-# 转到已经打开的edge并保存全部截屏
-def getpics(loop, path):
-    for i in range(loop):
-        hotkey('ctrl', 'shift', 's')
-        time.sleep(1)
-        click(1146, 174)
-        # 截图生成时间
-        time.sleep(4)
-        old = listfile('D:/')
-        click(1700, 112)
-        # 截图下载时间
-        time.sleep(2)
-        new = listfile('D:/')
-        for j in new:
-            if j in old:
-                continue
-            else:
-                break
-        move(j, f'{path}.{gettail(j, ".")}')
-
-
-def geturls(loop=1):
-    ret = []
-    hotkey('alt', 'tab')
-    for i in range(loop):
-        click(420, 62)
-        hotkey('ctrl', 'c')
-        ret.append(pyperclip.paste())
-        hotkey('ctrl', 'w')
-    hotkey('alt', 'tab')
-    return ret
-
-
-# 将网页置顶显示
-def alertpage(l):
-    page = l[0]
-    page.switch_to.window(page.window_handles[0])
-
-
-def Element(l, depth=5, silent=None):
-    res = elements(l, depth, silent)
-    if res == []:
-        return None
-    else:
-        return res[0]
-
-
-def element(l, depth=5, silent=None):
-    return Element(l, depth, silent)
-
-
-def elements(l, depth=5, silent=None):
-    return Elements(l, depth, silent)
-
-
-def Elements(l, depth=5, silent=None):
-    """
-    返回元素列表，找不到为[]
-    :param l:
-    :return:
-    """
-    page = l[0]
-    method = l[1]
-    s = l[2]
-    result = page.find_elements(method, s)
-    # delog((page,method,s))
-    # delog((result,type(result),len(result)))
-    if len(result):
-        return result
-    else:
-        depth += 1
-        time.sleep(2)
-        if debug and not silent:
-            # tip(f'元素未找到，重试... method={method}, string={s}')
-            {}
-        if depth >= 10:
-            if not silent:
-                warn(f'最终未获取到元素。 method={method},str={s}')
-            return []
-        else:
-            return Elements(l, depth, silent)
-
-
-# 必须要跳过的
-def skip(l, strict=False):
-    """
-    简单跳过，不做操作，等待人工操作来跳过，否则一直等待
-    :param l:列表：页面，XPATH/ID，字符串
-    :return:
-    """
-    page = l[0]
-    method = l[1]
-    s = l[2]
-    time.sleep(1)
-    if Element([page, method, s], depth=8, silent=True):
-        warn(f'{s} detected. 等待其消失中以继续。。。')
-        alertpage([page])
-        # if strict==True:
-        #     log(f'严格模式已打开。准备重建...')
-        #     raise retrylist[0]
-        WebDriverWait(page, 99999, 3).until_not(expected_conditions.presence_of_element_located(locator=(method, s)))
-        time.sleep(2)
-
-
-def getscrolltop(l):
-    page = l[0]
-    return page.execute_script('var q=document.documentElement.scrollTop;return(q)')
-
-
-def scrollheight(l):
-    page = l[0]
-    return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
-
-
-def scroll(l, silent=None, x=None, y=None):
-    """
-    :param l: 页面，第二个参数小于1可不传
-    :return:
-    """
-    if not type(l) in [list]:
-        if not x == None:
-            pyautogui.moveTo(x, y)
-            time.sleep(0.2)
-        flag = l / abs(l)
-        while abs(l) > 101:
-            l = abs(l) - 100
-            x = flag * -100
-            pyautogui.scroll(int(x))
-        return
-    log('滚动中..')
-    ti = time.time()
-    page = l[0]
-    ratio = 1
-    if len(l) > 1:
-        ratio = l[1]
-    ScrollTop = -1
-    while ScrollTop != getscrolltop([page]):
-        ScrollTop = getscrolltop([page])
-        if not silent == None:
-            delog(ScrollTop)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        time.sleep(1)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        time.sleep(1)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        time.sleep(1)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        time.sleep(1)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        time.sleep(3)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        time.sleep(1)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-    log(f'滚动完毕。 {time.time() - ti} s.')
-
-
-def requestdownload(LocalPath, url, mode='rb'):
-    CreatePath(LocalPath)
-    try:
-        with open(LocalPath, mode) as f:
-            f.write(requests.get(url=url, headers=headers).content)
-    except(requests.exceptions.SSLError):
-        try:
-            with open(LocalPath, mode) as f:
-                f.write(requests.get(url=url, headers=headers, verify=False).content)
-        finally:
-            input('SSLError')
-            requestdownload(LocalPath, mode, url)
-
-
-def chrome(url='', mine=None, silent=None, t=100):
-    try:
-        options = webdriver.ChromeOptions()
-        options.add_argument('--start-maxmized')
-        if not mine == None:
-            time.sleep(3)
-            options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
-            options.add_experimental_option("excludeSwitches", ['enable-automation'])
-        if not silent in [None, False]:
-            options.add_argument('headless')
-        driver = webdriver.Chrome(options=options)
-        driver.set_page_load_timeout(t)
-        driver.set_script_timeout(t)
-        if not url == '':
-            driver.get(url)
-        return driver
-    except selenium.common.exceptions.InvalidArgumentException:
-        driver.quit()
-        warn('旧页面未关闭。请关闭。')
-        c = input()
-        return chrome()
-
-
-class Edge():
-
-    def __init__(self, url='', silent=None):
-        self.driver = edge(url=url, silent=silent)
-        self.silent=silent
-        self.set_window_size(900,1000)
-
-    # 到上层显示窗口
-    def top(self):
-        if self.silent==False:
-            Exit()
-        hotkey('win','d')
-        self.switchto()
-
-    # 最大化窗口
-    def maxwindow(self):
-        self.driver.maximize_window()
-
-    # 返回窗口列表
-    def windows(self):
-        return self.driver.window_handles
-
-    # 新建窗口
-    def newwindow(self, url=''):
-        if not 'https://' in url:
-            url = 'https://' + url
-        self.driver.execute_script(f'window.open("{url}")')
-
-    def refresh(self):
-        self.driver.refresh()
-        time.sleep(1)
-
-    def url(self):
-        return self.driver.current_url
-
-    def scrollto(self, a=None):
-        return Edge.scroll(self, a)
-
-    @listed
-    def clickelement(self, *a):
-        return Edge.click(a)
-
-    def click(self, *a):
-        if len(a) > 1:
-            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
-            Exit(' 未实现')
-        s = a[0]
-        if type(s) in [str]:
-            return Edge.click(self, Edge.element(self, s))
-        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
-            try:
-                s.click()
-            except:
-                try:
-                    ActionChains(self.driver).move_to_element(to_element=s).click().perform()
-                    return
-                except Exception as e:
-                    warn(['clickelement error！', e])
-
-    # 根据多个但只有一个有效的字符串匹配元素，返回第一个
-    def element(self, *a, **b):
-        return self.elements(*a, **b)[0]
-
-    # 根据多个但只有一个有效的字符串匹配元素，返回第一组
-    def elements(self, s1, depth=9, silent=True, strict=True):
-        '''
-
-        @param s:
-        @param depth:
-        @param silent:
-        @param strict:True表示如果没找到，直接报错
-        @return:
-        '''
-        s = s1
-        # 重写xpath规则
-        for i in ['@href', '@src', 'text()']:
-            s = Strip(s, '/' + i)
-
-        # 获取元素列表
-        if not type(s) == list:
-            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent)
-        else:
-            for i in s:
-                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=silent)
-                if not ret == []:
-                    break
-        if strict:
-            self.errorscr(ret)
-
-        # 重写xpath规则
-        newret = []
-        if 'text()' in s1[-6:]:
-            for i in ret:
-                newret.append(i.text)
-        elif '@href' in s1[-5:]:
-            for i in ret:
-                newret.append(i.get_attribute('href'))
-        elif '@src' in s1[-4:]:
-            for i in ret:
-                newret.append(i.get_attribute('src'))
-        else:
-            return ret
-        return newret
-
-    def scroll(self, a=-1):
-        if type(a) in [int]:
-            if a == -1:
-                scroll([(self.driver)])
-            else:
-                setscrolltop([self.driver, a])
-            return
-        if type(a) in [str]:
-            e = Edge.element(self, a)
-            setscrolltop([self.driver, e.location('y')])
-            return
-        if type(a) in [selenium.webdriver.remote.webelement.WebElement]:
-            setscrolltop([self.driver, a.location['y'] - a.size['height']])
-            return
-
-    def down(self):
-        scroll([self.driver], silent=True)
-
-    def quit(self):
-        self.driver.quit()
-
-    def __del__(self):
-        try:
-            self.driver.quit()
-        except Exception as e:
-            print(e)
-            # warn(e)
-
-    def open(self, url):
-        url = 'https://' + url.strip('https://')
-        self.driver.execute_script(f"window.open('{url}')")
-        Edge.switchto(self, )
-
-    def get(self, url):
-        if not 'https://' in url:
-            url = 'https://' + url
-        self.driver.get(url)
-        time.sleep(0.4)
-
-    def switchto(self, n=-1):
-        self.driver.switch_to.window(self.driver.window_handles[n])
-
-    def set_window_size(self, *a, **b):
-        self.driver.set_window_size(*a, **b)
-
-    # 取决于当前窗口大小
-    def screenshot(self, path, s):
-        path = standarlizedPath(path)
-        if isfile(path):
-            warn(f'{path}已存在。即将覆盖下载')
-        path = path.strip('.png') + '.png'
-        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
-            file('wb', path, s.screenshot_as_png)
-            return
-        if type(s) in [str]:
-            Edge.screenshot(self, path, Edge.element(self, s))
-            return
-
-    # 遇到异常（元素为空时），终止并检查当前页面截图
-    def errorscr(self, t=None):
-        if t in [None, False, []]:
-            print(nowstr())
-            path = f'D:/Kaleidoscope/error/current.png'
-            self.driver.get_screenshot_as_file(path)
-            look(path)
-            pyperclip.copy(self.driver.current_url)
-            Exit(f'{self.url()}   {context(2)}  t={t}')
-
-    # 查看当前页面
-    def look(self, a=None):
-        path = f'D:/Kaleidoscope/error/current.png'
-        if not a == None:
-            self.screenshot(path, a)
-            look(path)
-            return
-        deletedirandfile([path])
-        self.driver.get_screenshot_as_file(path)
-        look(path)
-
-    def close(self):
-        self.driver.close()
-
-    def skip(self, s):
-        return skip([self.driver, By.XPATH, s])
-
-    def title(self):
-        return title([self.driver])
-
-
-class Chrome(Edge):
-    def __init__(self, url='', mine=None, silent=None, t=100):
-        self.driver = chrome(url, mine=mine, silent=silent, t=t)
-        time.sleep(1)
-
-    def maximize(self):
-        self.driver.maximize_window()
-
-
-def edge(url='', silent=None):
-    options = webdriver.EdgeOptions()
-    if not silent == None:
-        options.add_argument('headless')
-    try:
-        driver = webdriver.Edge(options=options)
-    except selenium.common.exceptions.SessionNotCreatedException:
-        warn('貌似msedgedriver.exe版本过低。已经自动复制网址链接。请打开浏览器进行下载。')
-        pyperclip.copy('https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/')
-        delog('点击 edge://version/ 以查看浏览器版本。')
-        sys.exit(-1)
-    if not url == '':
-        try:
-            driver.get(url)
-        except selenium.common.exceptions.InvalidArgumentException:
-            if not 'https://' in url:
-                url = 'https://' + url
-                driver.get(url)
-    return driver
-
-
-# 点击屏幕
-def click(x, y=10, button='left', silent=True):
-    if type(x) in [str]:
-        if not '.png' in x:
-            x += '.png'
-        path = projectpath(x)
-        if isfile(path):
-            for confidence in [0.6,0.5,0.4,0.3]:
-                pos = pyautogui.locateOnScreen(path, confidence=confidence, grayscale=True)
-                if pos==None:
-                    continue
-                else:
-                    p=pyautogui.center(pos)
-                    click(p.x,p.y)
-                    return
-    #     没找到
-        Open(path)
-        Exit(path)
-    try:
-        pyautogui.click(x, y, button=button)
-        time.sleep(0.2)
-        if not silent:
-            print(f'{x}   {y}')
-    except Exception as e:
-        if type(e) in [pyautogui.FailSafeException]:
-            Exit(f'可能是选取点击的坐标过于极端。 x:{x}    y:{y}')
-        warn(e)
-        sys.exit(-1)
-
-
-# 右击屏幕
-def rclick(x, y):
-    click(x,y,button='right')
-
-
-# 点击元素
-def clickelement(l):
-    if len(l) > 2:
-        try:
-            Element(l).click()
-            return
-        except:
-            try:
-                ActionChains(l[0]).move_to_element(to_element=Element(l)).click().perform()
-                return
-            except Exception as e:
-                warn(['clickelement error！', e])
-    else:
-        page = l[0]
-        element = l[1]
-        try:
-            element.click()
-            return
-        except:
-            try:
-                ActionChains(page).move_to_element(to_element=element).clickelement().perform()
-                return
-            except Exception as e:
-                warn(['clickelement error!', e])
-
-    time.sleep(1)
-
-
-def MyPress(l):
-    page = l[0]
-    s = l[1]
-    if s == 'down':
-        k = Keys.DOWN
-    ActionChains(page).key_down(k).key_up(k).perform()
-
-
-def title(l):
-    page = l[0]
-    element = Element([page, By.XPATH, '/html/head/title'])
-    if element == None:
-        return None
-    return standarlizedFileName(element.get_attribute('text'))
-
-
-def setscrolltop(l):
-    (page, x) = l
-    page.execute_script(f'document.documentElement.scrollTop={x}')
-
-
-@consume
-def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
-    # 如果下载失败，再下载一次
-    # t：下载和下载后浏览器自动安全检查的时间
-    def recursive():
-        time.sleep(t)
-        page.quit()
-        time.sleep(1)
-        if os.path.exists(path + '.crdownload'):
-            os.remove(path + '.crdownload')
-            warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
-            # warn(f'download failed.No crdownload file left(auto deleted). you may try{url}')
-            return pagedownload(url, path, t=t + t, depth=depth + 1)
-        return True
-
-    # 递归停止条件
-    # region
-    if depth > 5:
-        warn('最终下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
-        return False
-    # endregion
-
-    # 获取变量
-    # region
-    path = standarlizedPath(path, strict=True)
-    if path.find('.') < 0:
-        path += '/'
-    if os.path.exists(path):
-        warn(f'{path}已存在，将进行覆盖下载')
-    root = (path[:path.rfind('\\')])
-    name = path[path.rfind('\\') + 1:]
-    options = webdriver.ChromeOptions()
-    # 设置下载路径
-    prefs = {'download.default_directory': f'{root}'}
-    options.add_experimental_option('prefs', prefs)
-    if silent == True:
-        options.headless = True
-    page = webdriver.Chrome(chrome_options=options)
-    # endregion
-
-    # 打开页面
-    try:
-        page.get(url)
-        # 如果服务器直接403
-        # region
-        if tellstringsame(page.title, '403 forbidden'):
-            warn(f'这个url已经被服务器关闭  403  ：{url}')
-            return False
-        # endregion
-
-    except Exception as e:
-        # 仍然可以强制下载的报错
-        if type(e) in [ZeroDivisionError, ]:
-            warn(e)
-        elif type(e) in [selenium.common.exceptions.WebDriverException]:
-            # 需要重启pagedownload的下载报错
-            warn(e)
-            page.quit()
-            return pagedownload(url, path, t, silent, depth + 1)
-        else:
-            warn(e)
-            warn(type(e))
-            sys.exit(-1)
-
-    i = 0
-    # 如果这个链接打开就能自动下载
-    # region
-    if not auto == None:
-        return recursive()
-    # endregion
-
-    # region
-    while i < 10:
-        # 什么？？？竟然要尝试10次，哈哈哈真是笑死我了
-        try:
-            page.execute_script(f"var a1=document.createElement('a');\
-            a1.href='{url}';\
-            a1.download='{name}';\
-            console.log(a1);\
-            a1.click();")
-            break
-        except Exception as e:
-            warn('下载重试中...')
-            warn(e)
-            warn(type(e))
-            i += 1
-    # endregion
-
-    return recursive()
-
-
-def scrshot(l):
-    (element, path) = l
+# 打开文件
+def look(path):
     path = standarlizedPath(path)
-    if isfile(path):
-        warn(f'{path}已存在。即将覆盖下载')
-    path = path.strip('.png') + '.png'
-    file('wb', path, element.screenshot_as_png)
+    if isdir(path):
+        os.startfile(path)
+        return
+    if not isfile(path) and not 'https' in path:
+        warn(f'不存在文件{path}')
+        return
+    os.startfile(path)
 
 
-# endregion
+def Open(path):
+    return look(path)
 
-# 文件读写
-# region
+
 # 返回C盘用户目录
 def userpath(s=''):
+    if 'C:/'in s:
+        return
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -1344,6 +652,8 @@ def userpath(s=''):
 
 # 返回项目源代码根目录
 def projectpath(s=''):
+    if 'D:/Kaleidoscope'in s:
+        return
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -1353,6 +663,8 @@ def projectpath(s=''):
 
 # 返回项目临时文件根目录
 def cachepath(s=''):
+    if 'Kaleidoscope/cache'in s:
+        return
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -1709,6 +1021,8 @@ def file(mode, path, IOList=None, encoding=None):
 
 
 def DesktopPath(s=''):
+    if 'esktop'in s:
+        return
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -2079,7 +1393,7 @@ class cache():
             except Exception as e:
                 warn(e)
                 warn('cache获取失败。正在重试')
-                time.sleep(2)
+                sleep(2)
 
     def add(self, s):
         s = dicttojson(s)
@@ -2103,6 +1417,30 @@ class rjson(RefreshJson):
 
 #  日志
 # region
+# 解释性语言，返回之前的程序上下文
+def context(step=0):
+    if step < 0:
+        return None
+    frame = inspect.currentframe().f_back
+    for i in range(step):
+        frame = frame.f_back
+    ret = inspect.getframeinfo(frame)
+    d = {}
+    d.update({'line': ret.lineno})
+    d.update({'file': ret.filename})
+    d.update({'code': ret.code_context})
+    d.update({'module': ret.function})
+    warn(d)
+    ret = []
+    ret.append(d)
+    return ret.append(context(step - 1))
+
+
+def WARN(s):
+    now = Time()
+    win32api.MessageBox(None, s, f'Kaleidoscope{now.time()}', win32con.MB_OK)
+
+
 def alert(s=''):
     # t=Time()
     p = pool(1)
@@ -2139,7 +1477,7 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
                                  location=(120 * 16 / 3 * 2, 0), auto_close=True, auto_close_duration=duration,
                                  transparent_color='#add123', margins=(0, 0))
         event, values = win.read(timeout=0)
-        time.sleep(0.3)
+        sleep(0.3)
         return win
 
     def func(duration, ):
@@ -2153,7 +1491,7 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
             consolerunning.l[0] == '1'
             consolerunning.save()
         while duration > 0:
-            time.sleep(refreshtime)
+            sleep(refreshtime)
             duration -= refreshtime
             show()
 
@@ -2343,6 +1681,31 @@ def value(d):
 
 # 字符串
 # region
+def TellStringSame(s1, s2, ratio=1):
+    s1 = str(s1)
+    s2 = str(s2)
+    if len(s1) > 3 and len(s2) > 3:
+        if s1.rfind(s2) >= 0 or s2.rfind(s1) >= 0:
+            return True
+    if len(s1) / len(s2) < ratio / 2 or len(s2) / len(s1) < ratio / 2:
+        return False
+
+    if len(s1) > 5:
+        for i in range(max(int(len(s1) * (1 - ratio)), 1)):
+            if s1[i:min(len(s1), i + int(len(s1) * ratio))] in s2:
+                return True
+    if len(s2) > 5:
+        for i in range(max(int(len(s1) * (1 - ratio)), 1)):
+            if s2[i:min(len(s2), i + int(len(s2) * ratio))] in s1:
+                return True
+    return False
+
+
+def tellstringsame(s1, s2):
+    # 只对中文开放
+    return TellStringSame(s1, s2)
+
+
 # 去除字符串末尾
 def Strip(s, tail):
     if not type(s) in [str] and type(tail) in [str]:
@@ -2435,6 +1798,663 @@ def getdiskname():
     else:
         disknames.add(diskinfo.d['name'])
     return diskinfo.d['name'][0]
+
+
+# endregion
+
+# 爬虫
+# region
+
+# 全屏保存
+
+
+# 转到已经打开的edge并保存全部截屏
+def getpics(loop, path):
+    for i in range(loop):
+        hotkey('ctrl', 'shift', 's')
+        sleep(1)
+        click(1146, 174)
+        # 截图生成时间
+        sleep(4)
+        old = listfile('D:/')
+        click(1700, 112)
+        # 截图下载时间
+        sleep(2)
+        new = listfile('D:/')
+        for j in new:
+            if j in old:
+                continue
+            else:
+                break
+        move(j, f'{path}.{gettail(j, ".")}')
+
+
+def geturls(loop=1):
+    ret = []
+    hotkey('alt', 'tab')
+    for i in range(loop):
+        click(420, 62)
+        hotkey('ctrl', 'c')
+        ret.append(pyperclip.paste())
+        hotkey('ctrl', 'w')
+    hotkey('alt', 'tab')
+    return ret
+
+
+# 将网页置顶显示
+def alertpage(l):
+    page = l[0]
+    page.switch_to.window(page.window_handles[0])
+
+
+def Element(l, depth=5, silent=None):
+    res = elements(l, depth, silent)
+    if res == []:
+        return None
+    else:
+        return res[0]
+
+
+def element(l, depth=5, silent=None):
+    return Element(l, depth, silent)
+
+
+def elements(l, depth=5, silent=None):
+    return Elements(l, depth, silent)
+
+
+def Elements(l, depth=5, silent=None):
+    """
+    返回元素列表，找不到为[]
+    :param l:
+    :return:
+    """
+    page = l[0]
+    method = l[1]
+    s = l[2]
+    result = page.find_elements(method, s)
+    # delog((page,method,s))
+    # delog((result,type(result),len(result)))
+    if len(result):
+        return result
+    else:
+        depth += 1
+        sleep(2)
+        if debug and not silent:
+            # tip(f'元素未找到，重试... method={method}, string={s}')
+            {}
+        if depth >= 10:
+            if not silent:
+                warn(f'最终未获取到元素。 method={method},str={s}')
+            return []
+        else:
+            return Elements(l, depth, silent)
+
+
+# 必须要跳过的
+def skip(l, strict=False):
+    """
+    简单跳过，不做操作，等待人工操作来跳过，否则一直等待
+    :param l:列表：页面，XPATH/ID，字符串
+    :return:
+    """
+    page = l[0]
+    method = l[1]
+    s = l[2]
+    sleep(1)
+    if Element([page, method, s], depth=8, silent=True):
+        warn(f'{s} detected. 等待其消失中以继续。。。')
+        alertpage([page])
+        # if strict==True:
+        #     log(f'严格模式已打开。准备重建...')
+        #     raise retrylist[0]
+        WebDriverWait(page, 99999, 3).until_not(expected_conditions.presence_of_element_located(locator=(method, s)))
+        sleep(2)
+
+
+def getscrolltop(l):
+    page = l[0]
+    return page.execute_script('var q=document.documentElement.scrollTop;return(q)')
+
+
+def scrollheight(l):
+    page = l[0]
+    return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
+
+
+def scroll(l, silent=None, x=None, y=None):
+    """
+    :param l: 页面，第二个参数小于1可不传
+    :return:
+    """
+    if not type(l) in [list]:
+        if not x == None:
+            pyautogui.moveTo(x, y)
+            sleep(0.2)
+        flag = l / abs(l)
+        while abs(l) > 101:
+            l = abs(l) - 100
+            x = flag * -100
+            pyautogui.scroll(int(x))
+        return
+    log('滚动中..')
+    ti = time.time()
+    page = l[0]
+    ratio = 1
+    if len(l) > 1:
+        ratio = l[1]
+    ScrollTop = -1
+    while ScrollTop != getscrolltop([page]):
+        ScrollTop = getscrolltop([page])
+        if not silent == None:
+            delog(ScrollTop)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        sleep(1)
+        if ScrollTop != getscrolltop([page]):
+            continue
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        sleep(1)
+        if ScrollTop != getscrolltop([page]):
+            continue
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        sleep(1)
+        if ScrollTop != getscrolltop([page]):
+            continue
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        sleep(1)
+        if ScrollTop != getscrolltop([page]):
+            continue
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        sleep(3)
+        if ScrollTop != getscrolltop([page]):
+            continue
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+        sleep(1)
+        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+    log(f'滚动完毕。 {time.time() - ti} s.')
+
+
+def requestdownload(LocalPath, url, mode='rb'):
+    CreatePath(LocalPath)
+    try:
+        with open(LocalPath, mode) as f:
+            f.write(requests.get(url=url, headers=headers).content)
+    except(requests.exceptions.SSLError):
+        try:
+            with open(LocalPath, mode) as f:
+                f.write(requests.get(url=url, headers=headers, verify=False).content)
+        finally:
+            input('SSLError')
+            requestdownload(LocalPath, mode, url)
+
+
+def chrome(url='', mine=None, silent=None, t=100):
+    try:
+        options = webdriver.ChromeOptions()
+        options.add_argument('--start-maxmized')
+        if not mine == None:
+            sleep(3)
+            options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
+            options.add_experimental_option("excludeSwitches", ['enable-automation'])
+        if not silent in [None, False]:
+            options.add_argument('headless')
+        driver = webdriver.Chrome(options=options)
+        driver.set_page_load_timeout(t)
+        driver.set_script_timeout(t)
+        if not url == '':
+            driver.get(url)
+        return driver
+    except selenium.common.exceptions.InvalidArgumentException:
+        driver.quit()
+        warn('旧页面未关闭。请关闭。')
+        c = input()
+        return chrome()
+
+class Edge():
+    def __init__(self, url='', silent=None):
+        self.driver = edge(url=url, silent=silent)
+        self.silent = silent
+        self.set_window_size(900, 1000)
+
+    # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
+    def save(self,video=True, filter=0,t=3):
+        path=userpath(f'Pictures/集锦/{self.title()}/')
+        createpath(path)
+        self.ctrlshifts(path,t)
+        # self.savepics()
+        # self.savevideos()
+
+    # 快捷键保存截屏
+    def ctrlshifts(self, path,t=3):
+        self.top()
+        self.maxwindow()
+        hotkey('ctrl', 'shift', 's')
+        sleep(1)
+        click('browser/捕获整页.png')
+        sleep(t)
+        lis1 = listfile(userpath('Downloads'))
+        hotkey('ctrl', 's')
+        sleep(t * 2)
+        lis2 = listfile(userpath('Downloads'))
+        for i in lis2:
+            if not i in lis1:
+                break
+        move(i, f'{path}/basic.{gettail(i, ".")}')
+
+    # 到上层显示窗口
+    def top(self):
+        if self.silent == False:
+            Exit()
+        hotkey('win', 'd')
+        self.switchto()
+
+    # 最大化窗口
+    def maxwindow(self):
+        self.driver.maximize_window()
+
+    # 返回窗口列表
+    def windows(self):
+        return self.driver.window_handles
+
+    # 新建窗口
+    def newwindow(self, url=''):
+        if not 'https://' in url:
+            url = 'https://' + url
+        self.driver.execute_script(f'window.open("{url}")')
+
+    def refresh(self):
+        self.driver.refresh()
+        sleep(1)
+
+    def url(self):
+        return self.driver.current_url
+
+    def scrollto(self, a=None):
+        return Edge.scroll(self, a)
+
+    @listed
+    def clickelement(self, *a):
+        return Edge.click(a)
+
+    def click(self, *a):
+        if len(a) > 1:
+            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
+            Exit(' 未实现')
+        s = a[0]
+        if type(s) in [str]:
+            return Edge.click(self, Edge.element(self, s))
+        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            try:
+                s.click()
+            except:
+                try:
+                    ActionChains(self.driver).move_to_element(to_element=s).click().perform()
+                    return
+                except Exception as e:
+                    warn(['clickelement error！', e])
+
+    # 根据多个但只有一个有效的字符串匹配元素，返回第一个
+    def element(self, *a, **b):
+        return self.elements(*a, **b)[0]
+
+    # 根据多个但只有一个有效的字符串匹配元素，返回第一组
+    def elements(self, s1, depth=9, silent=True, strict=True):
+        '''
+
+        @param s:
+        @param depth:
+        @param silent:
+        @param strict:True表示如果没找到，直接报错
+        @return:
+        '''
+        s = s1
+        # 重写xpath规则
+        for i in ['@href', '@src', 'text()']:
+            s = Strip(s, '/' + i)
+
+        # 获取元素列表
+        if not type(s) == list:
+            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent)
+        else:
+            for i in s:
+                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=silent)
+                if not ret == []:
+                    break
+        if strict:
+            self.errorscr(ret)
+
+        # 重写xpath规则
+        newret = []
+        if 'text()' in s1[-6:]:
+            for i in ret:
+                newret.append(i.text)
+        elif '@href' in s1[-5:]:
+            for i in ret:
+                newret.append(i.get_attribute('href'))
+        elif '@src' in s1[-4:]:
+            for i in ret:
+                newret.append(i.get_attribute('src'))
+        else:
+            return ret
+        return newret
+
+    def scroll(self, a=-1):
+        if type(a) in [int]:
+            if a == -1:
+                scroll([(self.driver)])
+            else:
+                setscrolltop([self.driver, a])
+            return
+        if type(a) in [str]:
+            e = Edge.element(self, a)
+            setscrolltop([self.driver, e.location('y')])
+            return
+        if type(a) in [selenium.webdriver.remote.webelement.WebElement]:
+            setscrolltop([self.driver, a.location['y'] - a.size['height']])
+            return
+
+    def down(self):
+        scroll([self.driver], silent=True)
+
+    def quit(self):
+        self.driver.quit()
+
+    def __del__(self):
+        try:
+            self.driver.quit()
+        except Exception as e:
+            print(e)
+            # warn(e)
+
+    def open(self, url):
+        url = 'https://' + url.strip('https://')
+        self.driver.execute_script(f"window.open('{url}')")
+        Edge.switchto(self, )
+
+    def get(self, url):
+        if not 'https://' in url:
+            url = 'https://' + url
+        self.driver.get(url)
+        sleep(0.4)
+
+    def switchto(self, n=-1):
+        self.driver.switch_to.window(self.driver.window_handles[n])
+
+    def set_window_size(self, *a, **b):
+        self.driver.set_window_size(*a, **b)
+
+    # 取决于当前窗口大小
+    def screenshot(self, path, s):
+        path = standarlizedPath(path)
+        if isfile(path):
+            warn(f'{path}已存在。即将覆盖下载')
+        path = path.strip('.png') + '.png'
+        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            file('wb', path, s.screenshot_as_png)
+            return
+        if type(s) in [str]:
+            Edge.screenshot(self, path, Edge.element(self, s))
+            return
+
+    # 遇到异常（元素为空时），终止并检查当前页面截图
+    def errorscr(self, t=None):
+        if t in [None, False, []]:
+            print(nowstr())
+            path = f'D:/Kaleidoscope/error/current.png'
+            self.driver.get_screenshot_as_file(path)
+            look(path)
+            pyperclip.copy(self.driver.current_url)
+            Exit(f'{self.url()}   {context(2)}  t={t}')
+
+    # 查看当前页面
+    def look(self, a=None):
+        path = f'D:/Kaleidoscope/error/current.png'
+        if not a == None:
+            self.screenshot(path, a)
+            look(path)
+            return
+        deletedirandfile([path])
+        self.driver.get_screenshot_as_file(path)
+        look(path)
+
+    def close(self):
+        self.driver.close()
+
+    def skip(self, s):
+        return skip([self.driver, By.XPATH, s])
+
+    def title(self):
+        return title([self.driver])
+
+
+class Chrome(Edge):
+    def __init__(self, url='', mine=None, silent=None, t=100):
+        self.driver = chrome(url, mine=mine, silent=silent, t=t)
+        sleep(1)
+
+    def maximize(self):
+        self.driver.maximize_window()
+
+
+def edge(url='', silent=None):
+    options = webdriver.EdgeOptions()
+    if not silent == None:
+        options.add_argument('headless')
+    try:
+        driver = webdriver.Edge(options=options)
+    except selenium.common.exceptions.SessionNotCreatedException:
+        warn('貌似msedgedriver.exe版本过低。已经自动复制网址链接。请打开浏览器进行下载。')
+        pyperclip.copy('https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/')
+        delog('点击 edge://version/ 以查看浏览器版本。')
+        sys.exit(-1)
+    if not url == '':
+        try:
+            driver.get(url)
+        except selenium.common.exceptions.InvalidArgumentException:
+            if not 'https://' in url:
+                url = 'https://' + url
+                driver.get(url)
+    return driver
+
+
+# 点击屏幕
+def click(x, y=10, button='left', silent=True):
+    if type(x) in [str]:
+        if not '.png' in x:
+            x += '.png'
+        path = projectpath(x)
+        if isfile(path):
+            for confidence in [0.6, 0.5, 0.4, 0.3]:
+                pos = pyautogui.locateOnScreen(path, confidence=confidence, grayscale=True)
+                if pos == None:
+                    continue
+                else:
+                    p = pyautogui.center(pos)
+                    click(p.x, p.y)
+                    return
+        #     没找到
+        Open(path)
+        Exit(path)
+    try:
+        pyautogui.click(x, y, button=button)
+        sleep(0.2)
+        if not silent:
+            print(f'{x}   {y}')
+    except Exception as e:
+        if type(e) in [pyautogui.FailSafeException]:
+            Exit(f'可能是选取点击的坐标过于极端。 x:{x}    y:{y}')
+        warn(e)
+        sys.exit(-1)
+
+
+# 右击屏幕
+def rclick(x, y):
+    click(x, y, button='right')
+
+
+# 点击元素
+def clickelement(l):
+    if len(l) > 2:
+        try:
+            Element(l).click()
+            return
+        except:
+            try:
+                ActionChains(l[0]).move_to_element(to_element=Element(l)).click().perform()
+                return
+            except Exception as e:
+                warn(['clickelement error！', e])
+    else:
+        page = l[0]
+        element = l[1]
+        try:
+            element.click()
+            return
+        except:
+            try:
+                ActionChains(page).move_to_element(to_element=element).clickelement().perform()
+                return
+            except Exception as e:
+                warn(['clickelement error!', e])
+
+    sleep(1)
+
+
+def MyPress(l):
+    page = l[0]
+    s = l[1]
+    if s == 'down':
+        k = Keys.DOWN
+    ActionChains(page).key_down(k).key_up(k).perform()
+
+
+def title(l):
+    page = l[0]
+    element = Element([page, By.XPATH, '/html/head/title'])
+    if element == None:
+        return None
+    return standarlizedFileName(element.get_attribute('text'))
+
+
+def setscrolltop(l):
+    (page, x) = l
+    page.execute_script(f'document.documentElement.scrollTop={x}')
+
+
+@consume
+def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
+    # 如果下载失败，再下载一次
+    # t：下载和下载后浏览器自动安全检查的时间
+    def recursive():
+        sleep(t)
+        page.quit()
+        sleep(1)
+        if os.path.exists(path + '.crdownload'):
+            os.remove(path + '.crdownload')
+            warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
+            # warn(f'download failed.No crdownload file left(auto deleted). you may try{url}')
+            return pagedownload(url, path, t=t + t, depth=depth + 1)
+        return True
+
+    # 递归停止条件
+    # region
+    if depth > 5:
+        warn('最终下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
+        return False
+    # endregion
+
+    # 获取变量
+    # region
+    path = standarlizedPath(path, strict=True)
+    if path.find('.') < 0:
+        path += '/'
+    if os.path.exists(path):
+        warn(f'{path}已存在，将进行覆盖下载')
+    root = (path[:path.rfind('\\')])
+    name = path[path.rfind('\\') + 1:]
+    options = webdriver.ChromeOptions()
+    # 设置下载路径
+    prefs = {'download.default_directory': f'{root}'}
+    options.add_experimental_option('prefs', prefs)
+    if silent == True:
+        options.headless = True
+    page = webdriver.Chrome(chrome_options=options)
+    # endregion
+
+    # 打开页面
+    try:
+        page.get(url)
+        # 如果服务器直接403
+        # region
+        if tellstringsame(page.title, '403 forbidden'):
+            warn(f'这个url已经被服务器关闭  403  ：{url}')
+            return False
+        # endregion
+
+    except Exception as e:
+        # 仍然可以强制下载的报错
+        if type(e) in [ZeroDivisionError, ]:
+            warn(e)
+        elif type(e) in [selenium.common.exceptions.WebDriverException]:
+            # 需要重启pagedownload的下载报错
+            warn(e)
+            page.quit()
+            return pagedownload(url, path, t, silent, depth + 1)
+        else:
+            warn(e)
+            warn(type(e))
+            sys.exit(-1)
+
+    i = 0
+    # 如果这个链接打开就能自动下载
+    # region
+    if not auto == None:
+        return recursive()
+    # endregion
+
+    # region
+    while i < 10:
+        # 什么？？？竟然要尝试10次，哈哈哈真是笑死我了
+        try:
+            page.execute_script(f"var a1=document.createElement('a');\
+            a1.href='{url}';\
+            a1.download='{name}';\
+            console.log(a1);\
+            a1.click();")
+            break
+        except Exception as e:
+            warn('下载重试中...')
+            warn(e)
+            warn(type(e))
+            i += 1
+    # endregion
+
+    return recursive()
+
+
+def scrshot(l):
+    (element, path) = l
+    path = standarlizedPath(path)
+    if isfile(path):
+        warn(f'{path}已存在。即将覆盖下载')
+    path = path.strip('.png') + '.png'
+    file('wb', path, element.screenshot_as_png)
 
 
 # endregion

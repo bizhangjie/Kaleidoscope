@@ -10,5 +10,5 @@ def main():
 
 
 if __name__ == '__main__':
-    MyUtils.savepage('https://www.baidu.com/s?ie=UTF-8&wd=edge%E6%8D%95%E8%8E%B7%E6%95%B4%E9%A1%B5%20%E5%BF%AB%E6%8D%B7%E9%94%AE')
-    # MyUtils.click('browser/捕获整页.png')
+    page=MyUtils.Edge('https://www.baidu.com/s?ie=UTF-8&wd=edge%E6%8D%95%E8%8E%B7%E6%95%B4%E9%A1%B5%20%E5%BF%AB%E6%8D%B7%E9%94%AE')
+    page.save()
