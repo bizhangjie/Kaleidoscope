@@ -150,6 +150,7 @@ class up():
 # 视频
 class video():
     def __init__(self, a):
+        self.exist=True
 
         # 用网页视频列表json构建
         if type(a)in[dict]:
@@ -166,7 +167,8 @@ class video():
             self.bvid=bvid=a
             page=MyUtils.Edge(f'https://www.bilibili.com/video/{bvid}',silent=True)
             if '出错啦'in page.title():
-                MyUtils.Exit(bvid)
+                self.exist=False
+                return
             self.title=page.element('//*[@id="viewbox_report"]/h1').text
             es=page.elements("//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip') or starts-with(@href,'//space') and contains(@class,'user') or starts-with(@href,'//space') and contains(@class,'up')]")
             useruids=[]

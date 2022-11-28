@@ -11,7 +11,6 @@ import subprocess
 import sys
 import time
 from glob import glob
-import re
 
 import PySimpleGUI
 import pyautogui
@@ -46,25 +45,30 @@ from selenium.webdriver.support.ui import WebDriverWait
 # region
 # 多名函数
 def newname(func):
-    def inner(originalfunc,*a,**b):
-        return originalfunc(*a,**b)
+    def inner(originalfunc, *a, **b):
+        return originalfunc(*a, **b)
+
     return inner
+
 
 # 只有一个参数，如果有多个，则重复执行函数，或者空参数
 def multisingleargs(func):
     def inner(*a):
-        res=[]
-        if a in [None,(),[]]:
+        res = []
+        if a in [None, (), []]:
             return func()
         for i in a:
             res.append(func(i))
         return res
+
     return inner
+
+
 # 最后一个参数可以是列表以重复执行
 def listed(func):
     def inner(*a):
         res = []
-        if a in [None,(),[]]:
+        if a in [None, (), []]:
             return func()
         if type(a[-1]) == list:
             b = a[:-1]
@@ -383,21 +387,26 @@ def typein(s):
     for i in str(s):
         hotkey(i)
 
+
 # pyperclip
 def copyto(s):
     pyperclip.copy(s)
     time.sleep(0.1)
+
+
 def pastefrom():
     return pyperclip.paste()
+
 
 # 键盘
 def hotkey(*a):
     pyautogui.hotkey(*a)
     time.sleep(0.2)
 
+
 # 解释性语言，返回之前的程序上下文
 def context(step=0):
-    if step<0:
+    if step < 0:
         return None
     frame = inspect.currentframe().f_back
     for i in range(step):
@@ -409,9 +418,9 @@ def context(step=0):
     d.update({'code': ret.code_context})
     d.update({'module': ret.function})
     warn(d)
-    ret=[]
+    ret = []
     ret.append(d)
-    return ret.append(context(step-1))
+    return ret.append(context(step - 1))
 
 
 # 命令行
@@ -468,7 +477,7 @@ class CMD():
 
 # 打开文件
 def look(path):
-    path=standarlizedPath(path)
+    path = standarlizedPath(path)
     if isdir(path):
         os.startfile(path)
         return
@@ -669,35 +678,60 @@ class pool():
 
 # 爬虫
 # region
+# 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
+# 最高占用
+def savepage(url,t=3,video=True,filter=0,):
+    page = Edge(url)
+    title=page.title()
+
+    # 全屏保存
+    page.maxwindow()
+    time.sleep(t)
+    hotkey('ctrl','shift','s')
+    sleep(1)
+    click('browser/捕获整页.png')
+    time.sleep(t)
+    lis1=listfile(userpath('Downloads'))
+    hotkey('ctrl','s')
+    time.sleep(t*2)
+    lis2=listfile(userpath('Downloads'))
+    for i in lis2:
+        if not i in lis1:
+            break
+    print(i,userpath(f'./Pictures/集锦/{title}.{gettail(i,".")}'))
+
+
+
 
 # 转到已经打开的edge并保存全部截屏
-def getpics(loop,path):
+def getpics(loop, path):
     for i in range(loop):
-        hotkey('ctrl','shift','s')
+        hotkey('ctrl', 'shift', 's')
         time.sleep(1)
-        click(1146,174)
+        click(1146, 174)
         # 截图生成时间
         time.sleep(4)
-        old=listfile('D:/')
-        click(1700,112)
+        old = listfile('D:/')
+        click(1700, 112)
         # 截图下载时间
         time.sleep(2)
-        new=listfile('D:/')
+        new = listfile('D:/')
         for j in new:
             if j in old:
                 continue
             else:
                 break
-        move(j,f'{path}.{gettail(j,".")}')
+        move(j, f'{path}.{gettail(j, ".")}')
+
 
 def geturls(loop=1):
-    ret=[]
-    hotkey('alt','tab')
+    ret = []
+    hotkey('alt', 'tab')
     for i in range(loop):
-        click(420,62)
-        hotkey('ctrl','c')
+        click(420, 62)
+        hotkey('ctrl', 'c')
         ret.append(pyperclip.paste())
-        hotkey('ctrl','w')
+        hotkey('ctrl', 'w')
     hotkey('alt', 'tab')
     return ret
 
@@ -753,7 +787,7 @@ def Elements(l, depth=5, silent=None):
 
 
 # 必须要跳过的
-def skip(l,strict=False):
+def skip(l, strict=False):
     """
     简单跳过，不做操作，等待人工操作来跳过，否则一直等待
     :param l:列表：页面，XPATH/ID，字符串
@@ -851,7 +885,7 @@ def scroll(l, silent=None, x=None, y=None):
     log(f'滚动完毕。 {time.time() - ti} s.')
 
 
-def requestdownload(LocalPath, url,mode='rb'):
+def requestdownload(LocalPath, url, mode='rb'):
     CreatePath(LocalPath)
     try:
         with open(LocalPath, mode) as f:
@@ -889,17 +923,31 @@ def chrome(url='', mine=None, silent=None, t=100):
 
 
 class Edge():
+
     def __init__(self, url='', silent=None):
-            self.driver = edge(url=url, silent=silent)
+        self.driver = edge(url=url, silent=silent)
+        self.silent=silent
+        self.set_window_size(900,1000)
+
+    # 到上层显示窗口
+    def top(self):
+        if self.silent==False:
+            Exit()
+        hotkey('win','d')
+        self.switchto()
+
+    # 最大化窗口
+    def maxwindow(self):
+        self.driver.maximize_window()
 
     # 返回窗口列表
     def windows(self):
         return self.driver.window_handles
 
     # 新建窗口
-    def newwindow(self,url=''):
+    def newwindow(self, url=''):
         if not 'https://' in url:
-            url='https://'+url
+            url = 'https://' + url
         self.driver.execute_script(f'window.open("{url}")')
 
     def refresh(self):
@@ -922,7 +970,7 @@ class Edge():
             Exit(' 未实现')
         s = a[0]
         if type(s) in [str]:
-            return Edge.click(self,Edge.element(self,s))
+            return Edge.click(self, Edge.element(self, s))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -934,20 +982,11 @@ class Edge():
                     warn(['clickelement error！', e])
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一个
-    def element(self, s, depth=9, silent=True, strict=True):
-        if not type(s) == list:
-            ret = Element([self.driver, By.XPATH, s], depth=depth, silent=True)
-        else:
-            for i in s:
-                ret = Element([self.driver, By.XPATH, i], depth=depth, silent=True)
-                if not ret == None:
-                    break
-        if strict:
-            self.errorscr(ret)
-            return ret
+    def element(self, *a, **b):
+        return self.elements(*a, **b)[0]
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一组
-    def elements(self, s, depth=9, silent=True, strict=True):
+    def elements(self, s1, depth=9, silent=True, strict=True):
         '''
 
         @param s:
@@ -956,26 +995,46 @@ class Edge():
         @param strict:True表示如果没找到，直接报错
         @return:
         '''
+        s = s1
+        # 重写xpath规则
+        for i in ['@href', '@src', 'text()']:
+            s = Strip(s, '/' + i)
+
+        # 获取元素列表
         if not type(s) == list:
-            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=True)
+            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent)
         else:
             for i in s:
-                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=True)
+                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=silent)
                 if not ret == []:
                     break
         if strict:
             self.errorscr(ret)
-        return ret
+
+        # 重写xpath规则
+        newret = []
+        if 'text()' in s1[-6:]:
+            for i in ret:
+                newret.append(i.text)
+        elif '@href' in s1[-5:]:
+            for i in ret:
+                newret.append(i.get_attribute('href'))
+        elif '@src' in s1[-4:]:
+            for i in ret:
+                newret.append(i.get_attribute('src'))
+        else:
+            return ret
+        return newret
 
     def scroll(self, a=-1):
         if type(a) in [int]:
-            if a==-1:
+            if a == -1:
                 scroll([(self.driver)])
             else:
                 setscrolltop([self.driver, a])
             return
         if type(a) in [str]:
-            e = Edge.element(self,a)
+            e = Edge.element(self, a)
             setscrolltop([self.driver, e.location('y')])
             return
         if type(a) in [selenium.webdriver.remote.webelement.WebElement]:
@@ -1012,6 +1071,7 @@ class Edge():
     def set_window_size(self, *a, **b):
         self.driver.set_window_size(*a, **b)
 
+    # 取决于当前窗口大小
     def screenshot(self, path, s):
         path = standarlizedPath(path)
         if isfile(path):
@@ -1021,12 +1081,12 @@ class Edge():
             file('wb', path, s.screenshot_as_png)
             return
         if type(s) in [str]:
-            Edge.screenshot(self,path, Edge.element(self, s))
+            Edge.screenshot(self, path, Edge.element(self, s))
             return
 
     # 遇到异常（元素为空时），终止并检查当前页面截图
     def errorscr(self, t=None):
-        if t in [None, False,[]]:
+        if t in [None, False, []]:
             print(nowstr())
             path = f'D:/Kaleidoscope/error/current.png'
             self.driver.get_screenshot_as_file(path)
@@ -1053,6 +1113,7 @@ class Edge():
 
     def title(self):
         return title([self.driver])
+
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
@@ -1086,14 +1147,22 @@ def edge(url='', silent=None):
 
 # 点击屏幕
 def click(x, y=10, button='left', silent=True):
-    if type(x)in [str]:
-        if not '.png'in x:
-            x+='.png'
-        path=projectpath(x)
-        if isfile(path=projectpath(path)):
-            pos = pyautogui.locateOnScreen(path)
-            click(pos)
-            return
+    if type(x) in [str]:
+        if not '.png' in x:
+            x += '.png'
+        path = projectpath(x)
+        if isfile(path):
+            for confidence in [0.6,0.5,0.4,0.3]:
+                pos = pyautogui.locateOnScreen(path, confidence=confidence, grayscale=True)
+                if pos==None:
+                    continue
+                else:
+                    p=pyautogui.center(pos)
+                    click(p.x,p.y)
+                    return
+    #     没找到
+        Open(path)
+        Exit(path)
     try:
         pyautogui.click(x, y, button=button)
         time.sleep(0.2)
@@ -1108,14 +1177,7 @@ def click(x, y=10, button='left', silent=True):
 
 # 右击屏幕
 def rclick(x, y):
-    try:
-        pyautogui.rightClick(x, y)
-        print(f'{x}   {y}')
-    except Exception as e:
-        if type(e) in [pyautogui.FailSafeException]:
-            Exit(f'可能是选取点击的坐标过于极端。 x:{x}    y:{y}')
-        warn(e)
-        sys.exit(-1)
+    click(x,y,button='right')
 
 
 # 点击元素
@@ -1271,16 +1333,31 @@ def scrshot(l):
 
 # 文件读写
 # region
+# 返回C盘用户目录
+def userpath(s=''):
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
+    return standarlizedPath(f'C:/Users/{user}{s}')
+
+
 # 返回项目源代码根目录
 def projectpath(s=''):
-    if './'in s:
-        s=s[2:]
-    return f'D:/Kaleidoscope/{s}'
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
+    return standarlizedPath(f'D:/Kaleidoscope{s}')
 
 
 # 返回项目临时文件根目录
 def cachepath(s=''):
-    return f'{projectpath("cache/" + s)}'
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
+    return standarlizedPath(f'{projectpath("cache" + s)}')
 
 
 # 返回文件夹和文件b
@@ -1339,6 +1416,8 @@ def out(s, silent=False):
 @multisingleargs
 def pout(*a):
     return provisionalout(*a)
+
+
 def provisionalout(s, silent=True):
     f = txt(projectpath('pout.txt'))
 
@@ -1349,6 +1428,7 @@ def provisionalout(s, silent=True):
     log(f.path)
     if silent == False:
         Open(f.path)
+
 
 # 在固定文件进行输入
 def provisionalin():
@@ -1629,12 +1709,17 @@ def file(mode, path, IOList=None, encoding=None):
 
 
 def DesktopPath(s=''):
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
     if s == 'new':
         s = random.randint(0, 99999)
         s = str(s)
         log(f'桌面新建：{s}')
         return standarlizedPath(f"C:/Users/{user}/Desktop/{s}.txt")
-    return standarlizedPath(f"C:/Users/{user}/Desktop/{s}")
+
+    return standarlizedPath(f"C:/Users/{user}/Desktop{s}")
 
 
 def desktoppath(s=''):
@@ -2135,7 +2220,7 @@ def tip(*a):
 
 @listed
 def delog(*a):
-    if a in [(),[],None]:
+    if a in [(), [], None]:
         Log('continuing', 7, 34)
         return
     s = a[0]
@@ -2193,12 +2278,13 @@ def simplinfo(num, author, title):
 def mergelist(*a):
     return extend(*a)
 
+
 def extend(*a):
-    if len(a)>2:
+    if len(a) > 2:
         for i in a[1:]:
-            extend(a[0],i)
+            extend(a[0], i)
         return a[0]
-    l1,l2=a
+    l1, l2 = a
     if l1 == None:
         warn(f'l1: None  l2: {l2}')
         return l2
@@ -2257,10 +2343,19 @@ def value(d):
 
 # 字符串
 # region
+# 去除字符串末尾
+def Strip(s, tail):
+    if not type(s) in [str] and type(tail) in [str]:
+        Exit(s, tail)
+    if s[-len(tail):] == tail:
+        return s[:-len(tail)]
+    else:
+        return s
+
 
 # 正则查找
-def refind(s,re):
-    return re.findall(s,re)
+def refind(s, re):
+    return re.findall(s, re)
 
 
 # 截取字符串末尾

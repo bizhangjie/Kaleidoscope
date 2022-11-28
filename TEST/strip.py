@@ -1,3 +1,3 @@
 import MyUtils
 
-print(MyUtils.tail('123', '2'))
+print(MyUtils.Strip('123', '23'))
