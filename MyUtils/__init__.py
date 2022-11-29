@@ -1094,8 +1094,8 @@ class txt():
             slist = ['']
         else:
             for i in self.l[:-1]:
-                slist.append(i + '\n')
-            slist.append(self.l[-1])
+                slist.append(str(i) + '\n')
+            slist.append(str(self.l[-1]))
         file('w', self.path, slist, encoding=self.encoding)
         warn(f'{tail(self.path).strip(".txt")}({(self.mode)}) - {s}')
 
@@ -1428,19 +1428,24 @@ class rjson(RefreshJson):
 def context(step=0):
     if step < 0:
         return None
-    frame = inspect.currentframe().f_back
-    for i in range(step):
-        frame = frame.f_back
-    ret = inspect.getframeinfo(frame)
-    d = {}
-    d.update({'line': ret.lineno})
-    d.update({'file': ret.filename})
-    d.update({'code': ret.code_context})
-    d.update({'module': ret.function})
-    warn(d)
+    frame = inspect.currentframe()
     ret = []
-    ret.append(d)
-    return ret.append(context(step - 1))
+    # 调试模式pydev和运行是不一样的
+    for i in range(step):
+        try:
+            frame = frame.f_back
+            if not frame==None:
+                framed = inspect.getframeinfo(frame)
+                d = {}
+                d.update({'module': framed.function})
+                d.update({'code': framed.code_context})
+                d.update({'file': framed.filename})
+                d.update({'line': framed.lineno})
+                warn(d)
+                ret.append(d)
+        except:
+            break
+    return ret
 
 
 def WARN(s):
@@ -1933,7 +1938,7 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-def scroll(l, silent=None, x=None, y=None):
+def scroll(l, silent=None, x=None, y=None,ratio=1):
     """
     :param l: 页面，第二个参数小于1可不传
     :return:
@@ -2234,8 +2239,25 @@ class Edge():
             setscrolltop([self.driver, a.location['y'] - a.size['height']])
             return
 
-    def down(self):
-        scroll([self.driver], silent=True)
+    def down(self,ratio=1):
+        scroll([self.driver], silent=True,ratio=ratio)
+
+    def getscrolltop(self):
+        return getscrolltop([self.driver])
+
+    def setscrolltop(self,h):
+        return setscrolltop([self.driver,h])
+
+    def up(self,scale=100,pause=1):
+        h=self.getscrolltop()
+        while h>10:
+            if h>scale:
+                h-=scale
+                sleep(pause)
+            else:
+                h=0
+            self.setscrolltop(h)
+
 
     # 如果不退出，可能报错 py sys path likely shutdown balabala...
     def quit(self):
@@ -2323,7 +2345,7 @@ class Chrome(Edge):
     #     记录当前在使用mine chrome的context
         if mine==True:
             f=txt(projectpath('browser/ischromeusing.txt'))
-            f.l=context(3)
+            f.l=context(4)
             f.save()
 
 

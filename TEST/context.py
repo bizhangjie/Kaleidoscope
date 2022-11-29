@@ -2,7 +2,8 @@ import MyUtils
 
 
 def fun():
-    print(MyUtils.context())
+    d=(MyUtils.context(3))
+    print(d)
 
 
 if __name__ == '__main__':
