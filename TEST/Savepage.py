@@ -12,7 +12,10 @@ def main():
 
 
 if __name__ == '__main__':
-    page=MyUtils.Chrome('https://www.cc98.org/topic/5471822',mine=True,silent=True)
-    time.sleep(7)
-    page.fullscreen()
+
+    page=MyUtils.Chrome(url='www.baidu.com',mine=True,silent=True)
+    for i in MyUtils.txt(MyUtils.desktop('0.txt')).l:
+        page.get(i)
+        time.sleep(7)
+        page.save()
     page.quit()

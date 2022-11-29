@@ -149,6 +149,7 @@ class up():
 
 # 视频
 class video():
+    @MyUtils.consume
     def __init__(self, a):
         self.exist=True
 

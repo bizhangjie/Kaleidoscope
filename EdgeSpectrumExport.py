@@ -12,7 +12,23 @@ def main():
 
 
 if __name__ == '__main__':
+
+    f = MyUtils.rtxt(MyUtils.projectpath('browser/Spectrum.txt'))
     # 对Edge浏览器导出的Spectrum收藏夹（第二个）进行遍历网站收集
-    page=MyUtils.Edge('file:///D:/Kaleidoscope/%E6%94%B6%E8%97%8F%E5%A4%B9%E5%AF%BC%E5%87%BA/favorites_2022_11_28.html')
-    lis=page.elements('/html/body/dl/dt[1]/dl/dt[2]//a/@href')
-    f=MyUtils.txt(MyUtils.projectpath('browser/Spectrum.txt'))
+    def addto():
+        page = MyUtils.Edge('file:///D:/Kaleidoscope/favorites_2022_11_29.html', silent=True)
+        lis = page.elements('/html/body/dl/dt[1]/dl/dt[2]//a/@href')
+        for i in lis:
+            f.add(i)
+    # addto()
+
+    def allocate():
+        for j in ['youtube','bili','zhihu','huya','weibo','douyin','baijiahao','tieba','twitter','wallhaven','dandanzan','cc98','xiaohongshu','weixin','baike','haokan','www.baidu.com']:
+            ff=MyUtils.rtxt(MyUtils.projectpath(f'/browser/{j}.txt'))
+            dlis=[]
+            for i in f.l:
+                if j in i:
+                    ff.add(i)
+                    dlis.append(i)
+            f.delete(dlis)
+    # allocate()

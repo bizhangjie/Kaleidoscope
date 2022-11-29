@@ -1061,6 +1061,13 @@ class txt():
             return
         for i in file('r', self.path, IOList=[], encoding=encoding):
             self.l.append(str(i).strip('\n'))
+    @listed
+    def delete(self,s):
+        for i in self.l:
+            if i==s:
+                self.l.remove(s)
+                self.save()
+                return
 
     @listed
     def add(self, i):
@@ -2049,10 +2056,10 @@ class Edge():
             Exit()
         if path=='':
             path=userpath(f'Pictures/集锦/{self.title()}/basic.png')
-        print(path)
-        x,y=scrollwidth([self.driver]), scrollheight([self.driver])
+        e=self.element('/html/body')
+        x,y=1080, scrollheight([self.driver])
         self.set_window_size(x,y)
-        sleep(y/700)
+        sleep(y/1400)
         self.elementshot(path,e)
 
 
@@ -2070,23 +2077,30 @@ class Edge():
         if self.type=='edge':
             self.ctrlshifts(path,t)
         else:
-            Exit()
+            self.fullscreen()
         self.savepics(path,7)
         # self.savevideos()
 
     # 保存页面上的所有图片
     def savepics(self,path,t=5):
-        if gettail(self.url())in ['jpg','jpeg','png']:
-            pass
         res=[]
-        extend(res,self.elements('//pic',strict=False),self.elements('//img',strict=False),self.elements('//pic',strict=False))
+        extend(res,self.elements('//pic',strict=False),self.elements('//img',strict=False))
         count=0
         for i in res:
             count+=1
             url=i.get_attribute('src')
             if url==None:
                 url=i.get_attribute('href')
-            pagedownload(url,f'{path}/{count}.{gettail(url,".")}',t=t)
+            if url==None:
+                Exit(self.url(),'获取图片地址失败')
+
+            fname = gettail(url, '/')
+            for j in ['.jpeg','.jpg','.gif','.png','.bmp','.webp']:
+                if j in fname:
+                    fname=removetail(fname,j)+j
+                    break
+            fname=standarlizedFileName(fname)
+            pagedownload(url,f'{path}/{self.title()}/img/<count>{fname}',t=t)
 
     # 快捷键保存截屏
     def ctrlshifts(self, path,t=3):
@@ -2301,6 +2315,11 @@ class Chrome(Edge):
         self.silent = silent
         self.resinit()
         self.type='chrome'
+    #     记录当前在使用mine chrome的context
+        if mine==True:
+            f=txt(projectpath('browser/ischromeusing.txt'))
+            f.l=context(3)
+            f.save()
 
 
     def maximize(self):
