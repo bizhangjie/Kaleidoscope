@@ -1759,7 +1759,7 @@ def tail(s, mark='/'):
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
     if not mark in s:
-        Exit((s, mark))
+        Exit('tail失败。字符串中没有预计存在的子串。',(s, mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -2047,7 +2047,6 @@ class Edge():
 
     def resinit(self):
         self.set_window_size(900, 1000)
-        self.skipsystemwarn()
         time.sleep(1)
 
     # 获取全屏
@@ -2071,13 +2070,14 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self,video=True, filter=0,t=3):
-        path=userpath(f'Pictures/集锦/{self.title()}/')
+    def save(self,video=True, filter=0,t=3,path=None):
+        if path==None:
+            path=userpath(f'Pictures/集锦/{self.title()}/')
         createpath(path)
         if self.type=='edge':
             self.ctrlshifts(path,t)
         else:
-            self.fullscreen()
+            self.fullscreen(f'{path}/basic.png')
         self.savepics(path,7)
         # self.savevideos()
 
@@ -2100,7 +2100,7 @@ class Edge():
                     fname=removetail(fname,j)+j
                     break
             fname=standarlizedFileName(fname)
-            pagedownload(url,f'{path}/{self.title()}/img/<count>{fname}',t=t)
+            pagedownload(url,f'{path}/img/<count>{fname}',t=t)
 
     # 快捷键保存截屏
     def ctrlshifts(self, path,t=3):
@@ -2305,6 +2305,8 @@ class Edge():
         return skip([self.driver, By.XPATH, s])
 
     def title(self):
+        if self.url()=='':
+            Exit('浏览器url为空')
         return title([self.driver])
 
 

@@ -20,7 +20,7 @@ if __name__ == '__main__':
         lis = page.elements('/html/body/dl/dt[1]/dl/dt[2]//a/@href')
         for i in lis:
             f.add(i)
-    # addto()
+    addto()
 
     def allocate():
         for j in ['youtube','bili','zhihu','huya','weibo','douyin','baijiahao','tieba','twitter','wallhaven','dandanzan','cc98','xiaohongshu','weixin','baike','haokan','www.baidu.com']:

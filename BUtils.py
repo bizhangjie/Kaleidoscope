@@ -95,6 +95,7 @@ def filenametonum(s):
     return s[s.rfind('_') + 1:]
 
 # upid号转换为up名称，并且记录
+@MyUtils.consume
 def uidtoid(UID):
     url = (f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
     res = requests.get(url, headers=MyUtils.headers)
