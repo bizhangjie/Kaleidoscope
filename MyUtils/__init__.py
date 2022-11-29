@@ -2070,24 +2070,26 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self,video=True, filter=0,t=3,path=None):
+    def save(self,video=True, minsize=(100,100),t=3,path=None):
         if path==None:
             path=userpath(f'Pictures/集锦/{self.title()}/')
         createpath(path)
-        if self.type=='edge':
+        if self.type=='edge' and not self.silent:
             self.ctrlshifts(path,t)
         else:
             self.fullscreen(f'{path}/basic.png')
-        self.savepics(path,7)
+        self.savepics(path,7,minsize=minsize)
         # self.savevideos()
 
     # 保存页面上的所有图片
-    def savepics(self,path,t=5):
+    def savepics(self,path,t=5,minsize=(100,100)):
         res=[]
         extend(res,self.elements('//pic',strict=False),self.elements('//img',strict=False))
         count=0
         for i in res:
             count+=1
+            if i.size['height']<minsize[1] or i.size['width']<minsize[0]:
+                continue
             url=i.get_attribute('src')
             if url==None:
                 url=i.get_attribute('href')
@@ -2261,6 +2263,7 @@ class Edge():
         self.driver.switch_to.window(self.driver.window_handles[n])
 
     def set_window_size(self, *a, **b):
+        log(f'扩展窗口至大小：{a,b}')
         self.driver.set_window_size(*a, **b)
 
     # 取决于当前窗口大小位置
