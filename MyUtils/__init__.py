@@ -13,6 +13,7 @@ import time
 from glob import glob
 
 import PySimpleGUI
+import moviepy
 import pyautogui
 import pyperclip
 import requests
@@ -444,15 +445,15 @@ def openedge(l):
     typein('edge')
     hotkey('enter')
     sleep(2)
-    if type(l)==str:
-        l=[l]
+    if type(l) == str:
+        l = [l]
     for url in l:
         hotkey('alt', 'd')
         print(url)
         copyto(url)
         hotkey('ctrl', 'v')
         hotkey('enter')
-        hotkey('ctrl','t')
+        hotkey('ctrl', 't')
 
 
 # 键盘输入
@@ -638,6 +639,17 @@ class pool():
 
 # 文件系统读写
 # region
+# 移除空文件夹
+def rmempty(root):
+    dlis=[]
+    for i in listdir(root):
+        if []==extend(listdir(i),listfile(i)):
+            dlis.append(i)
+    out(dlis)
+    warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
+    c=input()
+    deletedirandfile(dlis)
+
 # 打开文件
 def look(path):
     path = standarlizedPath(path)
@@ -656,7 +668,7 @@ def Open(path):
 
 # 返回C盘用户目录
 def userpath(s=''):
-    if 'C:/'in s:
+    if 'C:/' in s:
         return
     if './' in s:
         s = s[2:]
@@ -667,7 +679,7 @@ def userpath(s=''):
 
 # 返回项目源代码根目录
 def projectpath(s=''):
-    if 'D:/Kaleidoscope'in s:
+    if 'D:/Kaleidoscope' in s:
         return
     if './' in s:
         s = s[2:]
@@ -678,7 +690,7 @@ def projectpath(s=''):
 
 # 返回项目临时文件根目录
 def cachepath(s=''):
-    if 'Kaleidoscope/cache'in s:
+    if 'Kaleidoscope/cache' in s:
         return
     if './' in s:
         s = s[2:]
@@ -1039,7 +1051,7 @@ def file(mode, path, IOList=None, encoding=None):
 
 
 def DesktopPath(s=''):
-    if 'esktop'in s:
+    if 'esktop' in s:
         return
     if './' in s:
         s = s[2:]
@@ -1079,10 +1091,11 @@ class txt():
             return
         for i in file('r', self.path, IOList=[], encoding=encoding):
             self.l.append(str(i).strip('\n'))
+
     @listed
-    def delete(self,s):
+    def delete(self, s):
         for i in self.l:
-            if i==s:
+            if i == s:
                 self.l.remove(s)
                 self.save()
                 return
@@ -1135,7 +1148,7 @@ class RefreshTXT(txt):
         self.mode = 'Rtxt'
         # self.rollback()
         RefreshTXT.backup(self)
-        if self.length()<2000:
+        if self.length() < 2000:
             self.set()
 
     def backup(self):
@@ -1453,7 +1466,7 @@ def context(step=0):
     for i in range(step):
         try:
             frame = frame.f_back
-            if not frame==None:
+            if not frame == None:
                 framed = inspect.getframeinfo(frame)
                 d = {}
                 d.update({'module': framed.function})
@@ -1715,8 +1728,8 @@ def value(d):
 # 正则
 class expression():
     @staticmethod
-    def search(self,s,pattern):
-        ret=re.search(pattern,s)
+    def search(self, s, pattern):
+        ret = re.search(pattern, s)
 
 
 def TellStringSame(s1, s2, ratio=1):
@@ -1790,7 +1803,7 @@ def tail(s, mark='/'):
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
     if not mark in s:
-        Exit('tail失败。字符串中没有预计存在的子串。',(s, mark))
+        Exit('tail失败。字符串中没有预计存在的子串。', (s, mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -1954,9 +1967,11 @@ def getscrolltop(l):
     page = l[0]
     return page.execute_script('var q=document.documentElement.scrollTop;return(q)')
 
+
 def scrollwidth(l):
     page = l[0]
     return page.execute_script('var q=document.documentElement.scrollWidth;return(q)')
+
 
 # 获取页面最大高度（通过滚动条
 def scrollheight(l):
@@ -1964,7 +1979,7 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-def scroll(l, silent=None, x=None, y=None,ratio=1):
+def scroll(l, silent=None, x=None, y=None, ratio=1):
     """
     :param l: 页面，第二个参数小于1可不传
     :return:
@@ -2047,8 +2062,8 @@ def requestdownload(LocalPath, url, mode='rb'):
 
 
 def chrome(url='', mine=None, silent=None, t=100):
-    if not url==''and not 'http'in url:
-        url='https://'+url
+    if not url == '' and not 'http' in url:
+        url = 'https://' + url
     options = webdriver.ChromeOptions()
     options.add_argument('--start-maxmized')
     if not mine == None:
@@ -2065,86 +2080,85 @@ def chrome(url='', mine=None, silent=None, t=100):
             driver.get(url)
         return driver
     except selenium.common.exceptions.InvalidArgumentException as e:
-        warn(e,url)
+        warn(e, url)
         driver.quit()
         warn(f'旧页面未关闭。请关闭。或者是因为{url}中没有http or https请求')
         c = input()
-        return chrome(url=url,mine=mine,silent=silent,t=t)
+        return chrome(url=url, mine=mine, silent=silent, t=t)
+
 
 class Edge():
     def __init__(self, url='', silent=None):
         self.driver = edge(url='', silent=silent)
-        if not url=='':
+        if not url == '':
             self.get(url)
         self.silent = silent
-        self.mine=None
-        self.type='edge'
+        self.mine = None
+        self.type = 'edge'
         self.set_window_size(900, 1000)
 
     # 获取全屏
-    def fullscreen(self,path=''):
-        if not self.silent==True:
+    def fullscreen(self, path=''):
+        if not self.silent == True:
             Exit()
-        if path=='':
-            path=userpath(f'Pictures/集锦/{self.title()}/basic.png')
-        e=self.element('/html/body')
-        x,y=1080, scrollheight([self.driver])
-        self.set_window_size(x,y)
-        sleep(y/1400)
-        self.elementshot(path,e)
-
+        if path == '':
+            path = userpath(f'Pictures/集锦/{self.title()}/basic.png')
+        e = self.element('/html/body')
+        x, y = 1080, scrollheight([self.driver])
+        self.set_window_size(x, y)
+        sleep(y / 1400)
+        self.elementshot(path, e)
 
     # 避开不安全网页警告
     def skipsystemwarn(self):
-        if '受到举报的不安全网站'in self.title():
+        if '受到举报的不安全网站' in self.title():
             self.click('//*[@id="moreInformationDropdownLink"]')
             self.click('//*[@id="overrideLink"]')
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self,video=True, minsize=(100,100),t=3,path=None):
-        if path==None:
-            path=userpath(f'Pictures/集锦/{self.title()}/')
-        if not self.title()in path:
-            path+=self.title()
+    def save(self, video=True, minsize=(100, 100), t=3, path=None):
+        if path == None:
+            path = userpath(f'Pictures/集锦/{self.title()}/')
+        if not self.title() in path:
+            path += self.title()
         createpath(path)
-        if self.type=='edge' and not self.silent:
-            self.ctrlshifts(path,t)
+        if self.type == 'edge' and not self.silent:
+            self.ctrlshifts(path, t)
         else:
             self.fullscreen(f'{path}/basic.png')
-        self.savepics(path,7,minsize=minsize)
+        self.savepics(path, 7, minsize=minsize)
         # self.savevideos()
-        f=txt(f'{path}/url.txt')
-        f.l=[]
+        f = txt(f'{path}/url.txt')
+        f.l = []
         f.l.append(self.url())
         f.save()
 
-
     # 保存页面上的所有图片
-    def savepics(self,path,t=5,minsize=(100,100)):
-        res=[]
-        extend(res,self.elements('//pic',strict=False),self.elements('//img',strict=False))
-        count=0
+    def savepics(self, path, t=5, minsize=(100, 100)):
+        res = []
+        extend(res, self.elements('//pic', strict=False), self.elements('//img', strict=False))
+        count = 0
         for i in res:
-            count+=1
-            if i.size['height']<minsize[1] or i.size['width']<minsize[0]:
+            count += 1
+            if i.size['height'] < minsize[1] or i.size['width'] < minsize[0]:
                 continue
-            url=i.get_attribute('src')
-            if url==None:
-                url=i.get_attribute('href')
-            if url==None:
-                Exit(self.url(),'获取图片地址失败')
+            url = i.get_attribute('src')
+            if url == None:
+                url = i.get_attribute('href')
+            if url == None:
+                Exit(self.url(), '获取图片地址失败')
 
             fname = gettail(url, '/')
-            for j in ['.jpeg','.jpg','.gif','.png','.bmp','.webp']:
+            for j in ['.jpeg', '.jpg', '.gif', '.png', '.bmp', '.webp']:
                 if j in fname:
-                    fname=removetail(fname,j)+j
+                    fname = removetail(fname, j) + j
                     break
-            fname=standarlizedFileName(fname)
-            pagedownload(url,f'{path}/img/<count>{fname}',t=t)
+            fname = standarlizedFileName(fname)
+            pagedownload(url, f'{path}/img/<count>{fname}', t=t)
 
     # 快捷键保存截屏
-    def ctrlshifts(self, path,t=3):
+    def ctrlshifts(self, path, t=3):
         self.top()
         self.maxwindow()
         sleep(0.5)
@@ -2273,25 +2287,24 @@ class Edge():
             setscrolltop([self.driver, a.location['y'] - a.size['height']])
             return
 
-    def down(self,ratio=1):
-        scroll([self.driver], silent=True,ratio=ratio)
+    def down(self, ratio=1):
+        scroll([self.driver], silent=True, ratio=ratio)
 
     def getscrolltop(self):
         return getscrolltop([self.driver])
 
-    def setscrolltop(self,h):
-        return setscrolltop([self.driver,h])
+    def setscrolltop(self, h):
+        return setscrolltop([self.driver, h])
 
-    def up(self,scale=100,pause=1):
-        h=self.getscrolltop()
-        while h>10:
-            if h>scale:
-                h-=scale
+    def up(self, scale=100, pause=1):
+        h = self.getscrolltop()
+        while h > 10:
+            if h > scale:
+                h -= scale
                 sleep(pause)
             else:
-                h=0
+                h = 0
             self.setscrolltop(h)
-
 
     # 如果不退出，可能报错 py sys path likely shutdown balabala...
     def quit(self):
@@ -2319,7 +2332,7 @@ class Edge():
         self.driver.switch_to.window(self.driver.window_handles[n])
 
     def set_window_size(self, *a, **b):
-        log(f'扩展窗口至大小：{a,b}')
+        log(f'扩展窗口至大小：{a, b}')
         self.driver.set_window_size(*a, **b)
 
     # 取决于当前窗口大小位置
@@ -2327,8 +2340,8 @@ class Edge():
         path = standarlizedPath(path)
         if isfile(path):
             warn(f'{path}已存在。即将覆盖下载')
-        if not '.png'in path:
-            path+='.png'
+        if not '.png' in path:
+            path += '.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             file('wb', path, s.screenshot_as_png)
             return
@@ -2364,7 +2377,7 @@ class Edge():
         return skip([self.driver, By.XPATH, s])
 
     def title(self):
-        if self.url()=='':
+        if self.url() == '':
             Exit('浏览器url为空')
         return title([self.driver])
 
@@ -2372,18 +2385,17 @@ class Edge():
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
         self.driver = chrome(url='', mine=mine, silent=silent, t=t)
-        if not url=='':
+        if not url == '':
             self.get(url)
-        self.mine=mine
+        self.mine = mine
         self.silent = silent
-        self.type='chrome'
-    #     记录当前在使用mine chrome的context
-        if mine==True:
-            f=txt(projectpath('browser/ischromeusing.txt'))
-            f.l=context(4)
+        self.type = 'chrome'
+        #     记录当前在使用mine chrome的context
+        if mine == True:
+            f = txt(projectpath('browser/ischromeusing.txt'))
+            f.l = context(4)
             f.l.append(Time())
             f.save()
-
 
     def maximize(self):
         self.driver.maximize_window()
@@ -2402,7 +2414,7 @@ def edge(url='', silent=None):
         sys.exit(-1)
     if not url == '':
         if not 'https://' in url:
-            url='https://'+url
+            url = 'https://' + url
         driver.get(url)
     return driver
 
@@ -2593,8 +2605,14 @@ def scrshot(l):
 
 # endregion
 
-# __init__() ['
-#    :       pass
+# 视频音频
+def mp4tomp3(src, tar):
+    if not isfile(src) and not '.mp4' in src:
+        Exit(f'{src}不是mp4文件1')
+    moviepy.editor.VideoFileClip(src).audio.write_audiofile(tar)
+
+
+# MyUtils初始化
 # region
 Logcount = 0
 debug = True
