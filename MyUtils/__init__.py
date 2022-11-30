@@ -800,6 +800,9 @@ def copyfile(s1, s2):
 # 移动
 def move(s1, s2):
     createpath(s2)
+    if isfile(s2):
+        if size(s2):
+            warn(f'即将覆盖。{s2}')
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
 
 
