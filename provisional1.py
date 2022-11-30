@@ -1,2 +1,2 @@
 import MyUtils
-for i in MyUtils.listfile()
+MyUtils.openedge(MyUtils.txt(MyUtils.projectpath('browser/baijiahao.txt')).l)

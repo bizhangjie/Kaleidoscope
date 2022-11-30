@@ -444,6 +444,7 @@ def openedge(l):
     hotkey('win')
     typein('edge')
     hotkey('enter')
+    hotkey('enter')
     sleep(2)
     if type(l) == str:
         l = [l]
@@ -2125,7 +2126,7 @@ class Edge():
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     def save(self, video=True, minsize=(100, 100), t=3, path=None):
         if path == None:
-            path = userpath(f'Pictures/集锦/{self.title()}/')
+            path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         if not self.title() in path:
             path += self.title()
         createpath(path)
