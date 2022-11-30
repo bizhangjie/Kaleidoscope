@@ -1,6 +1,8 @@
 import MyUtils
 
 # 规整移动的文件
+todolist=[]
+# 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):
     if 'Scree' in file or 'SVID' in file:
         filename = MyUtils.filename(file)
@@ -10,11 +12,12 @@ for file in MyUtils.listfile(['./', './璐琪/']):
             year, month, day = filename[15:19], filename[20:22], filename[23:25]
         targetdir=f'./璐琪/{year}-{month}-{day}/'
         if not MyUtils.isfile(targetdir + filename):
-            MyUtils.move(file, targetdir+filename)
+            todolist.append((file, targetdir+filename))
 
-# # 对规整路径的操作盘文件进行记录添加
-# baijiahao = MyUtils.rjson(MyUtils.root + '璐琪/record')
-# for dir in MyUtils.listdir(['./璐琪/']):
-#     for file in MyUtils.listfile(dir):
-#         baijiahao.add({MyUtils.filename(file): MyUtils.diskname})
-
+MyUtils.out(todolist)
+#  执行并添加记录
+for i in todolist:
+    MyUtils.move(i[0],i[1])
+    record=MyUtils.rjson(MyUtils.projectpath('./璐琪/record.txt'))
+    record.add({MyUtils.filename(i[0]):MyUtils.diskname})
+    print({MyUtils.filename(i[0]):MyUtils.diskname})
