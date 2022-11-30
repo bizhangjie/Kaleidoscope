@@ -24,16 +24,14 @@ if __name__ == '__main__':
             f.delete(dlis)
     # allocate()
 
-    # 打开某个特定的txt
-    def checkweb():
+    # bili
+    def b():
         f=MyUtils.txt(MyUtils.projectpath('./browser/bili.txt'))
         urls=[]
         for i in range(0,20):
             i=f.l[i]
-
-
             urls.append(i)
         MyUtils.openedge(urls)
         f.delete(urls)
-    checkweb()
+    # b()
 

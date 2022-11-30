@@ -1,6 +1,6 @@
 import MyUtils
 
-# 规整移动的文件
+# 移动根目录的文件
 todolist=[]
 # 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):

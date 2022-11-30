@@ -7,7 +7,7 @@ for i in MyUtils.listdir('./bili'):
     useruid=MyUtils.gettail(i,'_')
     author=BUtils.uidtoid(useruid)
     for j in MyUtils.listdir(i):
-        MyUtils.copyto(f'trying {j}')
+        MyUtils.out(f'trying {j}',silent=True)
         bvid=MyUtils.gettail(j,'_')
         video=BUtils.video(bvid)
         if video.exist==False:

@@ -737,9 +737,9 @@ def modifytime(path):
     return Time(t)
 
 
-# 新建文件以进行标准输出
-def out(s, silent=False):
-    f = txt(projectpath('out.txt'))
+# 新建文件以进行覆盖输出
+def out(s, silent=False,target='out.txt'):
+    f = txt(projectpath(target))
     f.l = []
     f.save()
 
@@ -752,13 +752,12 @@ def out(s, silent=False):
 
 
 # 在固定文件进行持续输出
-@multisingleargs
-def pout(*a):
-    return provisionalout(*a)
+def pout(*a,**b):
+    return provisionalout(*a,**b)
 
 
-def provisionalout(s, silent=True):
-    f = txt(projectpath('pout.txt'))
+def provisionalout(s, silent=True,path='pout.txt'):
+    f = txt(projectpath(path))
 
     def do(s):
         f.add(s)
@@ -810,11 +809,18 @@ def copyfile(s1, s2):
 
 
 # 移动
-def move(s1, s2):
-    createpath(s2)
-    if isfile(s2):
-        if size(s2):
-            warn(f'即将覆盖。{s2}')
+def move(s1, s2,strict=False):
+    if isfile(s1):
+        if isfile(s2):
+            if strict==False:
+                Exit('移动的目标路径已有目标文件。')
+            warn(f'移动的目标路径已有目标文件。即将覆盖。{s2}')
+        if isdir(s2):
+            Exit('把文件变成文件夹？目标文件失去了后缀名，请检查！')
+        createpath(s2)
+    if isdir(s1):
+        if isdir(s2):
+            Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
 
 
