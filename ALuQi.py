@@ -13,8 +13,8 @@ for file in MyUtils.listfile(['./', './璐琪/']):
             MyUtils.move(file, targetdir)
 
 # # 对规整路径的操作盘文件进行记录添加
-# f = MyUtils.rjson(MyUtils.root + '璐琪/record')
+# baijiahao = MyUtils.rjson(MyUtils.root + '璐琪/record')
 # for dir in MyUtils.listdir(['./璐琪/']):
 #     for file in MyUtils.listfile(dir):
-#         f.add({MyUtils.filename(file): MyUtils.diskname})
+#         baijiahao.add({MyUtils.filename(file): MyUtils.diskname})
 

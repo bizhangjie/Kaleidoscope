@@ -58,14 +58,14 @@ def xtolon(x):
 def ytolat(y):
     return int(y / 120 - 90)
 
-    # selecter=f'create table chelsa_china_{year}_{month}  lifecycle 20 as select month,lon,lat,pr,tas,tasmax,tasmin from chelsa_china where year={year} and month={month};'
+    # selecter=baijiahao'create table chelsa_china_{year}_{month}  lifecycle 20 as select month,lon,lat,pr,tas,tasmax,tasmin from chelsa_china where year={year} and month={month};'
     # odpscmd.add(selecter)
 
 
 for year, month in yearmonth:
     selecter = f'''
     tunnel download chelsa_china_{year}_{month}_a /root/{year}_{month}.csv;'''
-    #     selecter=f"""create table chelsa_china_{year}_{month}_a lifecycle 20
+    #     selecter=baijiahao"""create table chelsa_china_{year}_{month}_a lifecycle 20
     # as select int(leftb/120-180),int(upb/120-90),sum(pr)
     # from chelsa_china_{year}_{month}_accumulated group by leftb,rightb,upb,downb;"""
     cmd.add(selecter)
@@ -75,7 +75,7 @@ for year, month in yearmonth:
 #             left,right,up,down=i,i+scale,j+scale,j
 #             leftb,rightb,upb,downb=lontox(left),lontox(right),lattoy(up),lattoy(down)
 #             center=(i+scale/2.0,j+scale/2.0)
-#             selecter = f'create table chelsa_china_{year}_{month}_accumulated  lifecycle 20 as select ,pr,tas,tasmax,tasmin from chelsa_china where year={year} and month={month}\
+#             selecter = baijiahao'create table chelsa_china_{year}_{month}_accumulated  lifecycle 20 as select ,pr,tas,tasmax,tasmin from chelsa_china where year={year} and month={month}\
 #             and lon>{leftb} and lon<{rightb} and lat>{downb} and lat<{upb};'
 
 # path = MyUtils.desktoppath('cordi.csv')

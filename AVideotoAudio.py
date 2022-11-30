@@ -18,7 +18,7 @@ for (root, dirs, files) in os.walk(fr'C:\Users\{MyUtils.user}\Videos\Captures\A'
         # 这好像是一个对象
         # file[:-4]是文件名
         my_clip.audio.write_audiofile(path + '\\' + MyUtils.MyDate() + '\\' + str(i) + '.mp3')
-        print(f"Done:{file}")
+        print(baijiahao"Done:{file}")
 # 删除mp4
 # for (droot, dirs, files) in os.walk(r'C:\Users\17371\Videos\Captures\A'):
 #     for file in files:

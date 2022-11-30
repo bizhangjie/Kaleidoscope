@@ -39,7 +39,7 @@ def file(mode, path, IOList=None, encoding='utf-8'):
                 return
         if not os.path.exists(path):
             CreatePath('w', path, [])
-            # warn(f'{path} get before this file exists.')
+            # warn(baijiahao'{path} get before this file exists.')
             return []
         with open(path, mode='r', encoding=encoding) as file:
             return (file.readlines())

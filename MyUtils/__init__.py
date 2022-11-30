@@ -438,6 +438,23 @@ class CMD():
 
 # 键鼠互动
 # region
+# 打开一系列的edge
+def openedge(l):
+    hotkey('win')
+    typein('edge')
+    hotkey('enter')
+    sleep(2)
+    if type(l)==str:
+        l=[l]
+    for url in l:
+        hotkey('alt', 'd')
+        print(url)
+        copyto(url)
+        hotkey('ctrl', 'v')
+        hotkey('enter')
+        hotkey('ctrl','t')
+
+
 # 键盘输入
 def typein(s):
     for i in str(s):
@@ -618,8 +635,6 @@ class pool():
 
 
 # endregion
-
-
 
 # 文件系统读写
 # region
@@ -1117,6 +1132,8 @@ class RefreshTXT(txt):
         self.mode = 'Rtxt'
         # self.rollback()
         RefreshTXT.backup(self)
+        if self.length()<2000:
+            self.set()
 
     def backup(self):
         # 备份，set
@@ -1386,7 +1403,6 @@ class cache():
 
     def get(self):
         while True:
-
             try:
                 f = txt(self.path)
                 if f.l == []:
@@ -1693,6 +1709,13 @@ def value(d):
 
 # 字符串
 # region
+# 正则
+class expression():
+    @staticmethod
+    def search(self,s,pattern):
+        ret=re.search(pattern,s)
+
+
 def TellStringSame(s1, s2, ratio=1):
     s1 = str(s1)
     s2 = str(s2)
@@ -2021,38 +2044,39 @@ def requestdownload(LocalPath, url, mode='rb'):
 
 
 def chrome(url='', mine=None, silent=None, t=100):
+    if not url==''and not 'http'in url:
+        url='https://'+url
+    options = webdriver.ChromeOptions()
+    options.add_argument('--start-maxmized')
+    if not mine == None:
+        sleep(3)
+        options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
+        options.add_experimental_option("excludeSwitches", ['enable-automation'])
+    if not silent in [None, False]:
+        options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(t)
+    driver.set_script_timeout(t)
     try:
-        options = webdriver.ChromeOptions()
-        options.add_argument('--start-maxmized')
-        if not mine == None:
-            sleep(3)
-            options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
-            options.add_experimental_option("excludeSwitches", ['enable-automation'])
-        if not silent in [None, False]:
-            options.add_argument('headless')
-        driver = webdriver.Chrome(options=options)
-        driver.set_page_load_timeout(t)
-        driver.set_script_timeout(t)
         if not url == '':
             driver.get(url)
         return driver
-    except selenium.common.exceptions.InvalidArgumentException:
+    except selenium.common.exceptions.InvalidArgumentException as e:
+        warn(e,url)
         driver.quit()
-        warn('旧页面未关闭。请关闭。')
+        warn(f'旧页面未关闭。请关闭。或者是因为{url}中没有http or https请求')
         c = input()
-        return chrome()
+        return chrome(url=url,mine=mine,silent=silent,t=t)
 
 class Edge():
     def __init__(self, url='', silent=None):
-        self.driver = edge(url=url, silent=silent)
+        self.driver = edge(url='', silent=silent)
+        if not url=='':
+            self.get(url)
         self.silent = silent
         self.mine=None
         self.type='edge'
-        self.resinit()
-
-    def resinit(self):
         self.set_window_size(900, 1000)
-        time.sleep(1)
 
     # 获取全屏
     def fullscreen(self,path=''):
@@ -2078,6 +2102,8 @@ class Edge():
     def save(self,video=True, minsize=(100,100),t=3,path=None):
         if path==None:
             path=userpath(f'Pictures/集锦/{self.title()}/')
+        if not self.title()in path:
+            path+=self.title()
         createpath(path)
         if self.type=='edge' and not self.silent:
             self.ctrlshifts(path,t)
@@ -2085,6 +2111,11 @@ class Edge():
             self.fullscreen(f'{path}/basic.png')
         self.savepics(path,7,minsize=minsize)
         # self.savevideos()
+        f=txt(f'{path}/url.txt')
+        f.l=[]
+        f.l.append(self.url())
+        f.save()
+
 
     # 保存页面上的所有图片
     def savepics(self,path,t=5,minsize=(100,100)):
@@ -2337,15 +2368,17 @@ class Edge():
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
-        self.driver = chrome(url, mine=mine, silent=silent, t=t)
+        self.driver = chrome(url='', mine=mine, silent=silent, t=t)
+        if not url=='':
+            self.get(url)
         self.mine=mine
         self.silent = silent
-        self.resinit()
         self.type='chrome'
     #     记录当前在使用mine chrome的context
         if mine==True:
             f=txt(projectpath('browser/ischromeusing.txt'))
             f.l=context(4)
+            f.l.append(Time())
             f.save()
 
 
@@ -2365,12 +2398,9 @@ def edge(url='', silent=None):
         delog('点击 edge://version/ 以查看浏览器版本。')
         sys.exit(-1)
     if not url == '':
-        try:
-            driver.get(url)
-        except selenium.common.exceptions.InvalidArgumentException:
-            if not 'https://' in url:
-                url = 'https://' + url
-                driver.get(url)
+        if not 'https://' in url:
+            url='https://'+url
+        driver.get(url)
     return driver
 
 
@@ -2563,6 +2593,7 @@ def scrshot(l):
 # __init__() ['
 #    :       pass
 # region
+Logcount = 0
 debug = True
 # 获取计算机用户名
 user = txt(projectpath('user.txt')).l[0]
@@ -2575,7 +2606,6 @@ headers = {
 runningroot = standarlizedPath(__file__)
 runningroot = runningroot[:runningroot.rfind('/')]
 runningroot = runningroot[:runningroot.rfind('/')] + '/'
-Logcount = 0
 activedisk = txt('D:/Kaleidoscope/ActiveDisk.txt')
 disknames = RefreshTXT("D:/Kaleidoscope/disknames.txt")
 consoletxt = Json('D:/Kaleidoscope/console.txt')

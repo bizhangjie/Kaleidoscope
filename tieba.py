@@ -2,7 +2,7 @@ import MyUtils
 
 if __name__=='__main__':
     f=MyUtils.rtxt(MyUtils.projectpath('browser/tieba.txt'))
-    page=MyUtils.Edge()
+    page=MyUtils.Chrome(mine=True)
     f.set()
     for url in f.l:
         num=url

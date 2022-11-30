@@ -62,7 +62,7 @@ def adduser():
 
 # 统计总数
 def count():
-    # pyperclip.copy(f'{allpieces.length()}\n{allusers.length()}\n{missing.length()}')
+    # pyperclip.copy(baijiahao'{allpieces.length()}\n{allusers.length()}\n{missing.length()}')
     file=0
     dir=0
     for i in MyUtils.listdir('./抖音'):

@@ -12,8 +12,8 @@ i = 0
 l = []
 while i < 1002:
     i += 1
-    if os.path.exists(droot + f'\\{i + 1}'):
-        for (roots, dirs, files) in os.walk(droot + f'\\{i + 1}'):
+    if os.path.exists(droot + baijiahao'\\{i + 1}'):
+        for (roots, dirs, files) in os.walk(droot + baijiahao'\\{i + 1}'):
             if files == []:
                 l.append(roots)
 
@@ -21,11 +21,11 @@ while i < 1002:
 e = MyUtils.MyThreadPool(50)
 while file.loopcount < file.length():
     # 如果已下载，跳过
-    if os.path.exists(droot + f'\\{file.loopcount + 1}') and not (droot + f'\\{file.loopcount + 1}') in l:
+    if os.path.exists(droot + baijiahao'\\{file.loopcount + 1}') and not (droot + baijiahao'\\{file.loopcount + 1}') in l:
         file.Rollback()
         continue
-    e.excute(MyUtils.pagedownload, file.Rollback(), droot + f'\\{file.loopcount}\\{file.loopcount}.ts')
-    print(droot + f'\\{file.loopcount}\\{file.loopcount}.ts下载中')
+    e.excute(MyUtils.pagedownload, file.Rollback(), droot + baijiahao'\\{file.loopcount}\\{file.loopcount}.ts')
+    print(droot + baijiahao'\\{file.loopcount}\\{file.loopcount}.ts下载中')
     # 限制片段
     if file.loopcount % 10 == 0:
         # print('cooling down')
@@ -56,7 +56,7 @@ s = ''
 count = 0
 for i in range(max(l)):
     count += 1
-    for (roots, dirs, files) in os.walk(droot + f'\\{i}'):
+    for (roots, dirs, files) in os.walk(droot + baijiahao'\\{i}'):
         s += MyUtils.standarlizedPath(droot + '\\' + str(i) + '\\' + files[0]) + '|'
     if count > 100:
         count = 0
@@ -67,16 +67,16 @@ for i in range(max(l)):
 # i=0
 # for s in slist:
 #     i+=1
-#     ss=(f'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.mp4')
-#     os.system(f'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.ts')
+#     ss=(baijiahao'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.mp4')
+#     os.system(baijiahao'ffmpeg -i "concat:{s}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/clip/{i}.ts')
 
 # mp4->ts
 path = 'F:/虎牙'
 s = ''
-for droot, dirs, files in os.walk(f'{path}/clip'):
+for droot, dirs, files in os.walk(baijiahao'{path}/clip'):
     for file in files:
-        if not os.path.exists(f'{path}/clip/{file.replace("mp4", "ts")}'):
-            os.system(f'ffmpeg -i {path}/clip/{file} -vcodec copy -acodec copy -vbsf h264_mp4toannexb {path}/clip/{file.replace("mp4", "ts")}')
+        if not os.path.exists(baijiahao'{path}/clip/{file.replace("mp4", "ts")}'):
+            os.system(baijiahao'ffmpeg -i {path}/clip/{file} -vcodec copy -acodec copy -vbsf h264_mp4toannexb {path}/clip/{file.replace("mp4", "ts")}')
             s += path + '/clip/' + file.replace("mp4", "ts") + '|'
 
 # 合成大文件
@@ -85,4 +85,4 @@ for (roots, dirs, files) in os.walk('F:/虎牙/clip'):
     for file in files:
         if file[-3:] == '.ts':
             l += MyUtils.standarlizedPath(roots + '\\' + file + '|')
-os.system(f'ffmpeg -i "concat:{l}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/output.mp4')
+os.system(baijiahao'ffmpeg -i "concat:{l}" -acodec copy -vcodec copy -absf aac_adtstoasc F:/虎牙/output.mp4')

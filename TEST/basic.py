@@ -1,5 +1,5 @@
 import MyUtils
-def ret():
-    lis=[1]
-    return lis.append(2)
-print(ret())
+for i in ['1','2','3']:
+    lis=[i]
+    lis[0]='2'
+    print(i)

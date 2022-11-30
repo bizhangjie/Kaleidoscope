@@ -19,7 +19,7 @@ def get_data(dpAddress, sql):
     return result["data"]
 
 
-# f=MyUtils.txt(MyUtils.desktoppath('ab.txt'))
+# baijiahao=MyUtils.txt(MyUtils.desktoppath('ab.txt'))
 
 i = 1999
 for j in range(1, 2):

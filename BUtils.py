@@ -100,7 +100,7 @@ def uidtoid(UID):
     url = (f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
     res = requests.get(url, headers=MyUtils.headers)
     # 这个就是第一个作者author
-    # print(f"[upid] {res.json()['data']['list']['vlist'][0]['author']}")
+    # print(baijiahao"[upid] {res.json()['data']['list']['vlist'][0]['author']}")
     try:
         for i in res.json()['data']['list']['vlist']:
         # 由于存在可能有合作，多个author，因此要遍历

@@ -71,7 +71,7 @@ def main():
         author = s[:s.rfind(' (@')].strip('\t')
         TUtils.addauthor(useruid, author, users)
         # if author in TUtils.diskusers:
-        #     MyUtils.delog(f'当前用户{author}在操作盘中，跳过')
+        #     MyUtils.delog(baijiahao'当前用户{author}在操作盘中，跳过')
         #     continue
         MyUtils.log(f'  ------转到{author}的主页-----')
         MyUtils.delog(HostUrl)

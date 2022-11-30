@@ -35,8 +35,8 @@ def GetM3U8andInfo():
     TotalEP = len(MyUtils.Elements([page, By.XPATH, '/html/body/div[2]/div[1]/div[2]/div/div/div[2]/ul[1]/li']))
     MyUtils.delog(f'获取参数{name},{CurrentEP}/{TotalEP}')
     # 如果已存在路径，直接检索，并把CurrentEP==1更新为CurrentEP
-    # if os.path.exists(f'../影视/{name}'):
-    #     for root, dirs, files in os.walk(f'../影视/{name}'):
+    # if os.path.exists(baijiahao'../影视/{name}'):
+    #     for root, dirs, files in os.walk(baijiahao'../影视/{name}'):
     #         CurrentEP = len(files) + 1
     #         if CurrentEP > TotalEP:
     #             sys.exit()
@@ -100,12 +100,12 @@ def Download():
         if os.path.exists(path + f'/{inc}.mp4'):
             MyUtils.log(f'{name}：EP{CurrentEP}:{inc}/{len(Sections)}  Path:{os.path.abspath(path)}')
             continue
-        # MyUtils.MyPageDownload(url,path + f'/{inc}.mp4')
+        # MyUtils.MyPageDownload(url,path + baijiahao'/{inc}.mp4')
         e.doorwait(MyUtils.requestdownload, path + f'/{inc}.mp4', 'wb', url)
-        # print(f'{name}：EP{CurrentEP}:{inc}/{len(Sections)}  Path:{os.path.abspath(path)}下载中')
+        # print(baijiahao'{name}：EP{CurrentEP}:{inc}/{len(Sections)}  Path:{os.path.abspath(path)}下载中')
     MyUtils.log(f'等待下载完成（剩余working: ）')
-    # while not os.path.exists(os.path.abspath(path+f'/{inc}.mp4')):
-    #     # print(f'等待{path+f"/{inc}.mp4"}下载完成中')
+    # while not os.path.exists(os.path.abspath(path+baijiahao'/{inc}.mp4')):
+    #     # print(baijiahao'等待{path+baijiahao"/{inc}.mp4"}下载完成中')
     #     time.sleep(5)
 
     MyUtils.delog('下载完毕，开始重写和组合')

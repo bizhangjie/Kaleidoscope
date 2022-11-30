@@ -46,7 +46,7 @@ while User.loopcount < User.length():
         MyUtils.CreatePath(droot + qq + '/' + name)
 
         #     获取tweet截屏
-        # MyUtils.MyScreenShot(element=element,show=1,path=droot+qq+'/'+name+f'/Overall.png')
+        # MyUtils.MyScreenShot(element=element,show=1,path=droot+qq+'/'+name+baijiahao'/Overall.png')
 
         # 获取内含视频/图片
         imglist = MyUtils.Elements([element, By.CLASS_NAME, 'img-item  '])

@@ -126,7 +126,7 @@ def storagemove():
         #         如果是视频
         if ex in ['mp4']:
             shutil.move(i, f'./storage/未分类视频/{MyUtils.filename(i)}')
-            # print((i,f'./storage/视频/{MyUtils.filename(i)}'))
+            # print((i,baijiahao'./storage/视频/{MyUtils.filename(i)}'))
         if ex in ['jpg', 'jpeg', 'png', 'webp']:
             shutil.move(i, f'C:/Users/{MyUtils.user}/Pictures/未分类/{MyUtils.filename(i)}')
 

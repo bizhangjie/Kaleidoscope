@@ -52,10 +52,10 @@ t = MyUtils.RefreshTXT(f'D:/Kaleidoscope/bili/CoverSpectrum.txt')
 #                 break
 #             file=file[len(ss):]
 #             file+=ss+'.jpg'
-#             MyUtils.MyCreatePath(f'./Bili/{id}_{i}')
-#             shutil.move(os.path.abspath(path+id+'\\'+originfile),os.path.abspath(f'./Bili/{id}_{i}/{ss}.jpg'))
+#             MyUtils.MyCreatePath(baijiahao'./Bili/{id}_{i}')
+#             shutil.move(os.path.abspath(path+id+'\\'+originfile),os.path.abspath(baijiahao'./Bili/{id}_{i}/{ss}.jpg'))
 #             inc+=1
-#             print(f'[Main]{inc}/{len(files)}')
+#             print(baijiahao'[Main]{inc}/{len(files)}')
 # MyUtils.MyDeleteEmpty('./bili/cover')
 
 # 上面是图片转移的代码

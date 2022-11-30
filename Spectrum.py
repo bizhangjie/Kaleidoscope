@@ -20,8 +20,9 @@ if __name__ == '__main__':
         lis = page.elements('/html/body/dl/dt[1]/dl/dt[2]//a/@href')
         for i in lis:
             f.add(i)
-    addto()
+    # addto()
 
+    # 根据字符串特征对url进行分类到txt中去
     def allocate():
         for j in ['youtube','bili','zhihu','huya','weibo','douyin','baijiahao','tieba','twitter','wallhaven','dandanzan','cc98','xiaohongshu','weixin','baike','haokan','www.baidu.com']:
             ff=MyUtils.rtxt(MyUtils.projectpath(f'/browser/{j}.txt'))
@@ -32,3 +33,17 @@ if __name__ == '__main__':
                     dlis.append(i)
             f.delete(dlis)
     # allocate()
+
+    # 打开某个特定的txt
+    def checkweb():
+        f=MyUtils.txt(MyUtils.projectpath('./browser/bili.txt'))
+        urls=[]
+        for i in range(0,20):
+            i=f.l[i]
+
+
+            urls.append(i)
+        MyUtils.openedge(urls)
+        f.delete(urls)
+    checkweb()
+

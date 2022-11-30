@@ -95,7 +95,7 @@ def detect(path, author, VideoNum, l):
     # 获取参数-标题
     # region
     title = DouyinUtils.Title([page])
-    # MyUtils.delog(f' title={title}')
+    # MyUtils.delog(baijiahao' title={title}')
     # endregion
 
     # 如果当前操作磁盘里有，增加记录
@@ -133,7 +133,7 @@ def detect(path, author, VideoNum, l):
     ReadyToDownload.update({VideoNum: (author, title, VideoUrl)})
 
     # MyUtils.log(({VideoNum:(author,title,VideoUrl)}))
-    # MyUtils.log(f' Detect{index+1}:探测到未下载。准备下载增加，{len(ReadyToDownload)}')
+    # MyUtils.log(baijiahao' Detect{index+1}:探测到未下载。准备下载增加，{len(ReadyToDownload)}')
 
     # 结束
     # region
@@ -229,7 +229,7 @@ if __name__ == '__main__':
             # 跳过已下载
             # region
             # if (VideoNum in Distripute.a.keys()):
-            #     MyUtils.log(f'{author}的作品{VideoNum}在记录中，跳过')
+            #     MyUtils.log(baijiahao'{author}的作品{VideoNum}在记录中，跳过')
             #     continue
             # endregion
             # 探测请求detect

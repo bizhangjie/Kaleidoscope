@@ -9,7 +9,7 @@ dt = time.strftime("%Y-%m-%a %H:%M:%S", time_local)
 print(dt)  # 2021-11-09 09:46:48
 d = datetime.datetime.fromtimestamp(timestamp / 1000)
 # 精确到毫秒
-str1 = d.strftime("%Y-%m-%a %H:%M:%S.%f")
+str1 = d.strftime("%Y-%m-%a %H:%M:%S.%baijiahao")
 print(str1)  # 2021-11-09 09:46:48.000000
 
 # 2-日期转化为时间戳
