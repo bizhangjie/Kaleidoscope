@@ -1,6 +1,7 @@
 import concurrent.futures
 import datetime
 import inspect
+import csv
 import json
 import multiprocessing
 import os
@@ -877,24 +878,58 @@ def filename(s):
     return standarlizedFileName(s)
 
 
-class csv():
+class table():
     def __init__(self, path):
+        if not '.csv'in path:
+            path+='csv'
         self.path = standarlizedPath(path)
-        self.f = open(self.path)
-        self.reader = csv.reader(self.f)
-        self.header = next(self.reader)
+        if not isfile(path):
+            self.path=projectpath(path)
+        path=self.path
+        if not isfile(self.path):
+            Exit()
+        self.read()
 
-    def get(self, begin, end):
-        count = 0
-        res = []
-        for row in self.reader:
-            if count < begin:
-                continue
-            if count >= end:
-                break
-            res.append(row)
-        return res
+    def read(self):
+        f = open(self.path,encoding='utf-8-sig',mode='r')
+        self.reader = csv.DictReader(f)
+        self.l=[]
+        for i in self.reader:
+            self.l.append(i)
+        self.d={}
+        for i in self.l[0]:
+            self.d.update({i:[]})
+        for d in self.l:
+            for k in d:
+                self.d.update({k:extend(self.d[k],[d[k]])})
 
+    # def get(self):
+
+    def save(self):
+        f = open(self.path,encoding='utf-8-sig',mode='w',newline="")
+        writer=self.writer = csv.DictWriter(f, self.keys())
+        writer.writeheader()
+        writer.writerows(self.l)
+
+    def keys(self):
+        return keys(self.l[0])
+
+    def add(self,d):
+        if type(d)in[dict]:
+            self.l.append(d)
+            for key in d:
+                if key in keys(self.d):
+                    extend(self.d[key],[d[key]])
+        if type(d)in [tuple,list]:
+            count=0
+            newd={}
+            for i in self.l[0]:
+                newd.update({i:d[count]})
+                count+=1
+            self.add(newd)
+        f = open(self.path,encoding='utf-8-sig',mode='wa',newline="")
+        writer=self.writer = csv.DictWriter(f, self.keys())
+        writer.writerows(self.l[-1])
 
 def deletedirandfile(l, silent=None):
     # 删除txt里的文件
@@ -966,6 +1001,7 @@ def standarlizedFileName(str):
     str = str.replace('\t', ' ')
     str = str.replace('\x08', ' ')
     str = str.replace('\x1c', ' ')
+    str = str.replace('\x14', ' ')
 
     return str[:224]
 

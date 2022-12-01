@@ -20,5 +20,6 @@ if __name__ == '__main__':
     #     page.save(path=f'{MyUtils.userpath("Pictures/集锦/其它/")}')
     #     pout.add(i)
     # page.quit()
-    page=MyUtils.Edge('https://www.163.com/dy/article/HNBPMH5E0521DJ4J.html',silent=True)
+    url=''
+    page=MyUtils.Edge(url,silent=True)
     page.save()
