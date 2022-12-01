@@ -46,6 +46,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 注解
 # region
 # 多名函数
+import MyUtils
+
+
 def newname(func):
     def inner(originalfunc, *a, **b):
         return originalfunc(*a, **b)
@@ -667,6 +670,14 @@ def look(path):
 def Open(path):
     return look(path)
 
+# 返回收藏目录
+
+def collectionpath(s=''):
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
+    return standarlizedPath(userpath(f'Pictures/集锦/{s}'))
 
 # 返回C盘用户目录
 def userpath(s=''):
@@ -995,13 +1006,14 @@ def standarlizedPath(s='', strict=False):
 # 合法化文件名
 def standarlizedFileName(str):
     str = re.sub('/|\||\?|>|<|:|\n|/|"|\*', ' ', str)
-    str = str.replace('  ', ' ')
-    str = str.replace('\\', ' ')
-    str = str.replace('\r', ' ')
-    str = str.replace('\t', ' ')
-    str = str.replace('\x08', ' ')
-    str = str.replace('\x1c', ' ')
-    str = str.replace('\x14', ' ')
+    s='_'
+    str = str.replace('  ', s)
+    str = str.replace('\\', s)
+    str = str.replace('\r', s)
+    str = str.replace('\t', s)
+    str = str.replace('\x08', s)
+    str = str.replace('\x1c', s)
+    str = str.replace('\x14', s)
 
     return str[:224]
 
@@ -1846,7 +1858,7 @@ def tail(s, mark='/'):
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
     if not mark in s:
-        Exit('tail失败。字符串中没有预计存在的子串。', (s, mark))
+        Exit(f'tail失败。字符串{s}中没有预计存在的子串{mark}。', (s, mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -2146,10 +2158,12 @@ class Edge():
             Exit()
         if path == '':
             path = userpath(f'Pictures/集锦/{self.title()}/basic.png')
+        log(f'{self.url()}的全屏保存到{path}')
         e = self.element('/html/body')
-        x, y = 1080, scrollheight([self.driver])
+        x, y = max(1080,scrollwidth([self.driver])+100), scrollheight([self.driver])
         self.set_window_size(x, y)
-        sleep(y / 1400)
+        self.down()
+        self.up()
         self.elementshot(path, e)
 
     # 避开不安全网页警告
@@ -2160,11 +2174,13 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self, video=True, minsize=(100, 100), t=3, path=None):
+    def save(self, video=True, minsize=(100, 100), t=3, path=None,titletail=None):
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         if not self.title() in path:
             path += self.title()
+        if titletail in path:
+            path=removetail(path,titletail)
         createpath(path)
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
@@ -2198,7 +2214,9 @@ class Edge():
                     fname = removetail(fname, j) + j
                     break
             fname = standarlizedFileName(fname)
-            pagedownload(url, f'{path}/img/<count>{fname}', t=t)
+            dpath=f'{path}/img/<{count}>{fname}'
+            log(f'saving {self.url()}的 {url} 到 {dpath}')
+            pagedownload(url, dpath, t=t)
 
     # 快捷键保存截屏
     def ctrlshifts(self, path, t=3):
@@ -2344,6 +2362,7 @@ class Edge():
         while h > 10:
             if h > scale:
                 h -= scale
+                delog(h)
                 sleep(pause)
             else:
                 h = 0
