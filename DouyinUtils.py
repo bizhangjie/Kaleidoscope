@@ -136,7 +136,7 @@ def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
             VideoUrl.append(https)
         #     endregion
     readytoDownload.add({"list": [VideoNum, author, title, VideoUrl, flag]})
-    MyUtils.delog([(VideoNum, author, title, VideoUrl, flag), '准备下载列表readytoDownload  added.'])
+    MyUtils.log(f'下载队列 ({readytoDownload.length()})')
 
 
 # 详情页
@@ -172,7 +172,7 @@ def dislike(l):
 # 从记录中判断
 def skiprecorded(VideoNum):
     if (VideoNum in allpieces.d.keys()):
-        MyUtils.log(f'作品{VideoNum}在记录中，跳过')
+        MyUtils.log(f'作品 {VideoNum} 在记录中，跳过')
         return True
     return False
 

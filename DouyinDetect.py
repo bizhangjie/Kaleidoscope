@@ -10,6 +10,7 @@ import DouyinUtils
 import MDouyin
 import Maintainace
 import MyUtils
+MyUtils.Run()
 
 # 变量
 users = DouyinUtils.allusers
@@ -27,7 +28,6 @@ def main():
 
     def detect():
         # 探测
-        stole = MyUtils.nowstr()
         # 获取参数
         # region
         flag = DouyinUtils.IsPic([VideoElement])
@@ -47,14 +47,12 @@ def main():
         # 如果当前操作磁盘里有，增加记录
         # region
         if DouyinUtils.skipdownloaded(flag, allpieces, VideoNum, title, author):
-            MyUtils.log(f'{MyUtils.counttime(stole)}s')
             return
         # endregion
 
         # 获取下载地址
         time.sleep(1)
         DouyinUtils.load(flag, page, VideoNum, author, title, readytodownload)
-        MyUtils.log(f'{MyUtils.counttime(stole)}s')
 
     # 开始用户循环
     while useruid:
@@ -117,7 +115,7 @@ def main():
             douyinSum += 1
 
             #     持续性休眠
-            while readytodownload.length() > 10:
+            while readytodownload.length() > 15:
                 MyUtils.log('下载队列已满。Detect 等待中...')
                 time.sleep(10)
 

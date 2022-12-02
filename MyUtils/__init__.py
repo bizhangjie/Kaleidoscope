@@ -925,6 +925,7 @@ class table():
         writer=self.writer = csv.DictWriter(f, self.keys())
         writer.writeheader()
         writer.writerows(self.l)
+        log(f'saved {self.path}')
 
     def keys(self):
         return keys(self.l[0])
@@ -942,9 +943,11 @@ class table():
                 newd.update({i:d[count]})
                 count+=1
             self.add(newd)
-        f = open(self.path,encoding='utf-8-sig',mode='wa',newline="")
+            return
+        f = open(self.path,encoding='utf-8-sig',mode='a',newline="")
         writer=self.writer = csv.DictWriter(f, self.keys())
-        writer.writerows(self.l[-1])
+        writer.writerows([self.l[-1]])
+        log(f'added {self.path} {self.l[-1]}')
 
 def deletedirandfile(l, silent=None):
     # 删除txt里的文件

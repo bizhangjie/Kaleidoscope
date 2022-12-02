@@ -128,7 +128,7 @@ def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
 
 def skiprecorded(VideoNum):
     if (VideoNum in allpieces.d.keys()):
-        MyUtils.log(f'作品{VideoNum}在记录中，跳过')
+        MyUtils.log(f'作品 {VideoNum} 在记录中，跳过')
         return True
     return False
 

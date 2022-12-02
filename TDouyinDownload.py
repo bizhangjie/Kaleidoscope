@@ -72,7 +72,7 @@ while UserUID:
         # 跳过已下载
         # region
         if (VideoNum in record.d.keys()):
-            MyUtils.log(f'{author}的作品{VideoNum}在记录中，跳过')
+            MyUtils.log(f'{author} 的作品 {VideoNum} 在记录中，跳过')
             continue
 
 

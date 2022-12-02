@@ -20,7 +20,6 @@ def download():
 
     # 下载
     while True:
-        stole = MyUtils.nowstr()
         # 获取参数
         # region
         rec = readytoDownload.get()
@@ -73,7 +72,6 @@ def download():
             # region
             Failed.add(MyUtils.simplinfo(VideoNum, author, title))
             MyUtils.warn(f'下载失败，{VideoNum} 记录补全到 {Failed.path}.{author} 的编号:{VideoNum} 标题:{title}\n{VideoUrl}')
-        MyUtils.log(f'cost{MyUtils.counttime(stole)}')
         # endregion
 
 

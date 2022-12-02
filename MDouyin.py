@@ -73,12 +73,8 @@ def count():
     MyUtils.log(f"失败总数：{missing.length()}")
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
-
-# [6]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 71> 作品总数：46302
-# [7]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 72> 作者总数：453
-# [8]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 73> 失败总数：4836
-# [9]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 74> 视频总数：48803
-# [10]   16:11:20  [<module>] MDouyin.py  <line 115> ==》 [count] MDouyin.py  <line 75> 图片总数：1535
+    table=MyUtils.table(MyUtils.projectpath('./抖音/record.csv'))
+    table.add((allpieces.length(),allusers.length(),missing.length(),file,dir,MyUtils.removetail(MyUtils.Time().s(),'.')))
 
 # 统计重复的作品
 def findduplicate():
@@ -110,7 +106,7 @@ def findduplicate():
 
 
 if __name__ == '__main__':
-    # deleteRecorded()
+    deleteRecorded()
     # deleteMissing()
-    count()
+    # count()
     # findduplicate()
