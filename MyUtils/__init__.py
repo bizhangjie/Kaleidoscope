@@ -454,7 +454,6 @@ def openedge(l):
         l = [l]
     for url in l:
         hotkey('alt', 'd')
-        print(url)
         copyto(url)
         hotkey('ctrl', 'v')
         hotkey('enter')
@@ -536,8 +535,11 @@ def Input(x, y, s):
 # 音视频
 # region
 # 使用ffmpeg剪切视频
-def cutvideo(inputpath, outputpath, start, end):
+def cutvideo(inputpath, start, end,outputpath=None):
+    if outputpath==None:
+        outputpath=MyUtils.removetail(inputpath,'.mp4')+'-cut.mp4'
     sourcepath = os.path.abspath(inputpath)
+    outputpath = os.path.abspath(outputpath)
     command = f'ffmpeg  -i {standarlizedPath(sourcepath)} -vcodec copy -acodec copy -ss {start} -to {end} {outputpath} -y'
     print(command)
     os.system('"%s"' % command)
@@ -833,6 +835,8 @@ def move(s1, s2,strict=False):
         createpath(s2)
     if isdir(s1):
         if isdir(s2):
+            Open(s1)
+            Open(s2)
             Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
 
@@ -2153,17 +2157,17 @@ class Edge():
         self.set_window_size(900, 1000)
 
     # 获取全屏
-    def fullscreen(self, path=''):
+    def fullscreen(self, path='',scale=100):
         if not self.silent == True:
             Exit()
         if path == '':
             path = userpath(f'Pictures/集锦/{self.title()}/basic.png')
-        log(f'{self.url()}的全屏保存到{path}')
+        log(f'将把 {self.url()} 的全屏保存到{path}')
         e = self.element('/html/body')
         x, y = max(1080,scrollwidth([self.driver])+100), scrollheight([self.driver])
         self.set_window_size(x, y)
         self.down()
-        self.up()
+        self.up(scale=scale)
         self.elementshot(path, e)
 
     # 避开不安全网页警告
@@ -2174,7 +2178,7 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self, video=True, minsize=(100, 100), t=3, path=None,titletail=None):
+    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100):
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         if not self.title() in path:
@@ -2185,13 +2189,14 @@ class Edge():
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png')
+            self.fullscreen(f'{path}/basic.png',scale=scale)
         self.savepics(path, 7, minsize=minsize)
         # self.savevideos()
         f = txt(f'{path}/url.txt')
         f.l = []
         f.l.append(self.url())
         f.save()
+        return path
 
     # 保存页面上的所有图片
     def savepics(self, path, t=5, minsize=(100, 100)):
@@ -2355,6 +2360,9 @@ class Edge():
         return getscrolltop([self.driver])
 
     def setscrolltop(self, h):
+        if h<0:
+            warn(f'设置目标浏览器高度小于0')
+            h=0
         return setscrolltop([self.driver, h])
 
     def up(self, scale=100, pause=1):
@@ -2362,6 +2370,8 @@ class Edge():
         while h > 10:
             if h > scale:
                 h -= scale
+                if h<=0:
+                    h=0
                 delog(h)
                 sleep(pause)
             else:
@@ -2423,7 +2433,7 @@ class Edge():
 
     # 查看当前页面
     def look(self, a=None):
-        path = f'D:/Kaleidoscope/error/current.png'
+        path = f'D:/Kaleidoscope/cache/current.png'
         if not a == None:
             self.elementshot(path, a)
             look(path)

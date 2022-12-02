@@ -1,2 +1,2 @@
 import MyUtils
-MyUtils.pout(['a'],path='cache.txt')
+MyUtils.pout(['□'],path='cache.txt')
