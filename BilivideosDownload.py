@@ -9,7 +9,9 @@ BUtils.opendownloader()
 
 
 def main():
-    while True:
+    count=0
+    while count<5:
+        count+=1
         d = readytodownload.get()
         useruid = MyUtils.key(d)
         author = BUtils.uidtoid(useruid)
