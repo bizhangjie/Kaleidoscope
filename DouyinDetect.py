@@ -1,15 +1,11 @@
-import asyncio
-import os.path
-import sys
 import time
-import multiprocessing
+
 from retrying import retry
 from selenium.webdriver.common.by import By
 
 import DouyinUtils
-import MDouyin
-import Maintainace
 import MyUtils
+
 MyUtils.Run()
 
 # 变量

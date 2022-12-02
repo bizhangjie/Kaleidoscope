@@ -1,14 +1,9 @@
-import asyncio
-import os.path
-import sys
 import time
-import multiprocessing
 
-from selenium.webdriver.common.by import By
+from retrying import retry
 
 import DouyinUtils
 import MyUtils
-from retrying import retry
 
 
 @retry(retry_on_exception=MyUtils.retry)
