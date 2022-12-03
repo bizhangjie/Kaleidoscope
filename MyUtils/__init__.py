@@ -604,7 +604,10 @@ def info(s):
             return size(s)
     # 其它类型
     elif type(s) in [list, tuple, dict]:
-        tip(f'{s[0:2]}...{s[-1]}')
+        if len(s)>3:
+            tip(f'{s[0:2]}...{s[-1]}')
+        else:
+            tip(s)
         tip(f'类型：{type(s)} 大小：{int(int(sys.getsizeof(s) / 1024 / 1024 * 100) / 100.0)}MB 内存地址：{id(s)} 长度{len(list(s))}')
     elif type(s) in [int, str, float, ]:
         tip(f'类型：{type(s)} 大小：{int(sys.getsizeof(s))}Byte 内存地址：{id(s)}')
@@ -894,16 +897,34 @@ def filename(s):
 
 
 class table():
-    def __init__(self, path):
+    def __init__(self, path,create=False):
         if not '.csv'in path:
             path+='csv'
         self.path = standarlizedPath(path)
-        if not isfile(path):
-            self.path=projectpath(path)
-        path=self.path
+
+        if not isfile(self.path):
+            if create==False:
+                Exit(f'{self.path} 不存在。')
+            self.create(*create)
+
         if not isfile(self.path):
             Exit()
         self.read()
+
+    def create(self,*a):
+        writer = csv.writer(open(self.path,'w'))
+        writer.writerow(a)
+        # Exit(f'已创建 {self.path} 完毕。强制停止程序以创建成功。似乎存在缓冲区？')
+
+    @consume
+    #         去重，去空，集合化
+    def set(self):
+        p = list(set(self.l))
+        p.sort(key=self.l.index)
+        self.l = p
+        if '' in self.l:
+            self.l.pop(self.l.index(''))
+        self.save(self)
 
     def read(self):
         f = open(self.path,encoding='utf-8-sig',mode='r')
@@ -912,8 +933,11 @@ class table():
         for i in self.reader:
             self.l.append(i)
         self.d={}
-        for i in self.l[0]:
-            self.d.update({i:[]})
+        self.columns=[]
+        for i in next(csv.reader(open(self.path,'r'))):
+            self.columns.append(i)
+        for column in self.columns:
+            self.d.update({column:[]})
         for d in self.l:
             for k in d:
                 self.d.update({k:extend(self.d[k],[d[k]])})
@@ -922,13 +946,10 @@ class table():
 
     def save(self):
         f = open(self.path,encoding='utf-8-sig',mode='w',newline="")
-        writer=self.writer = csv.DictWriter(f, self.keys())
+        writer=self.writer = csv.DictWriter(f, self.colmuns)
         writer.writeheader()
         writer.writerows(self.l)
         log(f'saved {self.path}')
-
-    def keys(self):
-        return keys(self.l[0])
 
     def add(self,d):
         if type(d)in[dict]:
@@ -939,15 +960,20 @@ class table():
         if type(d)in [tuple,list]:
             count=0
             newd={}
-            for i in self.l[0]:
+            for i in self.columns:
+                if count+1>len(d):
+                    break
                 newd.update({i:d[count]})
                 count+=1
             self.add(newd)
             return
         f = open(self.path,encoding='utf-8-sig',mode='a',newline="")
-        writer=self.writer = csv.DictWriter(f, self.keys())
+        writer=self.writer = csv.DictWriter(f, self.columns)
         writer.writerows([self.l[-1]])
         log(f'added {self.path} {self.l[-1]}')
+
+class Csv(table):
+    pass
 
 def deletedirandfile(l, silent=None):
     # 删除txt里的文件
