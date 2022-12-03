@@ -1162,6 +1162,16 @@ class txt():
                 self.save()
                 return
 
+    @consume
+    #         去重，去空，集合化
+    def set(self):
+        p = list(set(self.l))
+        p.sort(key=self.l.index)
+        self.l = p
+        if '' in self.l:
+            self.l.pop(self.l.index(''))
+        txt.save(self, 'Rtxt set')
+
     @listed
     def add(self, i):
         i = str(i)
@@ -1229,15 +1239,6 @@ class RefreshTXT(txt):
                 f.save('refresh backup')
         # endregion
 
-    @consume
-    #         去重，去空，集合化
-    def set(self):
-        p = list(set(self.l))
-        p.sort(key=self.l.index)
-        self.l = p
-        if '' in self.l:
-            self.l.pop(self.l.index(''))
-        txt.save(self, 'Rtxt set')
 
     @consume
     def save(self):
@@ -1839,6 +1840,8 @@ def cuttail(s, mark='_'):
     if type(s) == list:
         warn('用法错误。')
         sys.exit(-1)
+    if mark==None:
+        return s
     s, mark = str(s), str(mark)
     t = tail(s, mark)
     s = s[:(s.rfind(mark))]
@@ -1917,8 +1920,28 @@ def getdiskname():
 
 # 爬虫
 # region
+#  爬取论坛的每一页
+def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
+#     先打开第一页，获取标题，每页数
+    page=Chrome(mine=True,silent=True)
+    page.get(firsturl)
+    title=removetail(page.title(),titletail)
+    # 返回当前帖子的Uid
+    uid=func1(page.url())
+    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'),minsize=minsize,)
+    # 返回后面的每页的url
+    urllist=func2([page,uid])
+    page.quit()
+    count=1
+    for url in urllist:
+        count+=1
+        page=Chrome(url,mine=True,silent=True)
+        # 检查后面的每页是否被反爬了
+        func3([page])
 
-# 全屏保存
+        page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'),minsize=minsize,direct=True)
+        page.quit()
+
 
 
 # 转到已经打开的edge并保存全部截屏
@@ -2181,24 +2204,32 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100):
+    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100,direct=False):
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
-        if not self.title() in path:
-            path += self.title()
-        if titletail in path:
+        #     附加页面标题到文件夹名
+        if not direct:
+            if not self.title() in path:
+                path += self.title()
+        if not titletail==None and titletail in path:
             path=removetail(path,titletail)
         createpath(path)
+
+        # 保存页面截图
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
             self.fullscreen(f'{path}/basic.png',scale=scale)
+
+        # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
+
+        # 保存页面视频
         # self.savevideos()
-        f = txt(f'{path}/url.txt')
-        f.l = []
-        f.l.append(self.url())
-        f.save()
+
+        # 留下url记录
+        f = txt(f'{path}/url.txt').add(self.url())
+
         return path
 
     # 保存页面上的所有图片
