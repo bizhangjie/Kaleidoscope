@@ -181,7 +181,7 @@ def skipdownloaded(flag, record, VideoNum, title, author):
     path = './抖音/' + author
     if (os.path.exists(f'{path}/{VideoNum}_{title}.mp4') and not flag):
         record.add(simplinfo(VideoNum, author, title))
-        MyUtils.log(f' {path}/{title}.mp4已存在磁盘中，补全记录')
+        MyUtils.log(f' {MyUtils.standarlizedPath(path)}/{VideoNum}_{title}.mp4已存在磁盘中，补全记录')
         return True
     # if (flag and os.path.exists(baijiahao'{path}/{VideoNum}_{title}/{len(VideoNum) - 1}.png')):
     if (flag and len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==VideoNum):
