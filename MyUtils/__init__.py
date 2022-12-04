@@ -139,9 +139,11 @@ def consume(func):
 # timestamp只对内使用
 
 # 字符串
-def nowstr():
-    return str(datetime.datetime.now())
-
+def nowstr(mic=True):
+    ret= str(datetime.datetime.now())
+    if mic:
+        return ret
+    return ret[:ret.find('.')]
 
 def today():
     return str(f'{now().year}-{now().month}-{now().day}')
@@ -660,8 +662,10 @@ def rmempty(root):
     c=input()
     deletedirandfile(dlis)
 
-# 打开文件
+# 打开文件或者网页
 def look(path):
+    if 'https' in path:
+        openedge(path)
     path = standarlizedPath(path)
     if isdir(path):
         os.startfile(path)
@@ -884,6 +888,8 @@ def listfile(path):
 def pathname(s=None):
     s = standarlizedPath(s)
     return s[:s.rfind('/') + 1]
+def parentpath(s):
+    return pathname(s)
 
 
 # 返回文路径的文件名
@@ -1849,8 +1855,8 @@ def tellstringsame(s1, s2):
 
 # 去除字符串末尾
 def Strip(s, tail):
-    if not type(s) in [str] and type(tail) in [str]:
-        Exit(s, tail)
+    # if not type(s) in [str] and type(tail) in [str]:
+    #     Exit(s, tail)
     if s[-len(tail):] == tail:
         return s[:-len(tail)]
     else:
@@ -2240,6 +2246,9 @@ class Edge():
                 path += self.title()
         if not titletail==None and titletail in path:
             path=removetail(path,titletail)
+        if not titletail == None and ' '+titletail in path:
+            path = removetail(path, ' '+titletail)
+        # 没办法，这个空格在不在真的完全是一个玄学
         createpath(path)
 
         # 保存页面截图
@@ -2252,7 +2261,7 @@ class Edge():
         self.savepics(path, 7, minsize=minsize)
 
         # 保存页面视频
-        # self.savevideos()
+        self.savevideos()
 
         # 留下url记录
         f = txt(f'{path}/url.txt').add(self.url())
@@ -2281,6 +2290,33 @@ class Edge():
                     break
             fname = standarlizedFileName(fname)
             dpath=f'{path}/img/<{count}>{fname}'
+            log(f'saving {self.url()}的 {url} 到 {dpath}')
+            pagedownload(url, dpath, t=t)
+
+    # 保存页面上的所有视频
+    def savevideos(self, path, t=5, minsize=None):
+        res = []
+        extend(res, self.elements('//video', strict=False), )
+        count = 0
+        for i in res:
+            count += 1
+            url = i.get_attribute('src')
+            if url == None:
+                url = i.get_attribute('href')
+            if url == None:
+                Exit(self.url(), '获取图片地址失败')
+
+            fname = gettail(url, '/')
+            b=True
+            for j in ['.mp4','mp3']:
+                if j in fname:
+                    fname = removetail(fname, j) + j
+                    b=False
+                    break
+            if b:
+                fname=fname+'.mp4'
+            fname = standarlizedFileName(fname)
+            dpath=f'{path}/video/<{count}>{fname}'
             log(f'saving {self.url()}的 {url} 到 {dpath}')
             pagedownload(url, dpath, t=t)
 
@@ -2664,6 +2700,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     if path.find('.') < 0:
         path += '/'
     if os.path.exists(path):
+        # Open(pathname(path))
         warn(f'{path}已存在，将进行覆盖下载')
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]

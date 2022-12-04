@@ -188,6 +188,12 @@ def skipdownloaded(flag, record, VideoNum, title, author):
         record.add(simplinfo(VideoNum, author, title))
         MyUtils.log(f' {path}/{title}共{len(VideoNum)}张图片已存在磁盘中，补全记录')
         return True
+    if (flag and not len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==VideoNum):
+        MyUtils.Open(f'{path}/{VideoNum}_{title}')
+        MyUtils.warn('已打开路径。请检查。')
+        print(f'{path}/{VideoNum}_{title}')
+        MyUtils.Exit(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))
+        return False
     return False
 
 

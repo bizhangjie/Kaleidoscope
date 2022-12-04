@@ -10,6 +10,7 @@ MyUtils.Run()
 
 # 变量
 users = DouyinUtils.allusers
+users.rollback()
 allpieces = DouyinUtils.allpieces
 readytodownload = DouyinUtils.readytodownload
 ExceptionUser = MyUtils.txt('/抖音/FailedUsers.txt')

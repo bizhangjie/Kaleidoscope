@@ -20,6 +20,7 @@ if __name__ == '__main__':
     #     page.save(path=f'{MyUtils.userpath("Pictures/集锦/其它/")}')
     #     pout.add(i)
     # page.quit()
-    url=''
-    page=MyUtils.Edge(url,silent=True)
+    url='https://www.zhihu.com/question/456653085/answer/1855763846'
+    page=MyUtils.Chrome(url,silent=True,mine=True)
+    page.set_window_size(800,5000)
     page.save()
