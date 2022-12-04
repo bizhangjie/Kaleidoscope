@@ -2237,19 +2237,24 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100,direct=False):
+    # 可选点击展开按钮，
+    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100,direct=False,clickandextend=None):
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         #     附加页面标题到文件夹名
         if not direct:
             if not self.title() in path:
                 path += self.title()
-        if not titletail==None and titletail in path:
-            path=removetail(path,titletail)
         if not titletail == None and ' '+titletail in path:
             path = removetail(path, ' '+titletail)
+        if not titletail==None and titletail in path:
+            path=removetail(path,titletail)
         # 没办法，这个空格在不在真的完全是一个玄学
         createpath(path)
+
+        # 展开
+        if not clickextend==None:
+            clickandextend([self])
 
         # 保存页面截图
         if self.type == 'edge' and not self.silent:
@@ -2261,7 +2266,7 @@ class Edge():
         self.savepics(path, 7, minsize=minsize)
 
         # 保存页面视频
-        self.savevideos()
+        # self.savevideos(path,20)
 
         # 留下url记录
         f = txt(f'{path}/url.txt').add(self.url())
@@ -2282,6 +2287,10 @@ class Edge():
                 url = i.get_attribute('href')
             if url == None:
                 Exit(self.url(), '获取图片地址失败')
+
+            # 有些图片懒加载
+            if 'data:'in url:
+                continue
 
             fname = gettail(url, '/')
             for j in ['.jpeg', '.jpg', '.gif', '.png', '.bmp', '.webp']:

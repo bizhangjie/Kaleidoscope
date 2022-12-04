@@ -3,6 +3,8 @@ import time
 
 import MyUtils
 
+countt=8
+
 Aurl = 'https://www.zhihu.com/collection/782323705'
 # page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
 # page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
@@ -82,11 +84,11 @@ while True:
     # 用新方法保存
     page.save(MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(),"/")}'),titletail='- 知乎')
 
-    # 取消收藏
     page.close()
     page.switchto(0)
+    # 取消收藏
     e = page.element(['/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]/div/div/div/div[2]/div/button[2]',
-                      '/html/body/div[1]/div/main/div/article/div[4]/div/div/button[3]'])
+                      '/html/body/d iv[1]/div/main/div/article/div[4]/div/div/button[3]'])
     if not e.text == '取消收藏':
         e = page.element('/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]/div/div/div/div[2]/div/button[1]')
     if not e.text == '取消收藏':
@@ -97,5 +99,7 @@ while True:
     page.refresh()
 
     MyUtils.log(f'已保存回答：{title}')
-    break
+    countt-=1
+    if countt<0:
+        break
 

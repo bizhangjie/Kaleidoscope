@@ -41,9 +41,10 @@ def deleteMissing():
     lis1 = []
     for i in missing.l:
         d = MyUtils.jsontodict(i)
+        k=MyUtils.key(d)
         d = MyUtils.value(d)[0]
-        path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{d["title"]}')
-        if os.path.exists(path):
+        path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{d}_{d["title"]}')
+        if os.path.exists(path) and not []==MyUtils.listfile(path):
             lis1.append(i)
         if os.path.exists(path + '.mp4'):
             lis1.append(i)
@@ -106,7 +107,7 @@ def findduplicate():
 
 
 if __name__ == '__main__':
-    deleteRecorded()
+    # deleteRecorded()
     # deleteMissing()
-    # count()
+    count()
     # findduplicate()

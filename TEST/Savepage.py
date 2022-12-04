@@ -21,6 +21,6 @@ if __name__ == '__main__':
     #     pout.add(i)
     # page.quit()
     url='https://www.zhihu.com/question/456653085/answer/1855763846'
-    page=MyUtils.Chrome(url,silent=True,mine=True)
+    page=MyUtils.Chrome(url,silent=False,mine=True)
     page.set_window_size(800,5000)
     page.save()
