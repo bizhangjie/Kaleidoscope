@@ -1571,6 +1571,7 @@ def context(step=0):
 
 def WARN(s):
     now = Time()
+    hotkey('win','d')
     win32api.MessageBox(None, s, f'Kaleidoscope{now.time()}', win32con.MB_OK)
 
 
