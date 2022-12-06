@@ -102,7 +102,7 @@ def detect(path, author, VideoNum, l):
     # region
     if os.path.exists(f'{path}/{title}.mp4') and not flag:
         Distripute.add(DouyinUtils.simplinfo(VideoNum, author, title))
-        MyUtils.log(f' Detect{index + 1}: {path}/{title}.mp4已存在磁盘中，补全记录')
+        MyUtils.log(f' Detect{index + 1}: {path}/{title}.mp4  已存在磁盘中，补全记录')
         isPageUsing[index] = 0
         MyUtils.log(f'Detect{index + 1} {MyUtils.counttime(stole)}s')
         return

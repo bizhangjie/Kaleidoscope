@@ -13,6 +13,7 @@ coveruserspectrum = MyUtils.RefreshTXT('D:/Kaleidoscope/bili/CoverUserSpectrum.t
 downloadedindisk = MyUtils.RefreshTXT('./bili/Downloaded.txt')
 readytodownload=MyUtils.cache("D:/Kaleidoscope/bili/ReadytoDownload.txt")
 missing = MyUtils.rjson('D:\Kaleidoscope/bili/Missing.txt')
+cachepath=MyUtils.userpath('/Videos/cache')
 
 
 # 从收藏夹导入用户
@@ -191,7 +192,7 @@ class video():
 
 # 检查cache是否为空
 def checkempty():
-    cachepath='./bili/cache'
+    cachepath=cachepath
     if not [] == MyUtils.listdir(cachepath):
         MyUtils.Open(MyUtils.standarlizedPath(cachepath))
         MyUtils.Exit('cache不为空。')
@@ -232,7 +233,7 @@ def move(a=True):
     # 等待下载完毕
     fsize=0
     while True:
-        newsize=MyUtils.size('./bili/cache')
+        newsize=MyUtils.size(cachepath)
         if newsize==fsize:
             MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
             break
@@ -240,7 +241,7 @@ def move(a=True):
         time.sleep(20)
     if not a==True:
         useruid=a
-    for i in MyUtils.listdir('./bili/cache'):
+    for i in MyUtils.listdir(cachepath):
         # 如果里面有.m4s文件就跳过
         b=True
         for j in MyUtils.listfile(i):

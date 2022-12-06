@@ -1,15 +1,10 @@
-import asyncio
-import os.path
-import sys
 import time
-import multiprocessing
 
+from retrying import retry
 from selenium.webdriver.common.by import By
 
 import DouyinUtils
-import Maintainace
 import MyUtils
-from retrying import retry
 
 
 @retry(retry_on_exception=MyUtils.retry)
@@ -23,7 +18,7 @@ def main():
     likecount = {}
     ispic = []
     Page = MyUtils.Chrome(mine=True)
-    page=Page.driver
+    page = Page.driver
 
     while True:
         # 登录
@@ -42,7 +37,10 @@ def main():
         MyUtils.scroll([page])
         urllist = []
         stole = MyUtils.nowstr()
+        countt = 0
         for VideoElement in DouyinUtils.HostPieces([page]):
+            countt += 1
+            print(countt)
             VideoUrl, VideoNum = DouyinUtils.piecetourlnum([VideoElement])
             urllist.append(VideoUrl)
             ispic.append(DouyinUtils.IsPic([VideoElement]))
@@ -56,25 +54,24 @@ def main():
 
             # 跳过验证
             MyUtils.skip([page, By.ID, "captcha-verify-image"])
-            e=Page.element('//*[@id="login-pannel"]/div[@class="dy-account-close"]',strict=False)
-            if not e==None:
+            e = Page.element('//*[@id="login-pannel"]/div[@class="dy-account-close"]', strict=False)
+            if not e == None:
                 Page.click(e)
 
             # 变量
             pic = ispic.pop(0)
             VideoNum = MyUtils.tail(url, '/')
 
-            # 跳过下载过的
             # if DouyinUtils.skiprecorded(VideoNum):
             #     continue
             title = DouyinUtils.Title([page])
             s = MyUtils.Element([page, By.XPATH, '/html/head/meta[3]']).get_attribute('content')
             userid = s[s.rfind(' - ') + 3:s.rfind('发布在抖音，已经收获了') - 9]
-            if DouyinUtils.skipdownloaded(pic, allpieces, VideoNum, title, userid):
-                # 取消喜欢
-                DouyinUtils.dislike([page])
-                MyUtils.delog('已取消喜欢')
-                continue
+            # if DouyinUtils.skipdownloaded(pic, allpieces, VideoNum, title, userid):
+            #     # 取消喜欢
+            #     DouyinUtils.dislike([page])
+            #     MyUtils.delog('已取消喜欢')
+            #     continue
             path = '../抖音/' + userid
 
             # 添加下载
@@ -120,7 +117,7 @@ def main():
             MyUtils.log(f'上个作品添加下载耗时{MyUtils.counttime(stole)}')
             MyUtils.delog(likecount)
         # 结束
-        pass
+        page.quit()
 
 
 if __name__ == '__main__':

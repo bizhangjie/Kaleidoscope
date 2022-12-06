@@ -2,7 +2,7 @@ import BUtils
 import MyUtils
 
 VideoSpectrum = BUtils.videospectrum
-readytodownload = BUtils.readytodownload \
+readytodownload = BUtils.readytodownload
     # 一个作者一次最多下载的个数
 MAX = 799
 BUtils.opendownloader()

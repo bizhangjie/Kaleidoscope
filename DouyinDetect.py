@@ -103,7 +103,7 @@ def main():
             (elementurl, VideoNum) = DouyinUtils.piecetourlnum([VideoElement])
             # endregion
 
-            # 跳过已下载
+            # 跳过已记录
             # region
             if DouyinUtils.skiprecorded(VideoNum):
                 continue

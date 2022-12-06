@@ -131,6 +131,9 @@ def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
     else:
         # region
         elements = MyUtils.Elements(depth=7, l=[page, By.XPATH, '/html/body/div[1]/div/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img'])
+        # 跳过已下载
+        if skipdownloaded(flag,allpieces,VideoNum,title,author,len(elements)):
+            return
         for e in elements:
             https = e.get_attribute('src')
             VideoUrl.append(https)
@@ -177,23 +180,22 @@ def skiprecorded(VideoNum):
     return False
 
 
-def skipdownloaded(flag, record, VideoNum, title, author):
+def skipdownloaded(flag, record, VideoNum, title, author,num=None):
     path = './抖音/' + author
     if (os.path.exists(f'{path}/{VideoNum}_{title}.mp4') and not flag):
         record.add(simplinfo(VideoNum, author, title))
-        MyUtils.log(f' {MyUtils.standarlizedPath(path)}/{VideoNum}_{title}.mp4已存在磁盘中，补全记录')
+        MyUtils.log(f' {MyUtils.standarlizedPath(path)}/{VideoNum}_{title}.mp4  已存在磁盘中，补全记录')
         return True
     # if (flag and os.path.exists(baijiahao'{path}/{VideoNum}_{title}/{len(VideoNum) - 1}.png')):
-    if (flag and len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==VideoNum):
-        record.add(simplinfo(VideoNum, author, title))
-        MyUtils.log(f' {path}/{title}共{len(VideoNum)}张图片已存在磁盘中，补全记录')
-        return True
-    if (flag and not len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==VideoNum):
-        MyUtils.Open(f'{path}/{VideoNum}_{title}')
-        MyUtils.warn('已打开路径。请检查。')
-        print(f'{path}/{VideoNum}_{title}')
-        MyUtils.Exit(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))
-        return False
+    if flag and not None==num:
+        if  len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==num:
+            record.add(simplinfo(VideoNum, author, title))
+            MyUtils.log(f' {path}/{VideoNum}_{title} 共{num}张图片已存在磁盘中，补全记录')
+            return True
+        else:
+            MyUtils.Open(f'{path}/{VideoNum}_{title}')
+            MyUtils.warn(f"声称未下载满：\n\t{path}/{VideoNum}_{title}  {len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))}/{num}")
+            return False
     return False
 
 

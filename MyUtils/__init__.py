@@ -2215,18 +2215,34 @@ class Edge():
         self.type = 'edge'
         self.set_window_size(900, 1000)
 
-    # 获取全屏
-    def fullscreen(self, path='',scale=100):
+
+    def getscrollheight(self):
+        return scrollheight([self.driver])
+    def scrollheight(self):
+        return self.getscrollheight()
+    def Height(self):
+        return self.getscrollheight()
+
+    def Width(self):
+        return scrollwidth([self.driver])
+
+
+
+    # 获取向上滚动后的全屏
+    def fullscreen(self, path=None,scale=100,autodown=True):
         if not self.silent == True:
             Exit()
-        if path == '':
-            path = userpath(f'Pictures/集锦/{self.title()}/basic.png')
-        log(f'将把 {self.url()} 的全屏保存到{path}')
+        if path == None:
+            path = userpath(f'Pictures/集锦/其它/{self.title()}/basic.png')
+        log(f'将把 {self.url()} 的全屏保存到  {path}')
+        if autodown:
+            self.down()
+        else:
+            self.setscrolltop(self.Height())
+        self.up(scale=scale)
         e = self.element('/html/body')
         x, y = max(1080,scrollwidth([self.driver])+100), scrollheight([self.driver])
         self.set_window_size(x, y)
-        self.down()
-        self.up(scale=scale)
         self.elementshot(path, e)
 
     # 避开不安全网页警告
@@ -2238,11 +2254,14 @@ class Edge():
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     # 可选点击展开按钮，
-    def save(self, path=None,video=True, minsize=(100, 100), t=3,titletail=None,scale=100,direct=False,clickandextend=None):
+    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None,autodown=True):
+        if minsize in [False,None]:
+            minsize=(9999,9999)
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         #     附加页面标题到文件夹名
         if not direct:
+            MyUtils.sleep(t)
             if not self.title() in path:
                 path += self.title()
         if not titletail == None and ' '+titletail in path:
@@ -2250,17 +2269,23 @@ class Edge():
         if not titletail==None and titletail in path:
             path=removetail(path,titletail)
         # 没办法，这个空格在不在真的完全是一个玄学
+        path+='/'
         createpath(path)
 
         # 展开
-        if not clickextend==None:
-            clickandextend([self])
+        if not clicktoextend == None:
+            if type(clicktoextend)in (str,):
+                self.click(clicktoextend)
+                if autodown:
+                    self.down()
+            else:
+                clicktoextend([self])
 
         # 保存页面截图
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png',scale=scale)
+            self.fullscreen(f'{path}/basic.png',scale=scale,autodown=autodown)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -2271,17 +2296,20 @@ class Edge():
         # 留下url记录
         f = txt(f'{path}/url.txt').add(self.url())
 
+        log(f'页面已保存到{path}')
         return path
 
     # 保存页面上的所有图片
-    def savepics(self, path, t=5, minsize=(100, 100)):
+    def savepics(self, path=None, t=5, minsize=(100, 100)):
         res = []
+        if path==None:
+            path=MyUtils.collectionpath(f'/其它/{self.title()}/')
         extend(res, self.elements('//pic', strict=False), self.elements('//img', strict=False))
         count = 0
         for i in res:
-            count += 1
             if i.size['height'] < minsize[1] or i.size['width'] < minsize[0]:
                 continue
+            count += 1
             url = i.get_attribute('src')
             if url == None:
                 url = i.get_attribute('href')
@@ -2293,10 +2321,15 @@ class Edge():
                 continue
 
             fname = gettail(url, '/')
+
+            bb=True
             for j in ['.jpeg', '.jpg', '.gif', '.png', '.bmp', '.webp']:
                 if j in fname:
                     fname = removetail(fname, j) + j
+                    bb=False
                     break
+            if bb:
+                fname+=j
             fname = standarlizedFileName(fname)
             dpath=f'{path}/img/<{count}>{fname}'
             log(f'saving {self.url()}的 {url} 到 {dpath}')
@@ -2330,9 +2363,13 @@ class Edge():
             pagedownload(url, dpath, t=t)
 
     # 快捷键保存截屏
-    def ctrlshifts(self, path, t=3):
+    def ctrlshifts(self, path=None, t=3):
+        if not self.type in 'chrome':
+            Exit('不是chrome浏览器。不能用ctrl+shift+S 保存e')
         self.top()
         self.maxwindow()
+        if path==None:
+            path=collectionpath(f'/其它/{self.title()}')
         sleep(0.5)
         hotkey('ctrl', 'shift', 's')
         sleep(1)
@@ -2401,7 +2438,11 @@ class Edge():
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一个
     def element(self, *a, **b):
-        return self.elements(*a, **b)[0]
+        ret= self.elements(*a, **b)
+        if ret==[]:
+            return None
+        else:
+            return ret[0]
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一组
     def elements(self, s1, depth=9, silent=True, strict=True):
@@ -2501,7 +2542,7 @@ class Edge():
         Edge.switchto(self, )
 
     def get(self, url):
-        if not 'https://' in url:
+        if not 'https://' in url and not 'http://' in url:
             url = 'https://' + url
         self.driver.get(url)
         sleep(0.4)
@@ -2572,7 +2613,7 @@ class Chrome(Edge):
         if mine == True:
             f = txt(projectpath('browser/ischromeusing.txt'))
             f.l = context(4)
-            f.l.append(Time())
+            f.l.append(nowstr())
             f.save()
 
     def maximize(self):
@@ -2591,7 +2632,7 @@ def edge(url='', silent=None):
         delog('点击 edge://version/ 以查看浏览器版本。')
         sys.exit(-1)
     if not url == '':
-        if not 'https://' in url:
+        if not 'https://' in url and not 'http://' in url:
             url = 'https://' + url
         driver.get(url)
     return driver
@@ -2708,9 +2749,11 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     path = standarlizedPath(path, strict=True)
     if path.find('.') < 0:
         path += '/'
+    createpath(path)
     if os.path.exists(path):
-        # Open(pathname(path))
-        warn(f'{path}已存在，将进行覆盖下载')
+        if not size(path)==0:
+            warn(f'{path}已存在，将进行覆盖下载')
+            return
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
     options = webdriver.ChromeOptions()

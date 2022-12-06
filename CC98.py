@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # get1()
 
 #     已经在edge中打开，直接批量保存第一页
-    lis=['https://www.cc98.org/topic/5468101', 'https://www.cc98.org/topic/5468139', 'https://www.cc98.org/topic/5468192', 'https://www.cc98.org/topic/5468263', 'https://www.cc98.org/topic/5468351', 'https://www.cc98.org/topic/5468361', 'https://www.cc98.org/topic/5468012/1', 'https://www.cc98.org/topic/5468164/1', 'https://www.cc98.org/topic/5468041/1', 'https://www.cc98.org/topic/5468041/1']
+    lis=['https://www.cc98.org/topic/5468192', ]
     page = MyUtils.Chrome(silent=True,mine=True)
     for i in lis:
         page.get(i)

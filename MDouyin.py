@@ -43,7 +43,8 @@ def deleteMissing():
         d = MyUtils.jsontodict(i)
         k=MyUtils.key(d)
         d = MyUtils.value(d)[0]
-        path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{d}_{d["title"]}')
+        path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{k}_{d["title"]}')
+        print(f'checking {path}')
         if os.path.exists(path) and not []==MyUtils.listfile(path):
             lis1.append(i)
         if os.path.exists(path + '.mp4'):
@@ -57,8 +58,8 @@ def deleteMissing():
 # 手动添加作者
 def adduser():
     while True:
-        c = input()
-        DouyinUtils.allusers.add({c: []})
+        c = input('直接输入uid添加用户：')
+        DouyinUtils.allusers.add({c: ['']})
 
 
 # 统计总数
@@ -107,7 +108,8 @@ def findduplicate():
 
 
 if __name__ == '__main__':
+    adduser()
     # deleteRecorded()
     # deleteMissing()
-    count()
+    # count()
     # findduplicate()
