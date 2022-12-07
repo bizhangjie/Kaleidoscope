@@ -1966,17 +1966,17 @@ def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
     page=Chrome(mine=True,silent=True)
     page.get(firsturl)
     title=removetail(page.title(),titletail)
-    # 返回当前帖子的Uid
+    # func1  返回当前帖子的Uid
     uid=func1(page.url())
     page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'),minsize=minsize,)
-    # 返回后面的每页的url
+    # func2  根据帖子的uid，返回后面的每页的urllist
     urllist=func2([page,uid])
     page.quit()
     count=1
     for url in urllist:
         count+=1
         page=Chrome(url,mine=True,silent=True)
-        # 检查后面的每页是否被反爬了
+        # func3  检查后面的每页是否被反爬了
         func3([page])
 
         page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'),minsize=minsize,direct=True)
