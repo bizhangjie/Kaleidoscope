@@ -883,6 +883,13 @@ def listfile(path):
         return ret1
     return []
 
+def listfiletree(path):
+    lis=[]
+    extend(lis,listfile(path))
+    for i in listdir(path):
+        extend(lis,listfiletree(i))
+    return lis
+
 
 # 直接返回路径的文件夹路径
 def pathname(s=None):
@@ -1974,7 +1981,8 @@ def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
 
         page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'),minsize=minsize,direct=True)
         page.quit()
-
+def linkedspider(*a,**b):
+    return forum(a,**b)
 
 
 # 转到已经打开的edge并保存全部截屏
@@ -2261,7 +2269,7 @@ class Edge():
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
         #     附加页面标题到文件夹名
         if not direct:
-            MyUtils.sleep(t)
+            sleep(t)
             if not self.title() in path:
                 path += self.title()
         if not titletail == None and ' '+titletail in path:
@@ -2557,8 +2565,8 @@ class Edge():
     # 取决于当前窗口大小位置
     def elementshot(self, path, s):
         path = standarlizedPath(path)
-        if isfile(path):
-            warn(f'{path}已存在。即将覆盖下载')
+        # if isfile(path):
+        #     warn(f'{path}已存在。即将覆盖下载')
         if not '.png' in path:
             path += '.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
@@ -2752,7 +2760,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     createpath(path)
     if os.path.exists(path):
         if not size(path)==0:
-            warn(f'{path}已存在，将进行覆盖下载')
+            warn(f'{path}已存在，将不下载')
             return
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
@@ -2829,10 +2837,17 @@ def scrshot(l):
 
 # 视频音频
 def mp4tomp3(src, tar):
+    src,tar=standarlizedPath(src,strict=True),standarlizedPath(tar,strict=True)
+    if isdir(src)and isdir(tar):
+        for f in listfiletree(src):
+            if '.mp4'in f:
+                moviepy.editor.VideoFileClip(f).audio.write_audiofile(f'{tar}\\{filename(f)}.mp3')
+        return
     if not isfile(src) and not '.mp4' in src:
         Exit(f'{src}不是mp4文件1')
     moviepy.editor.VideoFileClip(src).audio.write_audiofile(tar)
-
+def videotoaudio(*a,**b):
+    return mp4tomp3(*a,**b)
 
 # MyUtils初始化
 # region

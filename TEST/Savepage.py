@@ -12,6 +12,7 @@ def main():
 
 
 if __name__ == '__main__':
-    url='https://www.bilibili.com/read/cv5697599?spm_id_from=333.999.0.0'
-    page=MyUtils.Chrome(url,silent=True,mine=True)
-    page.save(f'./bili/article/{page.title()}')
+    url='https://mil.sohu.com/a/541435402_121000286'
+    # page=MyUtils.Chrome(url,silent=True,mine=True)
+    page=MyUtils.Chrome(url,silent=True,mine=False)
+    page.save(minsize=False,)

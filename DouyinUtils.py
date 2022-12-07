@@ -193,7 +193,7 @@ def skipdownloaded(flag, record, VideoNum, title, author,num=None):
             MyUtils.log(f' {path}/{VideoNum}_{title} 共{num}张图片已存在磁盘中，补全记录')
             return True
         else:
-            MyUtils.Open(f'{path}/{VideoNum}_{title}')
+            # MyUtils.Open(f'{path}/{VideoNum}_{title}')
             MyUtils.warn(f"声称未下载满：\n\t{path}/{VideoNum}_{title}  {len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))}/{num}")
             return False
     return False
