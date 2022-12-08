@@ -1908,7 +1908,7 @@ def tail(s, mark='/'):
 def gettail(s, mark='/'):
     s, mark = str(s), str(mark)
     if not mark in s:
-        Exit(f'tail失败。字符串{s}中没有预计存在的子串{mark}。', (s, mark))
+        Exit(f'tail失败。字符串 {s} 中没有预计存在的子串：  {mark}。', (s, mark))
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -1965,10 +1965,12 @@ def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
 #     先打开第一页，获取标题，每页数
     page=Chrome(mine=True,silent=True)
     page.get(firsturl)
+    MyUtils.sleep(3)
     title=removetail(page.title(),titletail)
     # func1  返回当前帖子的Uid
     uid=func1(page.url())
-    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'),minsize=minsize,)
+    createpath(collectionpath(f'{hostname}/{uid}_{title}'))
+    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'),minsize=minsize,titletail=titletail,direct=True)
     # func2  根据帖子的uid，返回后面的每页的urllist
     urllist=func2([page,uid])
     page.quit()
@@ -2105,7 +2107,7 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-def scroll(l, silent=None, x=None, y=None, ratio=1):
+def scroll(l, silent=None, x=None, y=None, ratio=1,t=1):
     """
     :param l: 页面，第二个参数小于1可不传
     :return:
@@ -2133,42 +2135,42 @@ def scroll(l, silent=None, x=None, y=None, ratio=1):
             delog(ScrollTop)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(1)
+        sleep(t)
         if ScrollTop != getscrolltop([page]):
             continue
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(1)
+        sleep(t)
         if ScrollTop != getscrolltop([page]):
             continue
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(1)
+        sleep(t)
         if ScrollTop != getscrolltop([page]):
             continue
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(1)
+        sleep(t)
         if ScrollTop != getscrolltop([page]):
             continue
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(3)
+        sleep(t*3)
         if ScrollTop != getscrolltop([page]):
             continue
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(1)
+        sleep(t)
         page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
     log(f'滚动完毕。 {time.time() - ti} s.')
 
@@ -2267,6 +2269,7 @@ class Edge():
             minsize=(9999,9999)
         if path == None:
             path = userpath(f'Pictures/集锦/其它/{self.title()}/')
+        createpath(path)
         #     附加页面标题到文件夹名
         if not direct:
             sleep(t)
@@ -2427,13 +2430,15 @@ class Edge():
     def clickelement(self, *a):
         return Edge.click(a)
 
-    def click(self, *a):
+    def click(self, *a,strict=True):
         if len(a) > 1:
             # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
             Exit(' 未实现')
         s = a[0]
+        if s==None:
+            return
         if type(s) in [str]:
-            return Edge.click(self, Edge.element(self, s))
+            return Edge.click(self, Edge.element(self, s,strict=strict))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -2482,7 +2487,12 @@ class Edge():
         newret = []
         if 'text()' in s1[-6:]:
             for i in ret:
-                newret.append(i.text)
+                if not i.text=='':
+                    newret.append(i.text)
+                elif not i.get_attribute('text')=='':
+                    newret.append(i.get_attribute('text'))
+                else:
+                    Exit(f'获取了元素的空字符串内容')
         elif '@href' in s1[-5:]:
             for i in ret:
                 newret.append(i.get_attribute('href'))
@@ -2508,8 +2518,8 @@ class Edge():
             setscrolltop([self.driver, a.location['y'] - a.size['height']])
             return
 
-    def down(self, ratio=1):
-        scroll([self.driver], silent=True, ratio=ratio)
+    def down(self, ratio=1, t=0.3):
+        scroll([self.driver], silent=True, ratio=ratio,t=t)
 
     def getscrolltop(self):
         return getscrolltop([self.driver])
@@ -2857,7 +2867,7 @@ debug = True
 user = txt(projectpath('user.txt')).l[0]
 headers = {
     'user-agent': \
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
     'cookie': \
         'douyin.com; __ac_referer=__ac_blank; ttcid=431befd8b5104ec2b3e9935bc6ec52f617; s_v_web_id=verify_l17s6pii_nh6oZDhq_iYxA_4ytu_ANgk_OTyTTCcg2xKS; douyin.com; csrf_session_id=6773d2a77c2678be09d4643511e64a6b; passport_csrf_token=ec7dfe616ded3178be26b33769703ec3; passport_csrf_token_default=ec7dfe616ded3178be26b33769703ec3; live_can_add_dy_2_desktop=%221%22; download_guide=%223%2F20220806%22; THEME_STAY_TIME=%22299980%22; IS_HIDE_THEME_CHANGE=%221%22; __ac_nonce=062f0b4060092bc3a4977; __ac_signature=_02B4Z6wo00f01hCbMoQAAIDCkJnIxJqXz.oQuzYAAObkIAmDFqT5eYtXQLOIndt3rqBiTrG-CP3fU3NbcCEhFtr9r1pPKbWfEluNFR83rgs19EQFlu6MM54rVDDiMOkZpWeEUrxin.D9jwp.fd; strategyABtestKey=1659941895.313; home_can_add_dy_2_desktop=%221%22; tt_scid=g3OvOz0oZqKoRGifS-F3fVy9Uku8K1fcPIo.H58wX9ckfCVHoYw0ftRBmQUwpdW28229; msToken=DyrYcuwheFZCpvBdU_rl7x872ZpxcFUjmoUmnVSUjv5iH-OY4kfwy6vn4VvEVHnixrP6nJw59CWQmCznZwzJJI1-Ux37b8ACpJ7F4-8Jb8J4vxHPP-rGW6yTQZs=; msToken=wiua9ZhBny4jw_muW9lEdGu6MpWNaAGgpTSDW6NqhoScfcwHrJ-0onvVi7sOuh5o9bR19EbBW8BBTEhVpGsEsbKCYGmYIL6zJJglE8Gr4FBqa2PREXaSkNNgwv8=' \
     }

@@ -1,3 +1,5 @@
+import time
+
 from retrying import retry
 
 import BUtils
@@ -13,6 +15,7 @@ BUtils.addwebuser()
 @retry(retry_on_exception=MyUtils.retry)
 def main():
     for useruid in allusers.d:
+        MyUtils.sleep(10)
         vlist = []
         page = 1
     # 准备工作 - 检查为空，添加下载列表
@@ -22,6 +25,9 @@ def main():
             vlist.append(a['bvid'])
         readytodownload.add({useruid: vlist})
         readytodownload.add({useruid: vlist})
+        MAX=MAX-1
+        if MAX==0:
+            break
 
 
 if __name__ == '__main__':

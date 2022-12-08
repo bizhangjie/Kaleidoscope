@@ -75,7 +75,6 @@ def main():
         # 获取变量
         # region
         MyUtils.skip([Host, By.ID, "captcha-verify-image"])
-        MyUtils.skip([Host, By.ID, "login-pannel"])
         author = MyUtils.Element([Host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
         DouyinUtils.addauthor(useruid, author, users)

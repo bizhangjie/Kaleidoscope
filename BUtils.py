@@ -110,6 +110,7 @@ def uidtoid(UID):
                 continue
             return MyUtils.standarlizedFileName(i['author'])
     except Exception as e:
+        MyUtils.warn(i)
         MyUtils.Exit(f"{e}\n[upid] error when trying mid(UID)={UID}")
 
 
@@ -118,7 +119,7 @@ def idtouid(id):
     return videouserspectrum.find(id)
 
 def skipdownloaded(bvid):
-    return str(bvid) in MyUtils.keys(videospectrum.d)
+    return not  str(bvid) in MyUtils.keys(videospectrum.d)
 
 # up主
 class up():
@@ -192,14 +193,14 @@ class video():
 
 # 检查cache是否为空
 def checkempty():
-    cachepath=cachepath
     if not [] == MyUtils.listdir(cachepath):
         MyUtils.Open(MyUtils.standarlizedPath(cachepath))
         MyUtils.Exit('cache不为空。')
 
 # 下载器打开情况下MyUtils下载
 def download(bvid,author=None,useruid=None):
-    skipdownloaded(bvid)
+    if not  skipdownloaded(bvid):
+        return
     if author==None:
         if useruid==None:
             author=video(bvid).author

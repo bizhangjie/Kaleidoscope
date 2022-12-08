@@ -4,14 +4,16 @@ import MyUtils
 VideoSpectrum = BUtils.videospectrum
 readytodownload = BUtils.readytodownload
     # 一个作者一次最多下载的个数
-MAX = 799
+MAX = 9999
 BUtils.opendownloader()
 
 
 def main():
     count=0
-    while count<5:
+    while count<500:
+        BUtils.checkempty()
         count+=1
+        d = readytodownload.get()
         d = readytodownload.get()
         useruid = MyUtils.key(d)
         author = BUtils.uidtoid(useruid)
@@ -19,7 +21,7 @@ def main():
         # 使用下载器下载
         for bvid in vlist[:MAX]:
             BUtils.download(bvid, author, useruid)
-        BUtils.move(useruid)
+            BUtils.move(useruid)
 
 
 if __name__ == '__main__':
