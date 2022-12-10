@@ -3,29 +3,23 @@
 # 在下一次记录返回后，先记录本次，再依次询问之前的记录补全
 import time
 
-import pyperclip
 import MyUtils
-
-
-def next(t):
-    while not MyUtils.now().minute in [0, 20, 40, 60]:
-        time.sleep(59)
-    MyUtils.WARN(f'请前往记录。<A20min>')
-    ret = '\n' + MyUtils.realtime()[:-3]
-    t.add(ret)
-    time.sleep(59 * 2)
-    return ret.strip('\n')
-
 
 def main():
     while True:
-        t = MyUtils.txt(f'D:/Kaleidoscope/self/20MINUTES/{MyUtils.today()}.txt')
-        # t = MyUtils.txt(MyUtils.desktoppath('0.txt'))
-        # if not MyUtils.now().minute in [0,20,40,60]:
-        #     time.sleep(60)
-        #     continue
-        c = input(f'请输入{next(t)}')
-        t.add(c)
+        if not MyUtils.now().minute in [0,20,40,60]:
+            MyUtils.sleep(60)
+            continue
+        t = MyUtils.table(f'D:/Kaleidoscope/self/20MINUTES/{MyUtils.today()}.csv',init=['时间','内容'])
+        f=MyUtils.txt(MyUtils.projectpath('./self/20MINUTES/cache.txt'))
+        f.l=['灵戒：宣称所有的主体时间点非现代等的架空产物均为不洁者。','请输入当前：']
+        f.save()
+        MyUtils.hotkey('win','d')
+        f.look()
+        MyUtils.sleep(60)
+        f=MyUtils.txt(MyUtils.projectpath('./self/20MINUTES/cache.txt'))
+        l=f.l
+        t.add({'时间':MyUtils.nowstr(mic=False),'内容':l})
 
 
 if __name__ == '__main__':

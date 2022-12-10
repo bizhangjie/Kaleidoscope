@@ -1,2 +1,3 @@
 import MyUtils
-MyUtils.openedge(MyUtils.txt(MyUtils.projectpath('browser/baijiahao.txt')).l)
+f1=MyUtils.txt(MyUtils.projectpath('./璐琪/AllPieces.txt'))
+# f2=MyUtils.txt(MyUtils.projectpath('./璐琪/record.txt'))

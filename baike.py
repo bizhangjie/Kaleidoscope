@@ -20,6 +20,7 @@ if __name__ == '__main__':
             name=''
             MyUtils.extend(namelist,page.elements('//*[@id="picture-dialog"]/div[1]/div[1]//*/text()',strict=False),page.elements('//*[@id="picture-dialog"]//div[contains(@class,"picture-footer")]//span[@class="text"]/text()',strict=False))
             for i in namelist:
+
                 name+=f'{i} - '
             name+=f'{count}'
             MyUtils.pagedownload(imgurl,f'{path}/相册图片/{name}.jfif')

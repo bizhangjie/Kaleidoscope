@@ -46,9 +46,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 注解
 # region
 # 多名函数
-import MyUtils
-
-
 def newname(func):
     def inner(originalfunc, *a, **b):
         return originalfunc(*a, **b)
@@ -539,7 +536,7 @@ def Input(x, y, s):
 # 使用ffmpeg剪切视频
 def cutvideo(inputpath, start, end,outputpath=None):
     if outputpath==None:
-        outputpath=MyUtils.removetail(inputpath,'.mp4')+'-cut.mp4'
+        outputpath=removetail(inputpath,'.mp4')+'-cut.mp4'
     sourcepath = os.path.abspath(inputpath)
     outputpath = os.path.abspath(outputpath)
     command = f'ffmpeg  -i {standarlizedPath(sourcepath)} -vcodec copy -acodec copy -ss {start} -to {end} {outputpath} -y'
@@ -910,23 +907,25 @@ def filename(s):
 
 
 class table():
-    def __init__(self, path,create=False):
+    def __init__(self, path,init=False):
         if not '.csv'in path:
             path+='csv'
         self.path = standarlizedPath(path)
 
         if not isfile(self.path):
-            if create==False:
+            if init==False:
                 Exit(f'{self.path} 不存在。')
-            self.create(*create)
+            self.create(*init)
 
         if not isfile(self.path):
             Exit()
         self.read()
 
     def create(self,*a):
-        writer = csv.writer(open(self.path,'w'))
+        f=open(self.path, 'w')
+        writer = csv.writer(f)
         writer.writerow(a)
+        f.close()
         # Exit(f'已创建 {self.path} 完毕。强制停止程序以创建成功。似乎存在缓冲区？')
 
     @consume
@@ -1020,7 +1019,7 @@ def deletedirandfile(l, silent=None):
 
     if not type(l) == list:
         l = [l]
-    # e = MyThreadPool(1000)
+    # e = MThreadPool(1000)
     for file in l:
         # e.excute(del_files,file)
         del_files(file)
@@ -1192,6 +1191,9 @@ class txt():
             return
         for i in file('r', self.path, IOList=[], encoding=encoding):
             self.l.append(str(i).strip('\n'))
+
+    def look(self):
+        look(self.path)
 
     @listed
     def delete(self, s):
@@ -1965,7 +1967,7 @@ def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
 #     先打开第一页，获取标题，每页数
     page=Chrome(mine=True,silent=True)
     page.get(firsturl)
-    MyUtils.sleep(3)
+    sleep(3)
     title=removetail(page.title(),titletail)
     # func1  返回当前帖子的Uid
     uid=func1(page.url())
@@ -2264,7 +2266,7 @@ class Edge():
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     # 可选点击展开按钮，
-    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None,autodown=True):
+    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None,autodown=True,look=False):
         if minsize in [False,None]:
             minsize=(9999,9999)
         if path == None:
@@ -2308,13 +2310,15 @@ class Edge():
         f = txt(f'{path}/url.txt').add(self.url())
 
         log(f'页面已保存到{path}')
+        if look:
+            Open(path)
         return path
 
     # 保存页面上的所有图片
     def savepics(self, path=None, t=5, minsize=(100, 100)):
         res = []
         if path==None:
-            path=MyUtils.collectionpath(f'/其它/{self.title()}/')
+            path=collectionpath(f'/其它/{self.title()}/')
         extend(res, self.elements('//pic', strict=False), self.elements('//img', strict=False))
         count = 0
         for i in res:
