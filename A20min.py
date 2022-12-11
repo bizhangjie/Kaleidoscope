@@ -12,14 +12,20 @@ def main():
             continue
         t = MyUtils.table(f'D:/Kaleidoscope/self/20MINUTES/{MyUtils.today()}.csv',init=['时间','内容'])
         f=MyUtils.txt(MyUtils.projectpath('./self/20MINUTES/cache.txt'))
-        f.l=['灵戒：宣称所有的主体时间点非现代等的架空产物均为不洁者。','请输入当前：']
+        suggestion=['灵戒：宣称所有的主体时间点非现代等的架空产物均为不洁者。','请输入当前：']
+        f.l=suggestion
         f.save()
         MyUtils.hotkey('win','d')
         f.look()
         MyUtils.sleep(60)
         f=MyUtils.txt(MyUtils.projectpath('./self/20MINUTES/cache.txt'))
         l=f.l
-        t.add({'时间':MyUtils.nowstr(mic=False),'内容':l})
+        ls=''
+        if not l==suggestion:
+            for i in l:
+                ls=ls+'\n'+i
+        t.add({'时间':MyUtils.nowstr(mic=False),'内容':ls})
+
 
 
 if __name__ == '__main__':
