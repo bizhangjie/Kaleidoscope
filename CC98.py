@@ -30,16 +30,16 @@ if __name__ == '__main__':
         def func2(l):
             ret=[]
             page,uid=l
-            es=MyUtils.elements('//*[@id="root"]//ul/li[@class="page-item"]/a/@href')
+            es=page.elements('//*[@id="root"]//ul/li[@class="page-item"]/a/@href')
             e=es[-1]
             e=MyUtils.removetail(e,'#')
             lastnum=MyUtils.gettail(e,'/')
-            for i in range(2,lastnum+1):
+            for i in range(2,int(lastnum)+1):
                 ret.append(f'https://www.cc98.org/topic/{uid}/{i}')
             return ret
         def func3(*a):
             MyUtils.sleep(3)
-        MyUtils.forum(url,'- CC98论坛','cc98',func1,func2,func3)
+        MyUtils.forum(url,'- CC98论坛','cc98',func1,func2,func3,t=6,scale=600)
     get3()
 # 今日之事，所作所为，所行所历，与神迹何干？
 # 诸天之上，谁立于九霄云巅？

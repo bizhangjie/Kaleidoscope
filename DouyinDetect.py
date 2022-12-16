@@ -5,6 +5,9 @@ from selenium.webdriver.common.by import By
 
 import DouyinUtils
 import MyUtils
+import Maintainace
+
+Maintainace.SeleniumSpace()
 
 MyUtils.Run()
 

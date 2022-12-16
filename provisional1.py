@@ -1,3 +1,8 @@
 import MyUtils
-f1=MyUtils.txt(MyUtils.projectpath('./璐琪/AllPieces.txt'))
-# f2=MyUtils.txt(MyUtils.projectpath('./璐琪/record.txt'))
+
+f=MyUtils.txt(MyUtils.projectpath('./抖音/AllPieces.txt'))
+
+for i in f.l:
+    lis=MyUtils.value(i)
+    for i in lis:
+a

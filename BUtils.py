@@ -14,7 +14,8 @@ downloadedindisk = MyUtils.RefreshTXT('./bili/Downloaded.txt')
 readytodownload=MyUtils.cache("D:/Kaleidoscope/bili/ReadytoDownload.txt")
 missing = MyUtils.rjson('D:\Kaleidoscope/bili/Missing.txt')
 cachepath=MyUtils.userpath('/Videos/cache')
-
+collectionpath=MyUtils.standarlizedPath('./bili/collection/')
+collecitonvideorecord=MyUtils.rtxt(MyUtils.projectpath('./bili/CollectionVideo'))
 
 # 从收藏夹导入用户
 def addwebuser(f=videouserspectrum):
@@ -198,16 +199,16 @@ def checkempty():
         MyUtils.Exit('cache不为空。')
 
 # 下载器打开情况下MyUtils下载
-def download(bvid,author=None,useruid=None):
-    if not  skipdownloaded(bvid):
+def download(bvid,author=None,useruid=None,overdownloaded=False):
+    if not  skipdownloaded(bvid) and not overdownloaded:
         return
-    if author==None:
-        if useruid==None:
-            author=video(bvid).author
-        else:
-            author=uidtoid(useruid)
-    if useruid==None:
-        useruid=idtouid(author)
+    # if author==None:
+    #     if useruid==None:
+    #         author=video(bvid).author
+    #     else:
+    #         author=uidtoid(useruid)
+    # if useruid==None:
+    #     useruid=idtouid(author)
     MyUtils.copyto(f'https://www.bilibili.com/video/{bvid}')
     MyUtils.click(1449, 214)
     MyUtils.sleep(0.7)
@@ -231,15 +232,7 @@ def download(bvid,author=None,useruid=None):
 
     # 等待下载完毕后转移文件
 def move(a=True):
-    # 等待下载完毕
-    fsize=0
-    while True:
-        newsize=MyUtils.size(cachepath)
-        if newsize==fsize:
-            MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
-            break
-        fsize=newsize
-        time.sleep(20)
+    wait()
     if not a==True:
         useruid=a
     for i in MyUtils.listdir(cachepath):
@@ -256,7 +249,18 @@ def move(a=True):
         j, bvid = MyUtils.cuttail(j, '-')
         title, author = MyUtils.cuttail(j, '-')
         MyUtils.move(i, f'./bili/{author}_{useruid}/{title}_{bvid}')
-    
+
+
+# 等待下载完毕
+def wait(t=20):
+    fsize=0
+    while True:
+        newsize=MyUtils.size(cachepath)
+        if newsize==fsize:
+            MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
+            break
+        fsize=newsize
+        time.sleep(t)
 
 def quitdownloader():
     MyUtils.hotkey('alt','tab')

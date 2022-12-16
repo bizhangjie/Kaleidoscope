@@ -1,7 +1,7 @@
 import concurrent.futures
+import csv
 import datetime
 import inspect
-import csv
 import json
 import multiprocessing
 import os
@@ -46,6 +46,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 注解
 # region
 # 多名函数
+import MyUtils
+
+
 def newname(func):
     def inner(originalfunc, *a, **b):
         return originalfunc(*a, **b)
@@ -120,7 +123,7 @@ def consume(func):
             except:
                 pass
             if counttime(stole) > 1:
-                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{counttime(stole)} s')
+                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
             return ret
 
         return inner1(func, *a, **b)
@@ -137,14 +140,17 @@ def consume(func):
 
 # 字符串
 def nowstr(mic=True):
-    ret= str(datetime.datetime.now())
+    ret = str(datetime.datetime.now())
     if mic:
         return ret
     return ret[:ret.find('.')]
 
+
 def today():
     return str(f'{now().year}-{now().month}-{now().day}')
 
+def yesterday():
+    return str(f'{Time.year}')
 
 def realtime():
     return f'{str(now().hour).zfill(2)}:{str(now().minute).zfill(2)}:{str(now().second).zfill(2)}'
@@ -195,8 +201,9 @@ class Time():
         # 如果是一个变量，就是timestamp或者字符串
         # 如果是三个数字，就默认是时分秒，年月日定为现在
         # 如果是六个数字就默认是年月日，时分秒定位0
+
         def reset(self, year=now().year, month=now().month, day=now().day, hour=now().hour, min=now().minute, sec=now().second, mic=now().microsecond):
-            self[0].t = datetime.datetime(year, month, day, hour, min, sec, mic)
+            self[0].t = datetime.datetime(int(year), int(month), int(day), int(hour), int(min), int(sec), int(mic))
 
         # 默认设置为现在时间
         reset([self])
@@ -209,7 +216,7 @@ class Time():
                     year, month, day, hour, min, sec, mic = struct.tm_year, struct.tm_mon, struct.tm_mday, struct.tm_hour, struct.tm_min, struct.tm_sec, int(
                         1000000 * (i - int(i)))
                 if type(i) in [str]:
-                    newself = strtotime(i)
+                    newself = Time.strtotime(i)
                     self.t = newself.t
                     return
             if len(a) in [3]:
@@ -228,8 +235,19 @@ class Time():
         # timestamp = datetime.datetime(year, month, day, hour, min, sec, mic).timestamp()
         # self.t = datetime.datetime.fromtimestamp(timestamp)
 
+    def strtotime(s):
+        return strtotime(s)
+
     def __call__(self, *args, **kwargs):
         self.__init__()
+
+    def today(self):
+        return str(f'{self.year()}-{self.month()}-{self.day()}')
+
+    def yesterday(self):
+        t=Time()
+        t.add(-24*3600)
+        return t.today()
 
     def year(self):
         return str(self.t.year)
@@ -270,10 +288,14 @@ class Time():
             warn(sec)
             sys.exit(-1)
         self.t = datetime.datetime.fromtimestamp(self.t.timestamp() + sec)
+        return self.s()
 
     def s(self):
         # return f'{str(self.year).zfill(2)}-{str(self.month).zfill(2)}-{str(self.day).zfill(2)} {str(self.hour).zfill(2)}:{str(self.min).zfill(2)}:{str(self.sec).zfill(2)}.{str(self.mic).zfill(6)}'
         return str(self.t)
+
+    def __str__(self):
+        return self.s()
 
     # 返回距离现在的时间或者两个时间类的差，返回绝对值（秒）
     def counttime(self, obj=None):
@@ -302,9 +324,11 @@ def strtotime(s=nowstr()):
     if not type(s) == str:
         warn(f'用法错误。s不是字符串而是{info(s)}')
         return
-    if len(s) > 10:
+    # 至少五项的字符串
+    if ':'in s and '-'in s:
         (year, month, day, hour, min) = (
-            int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]), int(s[s.rfind('-') + 1:s.find(' ')]), int(s[s.rfind(' ') + 1:s.find(':')]),
+            int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]),
+            int(s[s.rfind('-') + 1:s.find(' ')]), int(s[s.rfind(' ') + 1:s.find(':')]),
             int(s[s.find(':') + 1:s.rfind(':')]))
         try:
             mic = int(s[s.find('.') + 1:])
@@ -312,7 +336,27 @@ def strtotime(s=nowstr()):
         except:
             sec = int(s[s.rfind(':') + 1:])
             mic = 0
-        return Time(year, month, day, hour, min, sec, mic)
+    else:
+        # 只有日期字符串
+        if '-'in s:
+            lis=s.split('-')
+            year,month,day=lis[0].strip(' '),lis[1].strip(' '),lis[2].strip(' ')
+            hour,min,sec,mic=0,0,0,0
+        else:
+    #         只有时间字符串
+            year,month,day=today().split('-')
+            if len(s)<7:
+    #             只有hour, min
+                hour,min=s.split(':')
+                sec,mic=0,0
+            elif len(s)<10:
+    #             没有mic
+                hour,min,sec=s.split(':')
+                mic=0
+            else:
+                hour,min,res=s.split(':')
+                sec,mic=res.split('.')
+    return Time(year, month, day, hour, min, sec, mic)
 
 
 # timestamp构造Time
@@ -389,6 +433,29 @@ def retry(e):
 # 命令行
 # https://blog.csdn.net/weixin_42133116/article/details/114371614
 class CMD():
+    CSI = '\033['
+    # CSI = '\x1b['
+    def front(n,s=''):
+        return(f'{CMD.CSI}38;5;{n}m{s}')
+    def resetfront(s=''):
+        return CMD.front(39,s)
+    def background(n,s=''):
+        return(f'{CMD.CSI}48;5;{n}m{s}')
+    def resetbackground(s=''):
+        return CMD.background(49,s)
+    def font(n,s=''):
+        return(f'{CMD.CSI}{n}m{s}')
+    def resetall(s=''):
+        return CMD.font(0,s)
+    def reset(*a,**b):
+        return CMD.resetall(*a,**b)
+    def showall(self=None):
+        for i in range(0,256):
+            print(i,CMD.front(i,f'-------{i}号颜色--------'),CMD.reset(),CMD.background(i,'\t'*100),CMD.reset())
+        for i in range(0,110):
+            print(CMD.font(i),f'这是{i}号示例字体',CMD.reset())
+    def listall(*a,**b):
+        return CMD.showall(*a,**b)
     def __init__(self, cmds='', coding='utf-8', silent=False):
         cmd = [self._where('PowerShell.exe'),
                "-NoLogo", "-NonInteractive",  # Do not print headers
@@ -534,9 +601,9 @@ def Input(x, y, s):
 # 音视频
 # region
 # 使用ffmpeg剪切视频
-def cutvideo(inputpath, start, end,outputpath=None):
-    if outputpath==None:
-        outputpath=removetail(inputpath,'.mp4')+'-cut.mp4'
+def cutvideo(inputpath, start, end, outputpath=None):
+    if outputpath == None:
+        outputpath = removetail(inputpath, '.mp4') + '-cut.mp4'
     sourcepath = os.path.abspath(inputpath)
     outputpath = os.path.abspath(outputpath)
     command = f'ffmpeg  -i {standarlizedPath(sourcepath)} -vcodec copy -acodec copy -ss {start} -to {end} {outputpath} -y'
@@ -579,9 +646,9 @@ def info(s):
                 total_b, used_b, free_b = shutil.disk_usage(s.strip('\n') + ':')  # 查看磁盘的使用情况
             except Exception as e:
                 Exit(e)
-            log(f'{s.upper()}' + '盘总空间: {:6.2f} GB '.format(total_b / gb))
-            log('\t已使用 : {:6.2f} GB '.format(used_b / gb))
-            log('\t\t空余 : {:6.2f} GB '.format(free_b / gb))
+            # log(f'{s.upper()}' + '盘总空间: {:6.2f} GB '.format(total_b / gb))
+            # log('\t已使用 : {:6.2f} GB '.format(used_b / gb))
+            # log('\t\t空余 : {:6.2f} GB '.format(free_b / gb))
             return (free_b / gb)
 
         #     文件（夹）
@@ -603,7 +670,7 @@ def info(s):
             return size(s)
     # 其它类型
     elif type(s) in [list, tuple, dict]:
-        if len(s)>3:
+        if len(s) > 3:
             tip(f'{s[0:2]}...{s[-1]}')
         else:
             tip(s)
@@ -650,14 +717,15 @@ class pool():
 # region
 # 移除空文件夹
 def rmempty(root):
-    dlis=[]
+    dlis = []
     for i in listdir(root):
-        if []==extend(listdir(i),listfile(i)):
+        if [] == extend(listdir(i), listfile(i)):
             dlis.append(i)
     out(dlis)
     warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
-    c=input()
+    c = input()
     deletedirandfile(dlis)
+
 
 # 打开文件或者网页
 def look(path):
@@ -676,6 +744,7 @@ def look(path):
 def Open(path):
     return look(path)
 
+
 # 返回收藏目录
 
 def collectionpath(s=''):
@@ -683,7 +752,8 @@ def collectionpath(s=''):
         s = s[2:]
     if not s == '':
         s = '/' + s
-    return standarlizedPath(userpath(f'Pictures/集锦/{s}'))
+    return standarlizedPath(projectpath(f'self/MANUAL 文档 收藏 AUTO/网页集锦/{s}'))
+
 
 # 返回C盘用户目录
 def userpath(s=''):
@@ -757,7 +827,7 @@ def modifytime(path):
 
 
 # 新建文件以进行覆盖输出
-def out(s, silent=False,target='out.txt'):
+def out(s, silent=False, target='out.txt'):
     f = txt(projectpath(target))
     f.l = []
     f.save()
@@ -771,11 +841,11 @@ def out(s, silent=False,target='out.txt'):
 
 
 # 在固定文件进行持续输出
-def pout(*a,**b):
-    return provisionalout(*a,**b)
+def pout(*a, **b):
+    return provisionalout(*a, **b)
 
 
-def provisionalout(s, silent=True,path='pout.txt'):
+def provisionalout(s, silent=True, path='pout.txt'):
     f = txt(projectpath(path))
 
     def do(s):
@@ -828,10 +898,10 @@ def copyfile(s1, s2):
 
 
 # 移动
-def move(s1, s2,strict=False):
+def move(s1, s2, strict=False):
     if isfile(s1):
         if isfile(s2):
-            if strict==False:
+            if strict == False:
                 Exit('移动的目标路径已有目标文件。')
             warn(f'移动的目标路径已有目标文件。即将覆盖。{s2}')
         if isdir(s2):
@@ -880,11 +950,12 @@ def listfile(path):
         return ret1
     return []
 
+
 def listfiletree(path):
-    lis=[]
-    extend(lis,listfile(path))
+    lis = []
+    extend(lis, listfile(path))
     for i in listdir(path):
-        extend(lis,listfiletree(i))
+        extend(lis, listfiletree(i))
     return lis
 
 
@@ -892,6 +963,8 @@ def listfiletree(path):
 def pathname(s=None):
     s = standarlizedPath(s)
     return s[:s.rfind('/') + 1]
+
+
 def parentpath(s):
     return pathname(s)
 
@@ -907,13 +980,13 @@ def filename(s):
 
 
 class table():
-    def __init__(self, path,init=False):
-        if not '.csv'in path:
-            path+='csv'
+    def __init__(self, path, init=False):
+        if not '.csv' in path:
+            path += 'csv'
         self.path = standarlizedPath(path)
 
         if not isfile(self.path):
-            if init==False:
+            if init == False:
                 Exit(f'{self.path} 不存在。')
             self.create(*init)
 
@@ -921,8 +994,8 @@ class table():
             Exit()
         self.read()
 
-    def create(self,*a):
-        f=open(self.path, 'w')
+    def create(self, *a):
+        f = open(self.path, 'w')
         writer = csv.writer(f)
         writer.writerow(a)
         f.close()
@@ -939,53 +1012,55 @@ class table():
         self.save(self)
 
     def read(self):
-        f = open(self.path,encoding='utf-8-sig',mode='r')
+        f = open(self.path, encoding='utf-8-sig', mode='r')
         self.reader = csv.DictReader(f)
-        self.l=[]
+        self.l = []
         for i in self.reader:
             self.l.append(i)
-        self.d={}
-        self.columns=[]
-        for i in next(csv.reader(open(self.path,'r'))):
+        self.d = {}
+        self.columns = []
+        for i in next(csv.reader(open(self.path, 'r'))):
             self.columns.append(i)
         for column in self.columns:
-            self.d.update({column:[]})
+            self.d.update({column: []})
         for d in self.l:
             for k in d:
-                self.d.update({k:extend(self.d[k],[d[k]])})
+                self.d.update({k: extend(self.d[k], [d[k]])})
 
     # def get(self):
 
     def save(self):
-        f = open(self.path,encoding='utf-8-sig',mode='w',newline="")
-        writer=self.writer = csv.DictWriter(f, self.colmuns)
+        f = open(self.path, encoding='utf-8-sig', mode='w', newline="")
+        writer = self.writer = csv.DictWriter(f, self.colmuns)
         writer.writeheader()
         writer.writerows(self.l)
         log(f'saved {self.path}')
 
-    def add(self,d):
-        if type(d)in[dict]:
+    def add(self, d):
+        if type(d) in [dict]:
             self.l.append(d)
             for key in d:
                 if key in keys(self.d):
-                    extend(self.d[key],[d[key]])
-        if type(d)in [tuple,list]:
-            count=0
-            newd={}
+                    extend(self.d[key], [d[key]])
+        if type(d) in [tuple, list]:
+            count = 0
+            newd = {}
             for i in self.columns:
-                if count+1>len(d):
+                if count + 1 > len(d):
                     break
-                newd.update({i:d[count]})
-                count+=1
+                newd.update({i: d[count]})
+                count += 1
             self.add(newd)
             return
-        f = open(self.path,encoding='utf-8-sig',mode='a',newline="")
-        writer=self.writer = csv.DictWriter(f, self.columns)
+        f = open(self.path, encoding='utf-8-sig', mode='a', newline="")
+        writer = self.writer = csv.DictWriter(f, self.columns)
         writer.writerows([self.l[-1]])
         log(f'added {self.path} {self.l[-1]}')
 
+
 class Csv(table):
     pass
+
 
 def deletedirandfile(l, silent=None):
     # 删除txt里的文件
@@ -1043,6 +1118,12 @@ def standarlizedPath(s='', strict=False):
         sys.exit(-1)
     if b:
         s += '/'
+    #     删去路径里的每一个末尾空格
+    s=s.replace('\\', '/')
+    while (' /')in s:
+        s=s.replace(' /','/')
+    while (' .')in s:
+        s=s.replace(' .','.')
     if strict:
         return s.replace('/', '\\')
     return s.replace('\\', '/')
@@ -1051,7 +1132,7 @@ def standarlizedPath(s='', strict=False):
 # 合法化文件名
 def standarlizedFileName(str):
     str = re.sub('/|\||\?|>|<|:|\n|/|"|\*', ' ', str)
-    s='_'
+    s = '_'
     str = str.replace('  ', s)
     str = str.replace('\\', s)
     str = str.replace('\r', s)
@@ -1075,6 +1156,7 @@ def CreatePath(path):
     if os.path.exists(path):
         return path
     try:
+        # windows创建文件夹自动删去末尾空格，此时再在原来的带空格路径下操作就会报错
         os.makedirs(path)
         return path
     except Exception as e:
@@ -1280,7 +1362,7 @@ class RefreshTXT(txt):
                 f.save('refresh backup')
         # endregion
 
-
+    # 并行写入
     @consume
     def save(self):
         extend(self.l, rtxt(self.path).l)
@@ -1548,6 +1630,16 @@ class cache():
         return txt(self.path).length()
 
 
+def rtxttorjson(path):
+    f = txt(path)
+    l = f.l
+    f.l = []
+    f.save()
+    for i in l:
+        f.l.append(dicttojson({i: []}))
+    f.save()
+
+
 class rtxt(RefreshTXT):
     pass
 
@@ -1574,19 +1666,27 @@ def context(step=0):
                 framed = inspect.getframeinfo(frame)
                 d = {}
                 d.update({'module': framed.function})
+                d.update({'function': framed.function})
                 d.update({'code': framed.code_context})
+                d.update({'code_context': framed.code_context})
                 d.update({'file': framed.filename})
+                d.update({'filename': framed.filename})
                 d.update({'line': framed.lineno})
-                warn(d)
+                d.update({'lineno': framed.lineno})
                 ret.append(d)
         except:
             break
     return ret
-
+def stepback(*a,**b):
+    return context(*a,**b)
+def traceback(*a,**b):
+    return context(*a,**b)
+def backtrace(*a,**b):
+    return context(*a,**b)
 
 def WARN(s):
     now = Time()
-    hotkey('win','d')
+    hotkey('win', 'd')
     win32api.MessageBox(None, s, f'Kaleidoscope{now.time()}', win32con.MB_OK)
 
 
@@ -1649,44 +1749,30 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
     process.start()
 
 
-def Log(s, x1, x2, x3=7, x4=30, x5=30):
-    s = str(s)
-    try:
-        pp1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back)[2]
-        pp2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back)[0]
-        pp3 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back)[1]
-        pp1 = f'[{pp1}]'
-        pp2 = pp2[len(pathname(pp2)):]
-    except:
-        pp1 = None
-    try:
-        pp4 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back.f_back)[2]
-        pp5 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back.f_back)[0]
-        pp6 = inspect.getframeinfo(inspect.currentframe().f_back.f_back.f_back.f_back)[1]
-        pp4 = f'[{pp4}]'
-        pp5 = pp5[len(pathname(pp5)):]
-    except:
-        pp4 = None
-        pp5 = None
-        pp6 = None
-    s2 = f'\033[{x3};{x4}m'
-    for i in range(len(pp2) // 4 - 7):
-        s2 += '\t'
-    s2 += f'{s}'
-    for i in range(17 - len(s2) // 4 + 3):
-        s2 += '\t'
-    s2 += '\033[0m'
+def Log(s, front=242,font=1,background=238):
     global Logcount
-    t = now()
+    m=500
     try:
-        s2.replace(u'\xa0', u'<?>')
-        # print(
-        #     f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m {pp4} {pp5}  <line {pp6}> ==》 {pp1} {pp2}  <line {pp3}> \033[0m' + s2)
-        print(
-            f'[{Logcount}] \033[7;{x5}m  {str(t.time())[:-7]} \033[{x1};{x2}m \033[0m' + s2)
+        s.replace(u'\xa0', u'<?>')
+        s1=''
+        if len(s)>m:
+            s1=s[m:]
+            s=s[:m]
+        s=s.ljust(m,'\t')
+        if Logcount>=100:
+            sss=f'[{Logcount}]'+CMD.reset()
+        else:
+            sss=CMD.reset()
+        print(sss,
+              CMD.background(background),CMD.front(244),realtime(),
+              CMD.front(front),CMD.font(font),s,CMD.resetall(),CMD.background(background),
+              CMD.reset())
+        Logcount += 1
+        if not s1=='':
+            Logcount-=1
+            Log(s1[m:],front,font,background)
     except Exception as e:
-        print(f'这条日志输出失败了。原因{e}')
-    Logcount += 1
+        warn(f'这条日志输出失败了。原因{e}')
 
 
 @listed
@@ -1694,7 +1780,7 @@ def log(*a):
     s = ''
     for i in a:
         s += str(i)
-    Log(s, 7, 32)
+    Log(s, 148)
 
 
 @listed
@@ -1702,13 +1788,13 @@ def tip(*a):
     s = ''
     for i in a:
         s += str(i)
-    Log(s, 7, 34, 9, 35)
+    Log(s, 248,9)
 
 
 @listed
 def delog(*a):
     if a in [(), [], None]:
-        Log('continuing', 7, 34)
+        Log('continuing', 75)
         return
     s = a[0]
     if not s in [0, -1, 'beign', 'end', 'a', 'z']:
@@ -1734,30 +1820,20 @@ def delog(*a):
         if str(s) in dic.keys():
             s = dic.get(s)
     finally:
-        Log(s, 7, 34)
+        Log(s, 75)
 
 
 def warn(*a):
     s = ''
     for i in a:
         s += str(i)
-    Log(s, 7, 31)
+    Log(s, 166)
 
 
 # endregion
 
 # 基础数据结构
 # region
-def set(l):
-    if not type(l) == list:
-        Exit(f'传入类型不是list？而是{info(l)}')
-    newl = []
-    for i in l:
-        if not i in newl:
-            newl.append(i)
-    return newl
-
-
 def simplinfo(num, author, title):
     return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
@@ -1882,7 +1958,7 @@ def cuttail(s, mark='_'):
     if type(s) == list:
         warn('用法错误。')
         sys.exit(-1)
-    if mark==None:
+    if mark == None:
         return s
     s, mark = str(s), str(mark)
     t = tail(s, mark)
@@ -1924,19 +2000,27 @@ def strre(s, pattern):
 # region
 
 #   更改工作目录
-def setRootPath():
-    if not os.path.exists(f'{activedisk.l[0]}:/'):
-        Open(activedisk.path)
-        Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
-    for i in activedisk.l:
-        if info(i) >= 0.2:
-            os.chdir(i + ':/')
-            log(f'operating DISK {str.title(i)}')
-            break
+def setRootPath(dir=None):
+    if dir == None:
+        if not os.path.exists(f'{activedisk.l[0]}:/'):
+            Open(activedisk.path)
+            Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+        for i in activedisk.l:
+            if info(i) >= 0.2:
+                break
+    else:
+        i = dir
+    os.chdir(i + ':/')
+    log(f'operating DISK {str.title(i)}')
+
+
+def setrootpath(s):
+    setRootPath(s)
 
 
 #     初始化一个分布式盘
 def initdisk(diskname):
+    diskinfo = RefreshJson('./diskInfo.txt')
     if not diskinfo.l == []:
         warn(f'初始化分布盘失败。当前盘{standarlizedPath("./")}已存在diskInfo.txt。请检查。')
         return False
@@ -1950,6 +2034,7 @@ def initdisk(diskname):
 
 # 与操作盘diskinfo交互
 def getdiskname():
+    diskinfo = RefreshJson('./diskInfo.txt')
     if not os.path.exists('./diskInfo.txt') or diskinfo.l == []:
         name = input(f'检测到当前操作盘未初始化。请输入盘符（后期沿用，慎重！）：\n\t\t\t\t（已启用的唯一名）{RefreshTXT("D:/Kaleidoscope/disknames.txt").l}')
         initdisk(name)
@@ -1963,30 +2048,35 @@ def getdiskname():
 # 爬虫
 # region
 #  爬取论坛的每一页
-def forum(firsturl,titletail,hostname,func1,func2,func3,minsize=(150,150)):
-#     先打开第一页，获取标题，每页数
-    page=Chrome(mine=True,silent=True)
+def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150),t=3,scale=200):
+    #     先打开第一页，获取标题，每页数
+    page = Chrome(mine=True, silent=True)
     page.get(firsturl)
-    sleep(3)
-    title=removetail(page.title(),titletail)
+    sleep(t)
+    title = page.title()
+    if ' '+titletail in title:
+        title=MyUtils.removetail(title,' '+titletail)
+    if titletail in title:
+        title=MyUtils.removetail(title,titletail)
     # func1  返回当前帖子的Uid
-    uid=func1(page.url())
-    createpath(collectionpath(f'{hostname}/{uid}_{title}'))
-    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'),minsize=minsize,titletail=titletail,direct=True)
+    uid = func1(page.url())
+    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'), minsize=minsize, direct=True,look=True,scale=scale)
     # func2  根据帖子的uid，返回后面的每页的urllist
-    urllist=func2([page,uid])
+    urllist = func2([page, uid])
     page.quit()
-    count=1
+    count = 1
     for url in urllist:
-        count+=1
-        page=Chrome(url,mine=True,silent=True)
+        count += 1
+        page = Chrome(url, mine=True, silent=True)
         # func3  检查后面的每页是否被反爬了
         func3([page])
 
-        page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'),minsize=minsize,direct=True)
+        page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'), minsize=minsize, direct=True,scale=scale)
         page.quit()
-def linkedspider(*a,**b):
-    return forum(a,**b)
+
+
+def linkedspider(*a, **b):
+    return forum(a, **b)
 
 
 # 转到已经打开的edge并保存全部截屏
@@ -2108,12 +2198,9 @@ def scrollheight(l):
     page = l[0]
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
-
-def scroll(l, silent=None, x=None, y=None, ratio=1,t=1):
-    """
-    :param l: 页面，第二个参数小于1可不传
-    :return:
-    """
+# 移动到元素、下滚
+@consume
+def scroll(l, silent=None, x=None, y=None, ratio=1, t=1, ite=None):
     if not type(l) in [list]:
         if not x == None:
             pyautogui.moveTo(x, y)
@@ -2124,57 +2211,35 @@ def scroll(l, silent=None, x=None, y=None, ratio=1,t=1):
             x = flag * -100
             pyautogui.scroll(int(x))
         return
-    log('滚动中..')
-    ti = time.time()
+
+    # 循环判断下滚
+    if silent==None:
+        log('滚动中..')
     page = l[0]
-    ratio = 1
-    if len(l) > 1:
-        ratio = l[1]
+    ratio = ratio
     ScrollTop = -1
     while ScrollTop != getscrolltop([page]):
-        ScrollTop = getscrolltop([page])
-        if not silent == None:
-            delog(ScrollTop)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(t)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(t)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(t)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(t)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        sleep(t*3)
-        if ScrollTop != getscrolltop([page]):
-            continue
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
-        sleep(t)
-        page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-    log(f'滚动完毕。 {time.time() - ti} s.')
+        # 一个下滑到底并且再下滑一下的模仿人的动作，并且更新ScrollTop
+        def doubledown(l,ite):
+            nonlocal ScrollTop
+            page=l[0]
+            if ScrollTop == getscrolltop([page]):
+                return False
+            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+            ScrollTop=getscrolltop([page])
+            sleep(t)
+            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+            sleep(t)
+
+            # 有限下滑次数
+            if type(ite) in [int]:
+                ite -= 1
+                if ite < 0:
+                    return False
+            return True
+        while doubledown([page],ite):
+            pass
 
 
 def requestdownload(LocalPath, url, mode='rb'):
@@ -2227,33 +2292,36 @@ class Edge():
         self.type = 'edge'
         self.set_window_size(900, 1000)
 
-
     def getscrollheight(self):
         return scrollheight([self.driver])
+
     def scrollheight(self):
         return self.getscrollheight()
+
     def Height(self):
         return self.getscrollheight()
 
     def Width(self):
         return scrollwidth([self.driver])
 
-
-
     # 获取向上滚动后的全屏
-    def fullscreen(self, path=None,scale=100,autodown=True):
+    def fullscreen(self, path=None, scale=100, autodown=True):
         if not self.silent == True:
             Exit()
         if path == None:
-            path = userpath(f'Pictures/集锦/其它/{self.title()}/basic.png')
+            path = collectionpath(f'其它/{self.title()}/basic.png')
         log(f'将把 {self.url()} 的全屏保存到  {path}')
         if autodown:
-            self.down()
+            self.down(ite=autodown)
+            if type(autodown) in [int]:
+                autodown -= 1
+            if autodown == 0:
+                autodown = False
         else:
             self.setscrolltop(self.Height())
         self.up(scale=scale)
         e = self.element('/html/body')
-        x, y = max(1080,scrollwidth([self.driver])+100), scrollheight([self.driver])
+        x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
         self.set_window_size(x, y)
         self.elementshot(path, e)
 
@@ -2266,28 +2334,28 @@ class Edge():
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     # 可选点击展开按钮，
-    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None,autodown=True,look=False):
-        if minsize in [False,None]:
-            minsize=(9999,9999)
+    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None, autodown=True, look=False):
+        if minsize in [False, None]:
+            minsize = (9999, 9999)
         if path == None:
-            path = userpath(f'Pictures/集锦/其它/{self.title()}/')
+            path = collectionpath(f'其它/{self.title()}/')
         createpath(path)
         #     附加页面标题到文件夹名
         if not direct:
             sleep(t)
             if not self.title() in path:
                 path += self.title()
-        if not titletail == None and ' '+titletail in path:
-            path = removetail(path, ' '+titletail)
-        if not titletail==None and titletail in path:
-            path=removetail(path,titletail)
+        if not titletail == None and ' ' + titletail in path:
+            path = removetail(path, ' ' + titletail)
+        if not titletail == None and titletail in path:
+            path = removetail(path, titletail)
         # 没办法，这个空格在不在真的完全是一个玄学
-        path+='/'
+        path += '/'
         createpath(path)
 
         # 展开
         if not clicktoextend == None:
-            if type(clicktoextend)in (str,):
+            if type(clicktoextend) in (str,):
                 self.click(clicktoextend)
                 if autodown:
                     self.down()
@@ -2298,7 +2366,7 @@ class Edge():
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png',scale=scale,autodown=autodown)
+            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -2317,8 +2385,8 @@ class Edge():
     # 保存页面上的所有图片
     def savepics(self, path=None, t=5, minsize=(100, 100)):
         res = []
-        if path==None:
-            path=collectionpath(f'/其它/{self.title()}/')
+        if path == None:
+            path = collectionpath(f'/其它/{self.title()}/')
         extend(res, self.elements('//pic', strict=False), self.elements('//img', strict=False))
         count = 0
         for i in res:
@@ -2332,21 +2400,21 @@ class Edge():
                 Exit(self.url(), '获取图片地址失败')
 
             # 有些图片懒加载
-            if 'data:'in url:
+            if 'data:' in url:
                 continue
 
             fname = gettail(url, '/')
 
-            bb=True
+            bb = True
             for j in ['.jpeg', '.jpg', '.gif', '.png', '.bmp', '.webp']:
                 if j in fname:
                     fname = removetail(fname, j) + j
-                    bb=False
+                    bb = False
                     break
             if bb:
-                fname+=j
+                fname += j
             fname = standarlizedFileName(fname)
-            dpath=f'{path}/img/<{count}>{fname}'
+            dpath = f'{path}/img/<{count}>{fname}'
             log(f'saving {self.url()}的 {url} 到 {dpath}')
             pagedownload(url, dpath, t=t)
 
@@ -2364,16 +2432,16 @@ class Edge():
                 Exit(self.url(), '获取图片地址失败')
 
             fname = gettail(url, '/')
-            b=True
-            for j in ['.mp4','mp3']:
+            b = True
+            for j in ['.mp4', 'mp3']:
                 if j in fname:
                     fname = removetail(fname, j) + j
-                    b=False
+                    b = False
                     break
             if b:
-                fname=fname+'.mp4'
+                fname = fname + '.mp4'
             fname = standarlizedFileName(fname)
-            dpath=f'{path}/video/<{count}>{fname}'
+            dpath = f'{path}/video/<{count}>{fname}'
             log(f'saving {self.url()}的 {url} 到 {dpath}')
             pagedownload(url, dpath, t=t)
 
@@ -2383,8 +2451,8 @@ class Edge():
             Exit('不是chrome浏览器。不能用ctrl+shift+S 保存e')
         self.top()
         self.maxwindow()
-        if path==None:
-            path=collectionpath(f'/其它/{self.title()}')
+        if path == None:
+            path = collectionpath(f'/其它/{self.title()}')
         sleep(0.5)
         hotkey('ctrl', 'shift', 's')
         sleep(1)
@@ -2434,15 +2502,15 @@ class Edge():
     def clickelement(self, *a):
         return Edge.click(a)
 
-    def click(self, *a,strict=True):
+    def click(self, *a, strict=True):
         if len(a) > 1:
             # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
             Exit(' 未实现')
         s = a[0]
-        if s==None:
+        if s == None:
             return
         if type(s) in [str]:
-            return Edge.click(self, Edge.element(self, s,strict=strict))
+            return Edge.click(self, Edge.element(self, s, strict=strict))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -2455,11 +2523,13 @@ class Edge():
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一个
     def element(self, *a, **b):
-        ret= self.elements(*a, **b)
-        if ret==[]:
+        ret = self.elements(*a, **b)
+        if ret == []:
             return None
         else:
             return ret[0]
+    def Element(self,*a,**b):
+        return self.element(*a,**b)
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一组
     def elements(self, s1, depth=9, silent=True, strict=True):
@@ -2491,9 +2561,9 @@ class Edge():
         newret = []
         if 'text()' in s1[-6:]:
             for i in ret:
-                if not i.text=='':
+                if not i.text == '':
                     newret.append(i.text)
-                elif not i.get_attribute('text')=='':
+                elif not i.get_attribute('text') == '':
                     newret.append(i.get_attribute('text'))
                 else:
                     Exit(f'获取了元素的空字符串内容')
@@ -2506,11 +2576,13 @@ class Edge():
         else:
             return ret
         return newret
+    def Elements(self,*a,**b):
+        return self.elements(*a,**b)
 
-    def scroll(self, a=-1):
+    def scroll(self, a=-1, ite=None):
         if type(a) in [int]:
             if a == -1:
-                scroll([(self.driver)])
+                scroll([(self.driver)], ite=None)
             else:
                 setscrolltop([self.driver, a])
             return
@@ -2522,16 +2594,16 @@ class Edge():
             setscrolltop([self.driver, a.location['y'] - a.size['height']])
             return
 
-    def down(self, ratio=1, t=0.3):
-        scroll([self.driver], silent=True, ratio=ratio,t=t)
+    def down(self, ratio=1, t=0.3, ite=None):
+        scroll([self.driver], silent=True, ratio=ratio, t=t, ite=ite)
 
     def getscrolltop(self):
         return getscrolltop([self.driver])
 
     def setscrolltop(self, h):
-        if h<0:
+        if h < 0:
             warn(f'设置目标浏览器高度小于0')
-            h=0
+            h = 0
         return setscrolltop([self.driver, h])
 
     def up(self, scale=100, pause=1):
@@ -2539,8 +2611,8 @@ class Edge():
         while h > 10:
             if h > scale:
                 h -= scale
-                if h<=0:
-                    h=0
+                if h <= 0:
+                    h = 0
                 delog(h)
                 sleep(pause)
             else:
@@ -2622,6 +2694,14 @@ class Edge():
             Exit('浏览器url为空')
         return title([self.driver])
 
+    def quit(self):
+        Edge.quit()
+#         更改ischromeusing
+        f=txt(projectpath('./browser/ischromeusing.txt'))
+        if self.silent:
+            if not f.l==[]:
+                f.l==[]
+        f.save()
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
@@ -2773,7 +2853,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
         path += '/'
     createpath(path)
     if os.path.exists(path):
-        if not size(path)==0:
+        if not size(path) == 0:
             warn(f'{path}已存在，将不下载')
             return
     root = (path[:path.rfind('\\')])
@@ -2850,41 +2930,29 @@ def scrshot(l):
 # endregion
 
 # 视频音频
-def mp4tomp3(src, tar):
-    src,tar=standarlizedPath(src,strict=True),standarlizedPath(tar,strict=True)
-    if isdir(src)and isdir(tar):
+def mp4tomp3(src, tar=None):
+    if tar==None:
+        tar=f'{removetail(src,"mp4")}mp3'
+    src, tar = standarlizedPath(src, strict=True), standarlizedPath(tar, strict=True)
+    if isdir(src) and isdir(tar):
         for f in listfiletree(src):
-            if '.mp4'in f:
+            if '.mp4' in f:
                 moviepy.editor.VideoFileClip(f).audio.write_audiofile(f'{tar}\\{filename(f)}.mp3')
         return
     if not isfile(src) and not '.mp4' in src:
         Exit(f'{src}不是mp4文件1')
     moviepy.editor.VideoFileClip(src).audio.write_audiofile(tar)
-def videotoaudio(*a,**b):
-    return mp4tomp3(*a,**b)
 
-# MyUtils初始化
+
+def videotoaudio(*a, **b):
+    return mp4tomp3(*a, **b)
+
+
+# 写死变量
 # region
 Logcount = 0
 debug = True
-# 获取计算机用户名
-user = txt(projectpath('user.txt')).l[0]
-headers = {
-    'user-agent': \
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    'cookie': \
-        'douyin.com; __ac_referer=__ac_blank; ttcid=431befd8b5104ec2b3e9935bc6ec52f617; s_v_web_id=verify_l17s6pii_nh6oZDhq_iYxA_4ytu_ANgk_OTyTTCcg2xKS; douyin.com; csrf_session_id=6773d2a77c2678be09d4643511e64a6b; passport_csrf_token=ec7dfe616ded3178be26b33769703ec3; passport_csrf_token_default=ec7dfe616ded3178be26b33769703ec3; live_can_add_dy_2_desktop=%221%22; download_guide=%223%2F20220806%22; THEME_STAY_TIME=%22299980%22; IS_HIDE_THEME_CHANGE=%221%22; __ac_nonce=062f0b4060092bc3a4977; __ac_signature=_02B4Z6wo00f01hCbMoQAAIDCkJnIxJqXz.oQuzYAAObkIAmDFqT5eYtXQLOIndt3rqBiTrG-CP3fU3NbcCEhFtr9r1pPKbWfEluNFR83rgs19EQFlu6MM54rVDDiMOkZpWeEUrxin.D9jwp.fd; strategyABtestKey=1659941895.313; home_can_add_dy_2_desktop=%221%22; tt_scid=g3OvOz0oZqKoRGifS-F3fVy9Uku8K1fcPIo.H58wX9ckfCVHoYw0ftRBmQUwpdW28229; msToken=DyrYcuwheFZCpvBdU_rl7x872ZpxcFUjmoUmnVSUjv5iH-OY4kfwy6vn4VvEVHnixrP6nJw59CWQmCznZwzJJI1-Ux37b8ACpJ7F4-8Jb8J4vxHPP-rGW6yTQZs=; msToken=wiua9ZhBny4jw_muW9lEdGu6MpWNaAGgpTSDW6NqhoScfcwHrJ-0onvVi7sOuh5o9bR19EbBW8BBTEhVpGsEsbKCYGmYIL6zJJglE8Gr4FBqa2PREXaSkNNgwv8=' \
-    }
-runningroot = standarlizedPath(__file__)
-runningroot = runningroot[:runningroot.rfind('/')]
-runningroot = runningroot[:runningroot.rfind('/')] + '/'
-activedisk = txt('D:/Kaleidoscope/ActiveDisk.txt')
-disknames = RefreshTXT("D:/Kaleidoscope/disknames.txt")
-consoletxt = Json('D:/Kaleidoscope/console.txt')
-consolerunning = txt(projectpath('ConsoleShow.txt'))
-setRootPath()
-diskinfo = RefreshJson('./diskInfo.txt')
-diskname = getdiskname()
+
 retrylist = [selenium.common.exceptions.WebDriverException,
              MyError, selenium.common.exceptions.ElementClickInterceptedException,
              Exception, ConnectionRefusedError,
@@ -2892,5 +2960,24 @@ retrylist = [selenium.common.exceptions.WebDriverException,
              selenium.common.exceptions.TimeoutException,
              selenium.common.exceptions.NoSuchWindowException, pyautogui.FailSafeException,
              ]
-tip('MyUtils already loaded')
+headers = {
+    'user-agent': \
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    'cookie': \
+        'douyin.com; __ac_referer=__ac_blank; ttcid=431befd8b5104ec2b3e9935bc6ec52f617; s_v_web_id=verify_l17s6pii_nh6oZDhq_iYxA_4ytu_ANgk_OTyTTCcg2xKS; douyin.com; csrf_session_id=6773d2a77c2678be09d4643511e64a6b; passport_csrf_token=ec7dfe616ded3178be26b33769703ec3; passport_csrf_token_default=ec7dfe616ded3178be26b33769703ec3; live_can_add_dy_2_desktop=%221%22; download_guide=%223%2F20220806%22; THEME_STAY_TIME=%22299980%22; IS_HIDE_THEME_CHANGE=%221%22; __ac_nonce=062f0b4060092bc3a4977; __ac_signature=_02B4Z6wo00f01hCbMoQAAIDCkJnIxJqXz.oQuzYAAObkIAmDFqT5eYtXQLOIndt3rqBiTrG-CP3fU3NbcCEhFtr9r1pPKbWfEluNFR83rgs19EQFlu6MM54rVDDiMOkZpWeEUrxin.D9jwp.fd; strategyABtestKey=1659941895.313; home_can_add_dy_2_desktop=%221%22; tt_scid=g3OvOz0oZqKoRGifS-F3fVy9Uku8K1fcPIo.H58wX9ckfCVHoYw0ftRBmQUwpdW28229; msToken=DyrYcuwheFZCpvBdU_rl7x872ZpxcFUjmoUmnVSUjv5iH-OY4kfwy6vn4VvEVHnixrP6nJw59CWQmCznZwzJJI1-Ux37b8ACpJ7F4-8Jb8J4vxHPP-rGW6yTQZs=; msToken=wiua9ZhBny4jw_muW9lEdGu6MpWNaAGgpTSDW6NqhoScfcwHrJ-0onvVi7sOuh5o9bR19EbBW8BBTEhVpGsEsbKCYGmYIL6zJJglE8Gr4FBqa2PREXaSkNNgwv8=' \
+    }
 # endregion
+
+# 初始化
+user = txt(projectpath('user.txt')).l[0]
+activedisk = txt(projectpath('ActiveDisk.txt'))
+setRootPath()
+disknames = RefreshTXT("D:/Kaleidoscope/disknames.txt")
+diskname = getdiskname()
+consoletxt = Json('D:/Kaleidoscope/console.txt')
+consolerunning = txt(projectpath('ConsoleShow.txt'))
+def runningroot():
+    ret= standarlizedPath(__file__)
+    ret = ret[:ret.rfind('/')] + '/'
+    return ret
+tip('MyUtils already loaded')
