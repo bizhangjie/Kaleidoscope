@@ -3,7 +3,8 @@ import MyUtils
 if __name__=='__main__':
     f=MyUtils.txt(MyUtils.projectpath('browser/tieba.txt'))
     f.set()
-    for url in f.l:
+    for url in ['https://tieba.baidu.com/p/8016719603']:
+    # for url in f.l:
         def func1(url):
             num=url
             if '?'in url:

@@ -966,6 +966,8 @@ def pathname(s=None):
 
 
 def parentpath(s):
+    while s[-1]in ['\\','/']:
+        s=s[:-1]
     return pathname(s)
 
 
@@ -2695,13 +2697,7 @@ class Edge():
         return title([self.driver])
 
     def quit(self):
-        Edge.quit()
-#         更改ischromeusing
-        f=txt(projectpath('./browser/ischromeusing.txt'))
-        if self.silent:
-            if not f.l==[]:
-                f.l==[]
-        f.save()
+        self.driver.quit()
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
@@ -2720,6 +2716,15 @@ class Chrome(Edge):
 
     def maximize(self):
         self.driver.maximize_window()
+
+    def quit(self):
+        Edge.quit(self)
+        #         更改ischromeusing
+        f = txt(projectpath('./browser/ischromeusing.txt'))
+        if self.silent:
+            if not f.l == []:
+                f.l == []
+        f.save()
 
 
 def edge(url='', silent=None):

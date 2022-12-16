@@ -2,8 +2,12 @@ import MyUtils
 
 
 def fun():
-    d=(MyUtils.context(3))
-    print(d)
+    def fun1():
+        def fun2():
+            d=(MyUtils.context(6))
+            MyUtils.out(d)
+        fun2()
+    fun1()
 
 
 if __name__ == '__main__':

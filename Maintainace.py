@@ -210,9 +210,9 @@ def checkisindisk(record, func, ):
 # *统计重复的作品
 # duplication
 
-
-try:
-    SeleniumSpace(silent=False)
-except:
-    pass
-# storagemove()
+if __name__=='__main__':
+    try:
+        SeleniumSpace(silent=False)
+    except:
+        pass
+    # storagemove()

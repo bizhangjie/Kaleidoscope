@@ -5,7 +5,7 @@ import MyUtils
 if __name__ == '__main__':
     page=MyUtils.Chrome(silent=True)
     f=MyUtils.txt(MyUtils.projectpath('./browser/baike.txt'))
-    for url in ['https://baike.baidu.com/item/%E5%95%86%E6%B1%A4%E9%9B%86%E5%9B%A2%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8/61382882?fr=aladdin']:
+    for url in ['https://baike.baidu.com/item/%E7%9C%9F%E7%90%86%E6%8A%A5/3950197?fr=aladdin']:
     # for url in f.l:
         page.get(url)
         path=page.save(MyUtils.collectionpath('./百度百科/'),titletail='_百度百科',minsize=(9999,9999),scale=200)
