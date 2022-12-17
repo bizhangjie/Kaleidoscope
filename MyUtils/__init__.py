@@ -2623,14 +2623,8 @@ class Edge():
 
     # 如果不退出，可能报错 py sys path likely shutdown balabala...
     def quit(self):
-        self.driver.quit()
-
-    def __del__(self):
-        try:
+        if not self.driver==None:
             self.driver.quit()
-        except Exception as e:
-            print(e)
-            # warn(e)
 
     def open(self, url):
         url = 'https://' + url.strip('https://')
@@ -2638,10 +2632,17 @@ class Edge():
         Edge.switchto(self, )
 
     def get(self, url):
-        if not 'https://' in url and not 'http://' in url:
-            url = 'https://' + url
-        self.driver.get(url)
-        sleep(0.4)
+        try:
+            if not 'https://' in url and not 'http://' in url:
+                url = 'https://' + url
+            self.driver.get(url)
+            sleep(0.4)
+        except Exception as e:
+            if e in [selenium.common.exceptions.InvalidArgumentException]:
+                Exit(f'请检查url = {url} 是否错误。')
+            else:
+                Exit(e)
+
 
     def switchto(self, n=-1):
         self.driver.switch_to.window(self.driver.window_handles[n])
@@ -2701,31 +2702,31 @@ class Edge():
 
 class Chrome(Edge):
     def __init__(self, url='', mine=None, silent=None, t=100):
-        self.driver = chrome(url='', mine=mine, silent=silent, t=t)
-        if not url == '':
-            self.get(url)
         self.mine = mine
-        self.silent = silent
-        self.type = 'chrome'
         #     记录当前在使用mine chrome的context
         if mine == True:
             f = txt(projectpath('browser/ischromeusing.txt'))
+            if not f.l==[]:
+                Exit('Chrome 似乎已经在使用了')
             f.l = context(4)
             f.l.append(nowstr())
             f.save()
-
-    def maximize(self):
-        self.driver.maximize_window()
+        self.driver = chrome(url='', mine=mine, silent=silent, t=t)
+        if not url == '':
+            self.get(url)
+        self.silent = silent
+        self.type = 'chrome'
 
     def quit(self):
-        Edge.quit(self)
+        super().quit()
         #         更改ischromeusing
         f = txt(projectpath('./browser/ischromeusing.txt'))
-        if self.silent:
+        if self.mine:
             if not f.l == []:
-                f.l == []
+                f.l = []
         f.save()
-
+    def maximize(self):
+        self.driver.maximize_window()
 
 def edge(url='', silent=None):
     options = webdriver.EdgeOptions()

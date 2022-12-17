@@ -7,7 +7,7 @@ if __name__ == '__main__':
     f=MyUtils.txt(MyUtils.projectpath('browser/cc98.txt'))
     # 已经在edge中打开，需要获取url批量保存
     def get1():
-        loop=2
+        loop=1
         lis=MyUtils.geturls(loop)
         print(lis)
         f.add(lis)
@@ -17,13 +17,12 @@ if __name__ == '__main__':
     #     已经记录，直接批量保存第一页
         for i in f.l:
             page = MyUtils.Chrome(i,silent=True,mine=True)
-            page.save(MyUtils.collectionpath('cc98/'),titletail=' - CC98论坛',minsize=(150,150))
+            page.save(MyUtils.collectionpath('cc98/'),titletail=' - CC98论坛',minsize=(150,150),scale=400)
             page.quit()
-    # get2()
+    get2()
 
     # 保存所有页
     def get3():
-        url='https://www.cc98.org/topic/5212025'
         # page=MyUtils.Chrome(url,mine=True,silent=True)
         def func1(s):
             return MyUtils.gettail(s,'/')
@@ -40,6 +39,6 @@ if __name__ == '__main__':
         def func3(*a):
             MyUtils.sleep(3)
         MyUtils.forum(url,'- CC98论坛','cc98',func1,func2,func3,t=6,scale=600)
-    get3()
+    # get3()
 # 今日之事，所作所为，所行所历，与神迹何干？
 # 诸天之上，谁立于九霄云巅？
