@@ -1,12 +1,3 @@
-import os
-import shutil
-import sys
-import time
-
-import pyperclip
-import requests
-from selenium.webdriver.common.by import By
-
 import BUtils
 import Maintainace
 import MyUtils
@@ -119,39 +110,40 @@ def countdownloaded():
 def countrecord():
     MyUtils.log(f'记录总数：{videospectrum.length()}')
 
+
 def count():
     # 15024
     countrecord()
     # 1224
     countdownloaded()
 
+
 # 可能产生的错误，视频作者归并错了
 # 先查用户所有的bv号，再核对，没有的报错，然后进行人工检查
 def mistake():
     for i in MyUtils.listdir('./bili'):
-        if 'bili/cache' in i or 'bili/trash'in i:
+        if 'bili/cache' in i or 'bili/trash' in i:
             continue
-        author,useruid=MyUtils.splittail(i,'_')
-        author=MyUtils.gettail(author,'/')
-        print((useruid,author))
-        up=BUtils.up(uid=useruid)
-        vlist=[]
-        movelist=[]
+        author, useruid = MyUtils.splittail(i, '_')
+        author = MyUtils.gettail(author, '/')
+        print((useruid, author))
+        up = BUtils.up(uid=useruid)
+        vlist = []
+        movelist = []
         for j in up.vlist:
             vlist.append(j.bvid)
         for j in MyUtils.listdir(i):
-            bvid=MyUtils.gettail(j,'_')
+            bvid = MyUtils.gettail(j, '_')
             # 这个bv号是不属于这个upid对应的up主
             if not bvid in vlist:
                 MyUtils.warn(f'{author} {bvid}')
                 movelist.append(j)
-#         移动文件夹
+        #         移动文件夹
         for j in movelist:
-            MyUtils.move(j,f'./bili/trash/{MyUtils.filename(j)}')
-#             批量重命名
+            MyUtils.move(j, f'./bili/trash/{MyUtils.filename(j)}')
+        #             批量重命名
         for f in MyUtils.listdir('./bili/trash'):
-            MyUtils.move(f,f'./bili/{up.author}_{up.uid}/{MyUtils.filename(f)}')
-
+            MyUtils.move(f, f'./bili/{up.author}_{up.uid}/{MyUtils.filename(f)}')
 
 
 if __name__ == '__main__':
