@@ -5,8 +5,11 @@ if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
     # page=MyUtils.Chrome(url,silent=True,mine=True)
     # page = MyUtils.Chrome(url, silent=True, mine=False)
-    for url in MyUtils.txt(MyUtils.desktoppath('new.txt')).l:
+    # for url in MyUtils.txt(MyUtils.desktoppath('new.txt')).l:
+    for url in ['https://juejin.cn/post/7176961159612858427']:
         page = MyUtils.Edge(url, silent=True)
         # page.set_window_size(1200,3000)
-        page.save(minsize=(200, 200), scale=300, autodown=True, look=True)
+        titletail=' - 掘金'
+        path='./掘金'
+        page.save(path=path,minsize=(200, 200), scale=300, autodown=True, look=True,titletail=titletail)
         page.quit()
