@@ -1102,7 +1102,7 @@ def deletedirandfile(l, silent=None):
         del_files(file)
     for i in l:
         if os.path.exists(i):
-            shutil.rmtree(i)
+            shutil.rmtree(standarlizedPath(i,strict=True))
 
 
 # 统一路径格式

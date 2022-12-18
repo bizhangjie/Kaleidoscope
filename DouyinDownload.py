@@ -70,6 +70,7 @@ def download():
         # endregion
 
 def main():
+    MyUtils.setrootpath('g')
     # 持续性唤醒
     while True:
         download()

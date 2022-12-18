@@ -108,16 +108,18 @@ def douyin6():
 
 
 def SeleniumSpace(silent=True):
-    dlis = []
-    path = MyUtils.desktop().strip('Desktop/')
-    for dir in os.listdir(path + '/AppData\\Local\\Temp'):
-        if dir.find('scoped_dir') >= 0:
-            dlis.append(path + '/AppData\\Local\\Temp\\' + dir)
-            if len(dlis) > 500:
-                MyUtils.deletedirandfile(dlis, silent=silent)
-                dlis = []
-    MyUtils.deletedirandfile(dlis, silent=silent)
-
+    try:
+        dlis = []
+        path = MyUtils.desktop().strip('Desktop/')
+        for dir in os.listdir(path + '/AppData\\Local\\Temp'):
+            if dir.find('scoped_dir') >= 0:
+                dlis.append(path + '/AppData\\Local\\Temp\\' + dir)
+                if len(dlis) > 500:
+                    MyUtils.deletedirandfile(dlis, silent=silent)
+                    dlis = []
+        MyUtils.deletedirandfile(dlis, silent=silent)
+    except:
+        pass
 
 def storagemove():
     for i in MyUtils.listfile('D:/'):
