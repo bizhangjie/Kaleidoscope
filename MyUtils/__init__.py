@@ -716,15 +716,17 @@ class pool():
 # 文件系统读写
 # region
 # 移除空文件夹
-def rmempty(root):
+def rmempty(root,tree=False):
     dlis = []
-    for i in listdir(root):
-        if [] == extend(listdir(i), listfile(i)):
-            dlis.append(i)
-    out(dlis)
-    warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
-    c = input()
-    deletedirandfile(dlis)
+    if tree==False:
+        for i in listdir(root):
+            if [] == extend(listdir(i), listfile(i)):
+                dlis.append(i)
+    if not dlis==[]:
+        out(dlis)
+        warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
+        c = input()
+        deletedirandfile(dlis)
 
 
 # 打开文件或者网页
@@ -1124,7 +1126,7 @@ def standarlizedPath(s='', strict=False):
     s=s.replace('\\', '/')
     while (' /')in s:
         s=s.replace(' /','/')
-    while (' .')in s:
+    while (' .')in s[-6:]:
         s=s.replace(' .','.')
     if strict:
         return s.replace('/', '\\')
@@ -2258,11 +2260,13 @@ def requestdownload(LocalPath, url, mode='rb'):
             requestdownload(LocalPath, mode, url)
 
 
-def chrome(url='', mine=None, silent=None, t=100):
+def chrome(url='', mine=None, silent=None, t=100, mute=True):
     if not url == '' and not 'http' in url:
         url = 'https://' + url
     options = webdriver.ChromeOptions()
     options.add_argument('--start-maxmized')
+    if mute:
+        options.add_argument('--mute-audio')
     if not mine == None:
         sleep(3)
         options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
@@ -2381,7 +2385,11 @@ class Edge():
 
         log(f'页面已保存到{path}')
         if look:
-            Open(path)
+            try:
+                Open(path+'/img')
+                Open(path+'/basic.png')
+            except:
+                pass
         return path
 
     # 保存页面上的所有图片
@@ -2546,6 +2554,8 @@ class Edge():
         s = s1
         # 重写xpath规则
         for i in ['@href', '@src', 'text()']:
+            if '//'+i in s:
+                Exit('暂不支持这种用法。在属性前使用 \"//\" ')
             s = Strip(s, '/' + i)
 
         # 获取元素列表
@@ -2728,10 +2738,12 @@ class Chrome(Edge):
     def maximize(self):
         self.driver.maximize_window()
 
-def edge(url='', silent=None):
+def edge(url='', silent=None, mute=True):
     options = webdriver.EdgeOptions()
     if not silent == None:
         options.add_argument('headless')
+    if mute:
+        options.add_argument('--mute-audio')
     try:
         driver = webdriver.Edge(options=options)
     except selenium.common.exceptions.SessionNotCreatedException:
@@ -2968,9 +2980,8 @@ retrylist = [selenium.common.exceptions.WebDriverException,
              ]
 headers = {
     'user-agent': \
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    'cookie': \
-        'douyin.com; __ac_referer=__ac_blank; ttcid=431befd8b5104ec2b3e9935bc6ec52f617; s_v_web_id=verify_l17s6pii_nh6oZDhq_iYxA_4ytu_ANgk_OTyTTCcg2xKS; douyin.com; csrf_session_id=6773d2a77c2678be09d4643511e64a6b; passport_csrf_token=ec7dfe616ded3178be26b33769703ec3; passport_csrf_token_default=ec7dfe616ded3178be26b33769703ec3; live_can_add_dy_2_desktop=%221%22; download_guide=%223%2F20220806%22; THEME_STAY_TIME=%22299980%22; IS_HIDE_THEME_CHANGE=%221%22; __ac_nonce=062f0b4060092bc3a4977; __ac_signature=_02B4Z6wo00f01hCbMoQAAIDCkJnIxJqXz.oQuzYAAObkIAmDFqT5eYtXQLOIndt3rqBiTrG-CP3fU3NbcCEhFtr9r1pPKbWfEluNFR83rgs19EQFlu6MM54rVDDiMOkZpWeEUrxin.D9jwp.fd; strategyABtestKey=1659941895.313; home_can_add_dy_2_desktop=%221%22; tt_scid=g3OvOz0oZqKoRGifS-F3fVy9Uku8K1fcPIo.H58wX9ckfCVHoYw0ftRBmQUwpdW28229; msToken=DyrYcuwheFZCpvBdU_rl7x872ZpxcFUjmoUmnVSUjv5iH-OY4kfwy6vn4VvEVHnixrP6nJw59CWQmCznZwzJJI1-Ux37b8ACpJ7F4-8Jb8J4vxHPP-rGW6yTQZs=; msToken=wiua9ZhBny4jw_muW9lEdGu6MpWNaAGgpTSDW6NqhoScfcwHrJ-0onvVi7sOuh5o9bR19EbBW8BBTEhVpGsEsbKCYGmYIL6zJJglE8Gr4FBqa2PREXaSkNNgwv8=' \
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54',
+    'cookie':''
     }
 # endregion
 

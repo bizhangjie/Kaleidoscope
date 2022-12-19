@@ -49,6 +49,7 @@ def addpiece(d):
 # 获得用户主页的response （暂时不是json - request
 def hostjson(uid, pagenum, ):
     url = (f'https://api.bilibili.com/x/space/arc/search?mid={uid}&ps=30&tid=0&pn={pagenum}&keyword=&order=pubdate&jsonp=jsonp')
+    MyUtils.delog('hostjson request请求')
     MyUtils.delog(f'探测作者{uid}视频页的第{pagenum}页')
     res = requests.get(url, headers=MyUtils.headers)
     # 如果结束就退出
@@ -98,21 +99,40 @@ def filenametonum(s):
 
 # upid号转换为up名称，并且记录
 @MyUtils.consume
-def uidtoid(UID):
-    url = (f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
-    res = requests.get(url, headers=MyUtils.headers)
-    # 这个就是第一个作者author
-    # print(baijiahao"[upid] {res.json()['data']['list']['vlist'][0]['author']}")
-    try:
-        for i in res.json()['data']['list']['vlist']:
-        # 由于存在可能有合作，多个author，因此要遍历
-            # 一般来说只会有一个mid，对应相应的author
-            if not i['mid'] == int(UID):
-                continue
-            return MyUtils.standarlizedFileName(i['author'])
-    except Exception as e:
-        MyUtils.warn(i)
-        MyUtils.Exit(f"{e}\n[upid] error when trying mid(UID)={UID}")
+def uidtoid(UID,refresh=False):
+    # 从远程更新
+    if refresh:
+        url = (f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
+        page=MyUtils.Edge('www.bilibili.com',silent=True)
+        page.get(url)
+        e=page.element('/html/body/pre/text()')
+        page.quit()
+        d=MyUtils.jsontodict(e)
+        # res = requests.get(url, headers=MyUtils.headers)
+        # 这个就是第一个作者author
+        # print(baijiahao"[upid] {res.json()['data']['list']['vlist'][0]['author']}")
+        try:
+            for i in d['data']['list']['vlist']:
+            # 由于存在可能有合作，多个author，因此要遍历
+                # 一般来说只会有一个mid，对应相应的author
+                if not i['mid'] == int(UID):
+                    continue
+                # 更新本地记录
+                ret= MyUtils.standarlizedFileName(i['author'])
+                videouserspectrum.add({UID:ret})
+                return ret
+        except Exception as e:
+            MyUtils.out(str(e)+'\n'+url)
+            MyUtils.Exit(f"{e}\n[upid] error when trying mid(UID)={UID}")
+#     从本地获取
+    else:
+        d=videouserspectrum.d
+        if not UID in MyUtils.keys(d):
+            return uidtoid(UID,refresh=True)
+        idl=d[UID]
+        if idl==[]:
+            return uidtoid(UID,refresh=True)
+        return idl[0]
 
 
 # 通过up名称从记录中获取up uid

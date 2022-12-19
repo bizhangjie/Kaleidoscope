@@ -2,6 +2,7 @@ import MyUtils
 import BUtils
 count=0
 MyUtils.setrootpath('e')
+MyUtils.rmempty('./bili',tree=False)
 for i in MyUtils.listdir('./bili'):
     if '收藏'in i or 'cache'in i:
         continue

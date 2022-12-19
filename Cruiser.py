@@ -6,8 +6,6 @@ import MyUtils
 import DouyinDetect
 import DouyinDownload
 import multiprocessing
-from TEST import Test1
-from TEST import Test2
 import RAM
 
 # 在注意各优先级不冲突的同时，进行巡航

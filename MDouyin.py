@@ -109,7 +109,7 @@ def findduplicate():
 
 if __name__ == '__main__':
     # adduser()
-    # deleteRecorded()
+    deleteRecorded()
     deleteMissing()
     count()
     # findduplicate()

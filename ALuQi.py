@@ -2,6 +2,7 @@ import MyUtils
 
 # 移动根目录的文件
 todolist=[]
+MyUtils.setrootpath('f')
 # 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):
     if 'Scree' in file or 'SVID' in file:
