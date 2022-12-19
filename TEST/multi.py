@@ -4,6 +4,7 @@ import time
 import MyUtils
 import Test1
 import Test2
+import Apushgithub
 
 def func(a, b=1, c=1):
     while True:
@@ -14,7 +15,7 @@ def func(a, b=1, c=1):
 def main():
     pool1 = multiprocessing.Pool(5)
     for i in range(1):
-        pool1.apply_async(Test1.main,())
+        pool1.apply_async(Apushgithub.main,())
     for i in range(3):
         pool1.apply_async(Test2.main,())
 
