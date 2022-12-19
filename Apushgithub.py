@@ -26,5 +26,4 @@ if __name__ == '__main__':
         MyUtils.log('已提交并推送。')
         while not MyUtils.now().time().hour in list(range(10,24)):
             time.sleep(60*5)
-        time.sleep(5)
-
+        time.sleep(5*60)
