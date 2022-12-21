@@ -1,4 +1,6 @@
 import MyUtils
 
 if __name__ == '__main__':
-    MyUtils.move(MyUtils.desktoppath('sample/1/2/1'),MyUtils.desktoppath('sample/1/1/1'))
+    src=MyUtils.listdir(MyUtils.desktoppath('sample/1'))[0]
+    tar=MyUtils.listdir(MyUtils.desktoppath('sample/2'))[0]
+    MyUtils.move(src,tar)

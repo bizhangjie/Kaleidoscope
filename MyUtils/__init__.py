@@ -549,7 +549,7 @@ def hotkey(*a):
 
 
 # 返回bit
-def size(a, sum=0):
+def size(a, sum=0,strict=False):
     if type(a) in [str]:
         s = a
         # 磁盘
@@ -562,27 +562,29 @@ def size(a, sum=0):
             return (free_b / gb)
         #     文件
         if isfile(s):
-            return os.stat(s).st_size / 1024 / 1024
+            if strict:
+                return os.stat(s).st_size
+                return os.stat(s).st_size / 1024 / 1024
 
         #     文件夹
         if isdir(s):
             sum = 0
-            for i in listfile(s):
-                sum += size(i)
+            for i in listfile(s,strict=strict):
+                sum += size(i,strict=strict)
             for i in listdir(s):
-                sum += size(i)
+                sum += size(i,strict=strict)
             return sum
 
     #     其它类型
 
     elif type(a) in [list, tuple]:
         for i in a:
-            sum = size(i, sum)
+            sum = size(i, sum,strict=strict)
         return sum
     elif type(a) in [dict]:
-        sum = size(keys(a), sum)
+        sum = size(keys(a), sum,strict=strict)
         for k in keys(a):
-            sum = size(a[k], sum)
+            sum = size(a[k], sum,strict==strict)
         return sum
     return sum + sys.getsizeof(a)
 
@@ -911,9 +913,35 @@ def move(s1, s2, strict=False):
         createpath(s2)
     if isdir(s1):
         if isdir(s2):
-            Open(s1)
-            Open(s2)
-            Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
+            if strict:
+                Open(s1)
+                Open(s2)
+                Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
+            else:
+    #             merge
+                    delis=[]
+                    for i in MyUtils.listall(s1):
+                        target=f'{s2}/{MyUtils.filename(i)}'
+                        # 不存在的直接移动
+                        if not isfile(target) and not isdir(target):
+                            move(i,target)
+                        #     已经存在的
+                        else:
+    #                         如果大小相等则删除原来的，如果不相等则加后缀_copy
+                            if size(i,0,True)==size(target,0,True):
+                                delis.append(i)
+                            else:
+                                tai=''
+                                if isfile(target)and '.'in target:
+                                    target,tai=splittail(target,'.')
+                                    target=target+'_copy.'+tai
+                                else:
+                                    target=target+'_copy'
+                                move(i,target)
+                    delis.append(s1)
+                    MyUtils.deletedirandfile(delis)
+                    return
+
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
 
 
