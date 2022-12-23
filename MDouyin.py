@@ -1,7 +1,5 @@
 import os
 
-import pyperclip
-
 import DouyinUtils
 import MyUtils
 
@@ -41,11 +39,11 @@ def deleteMissing():
     lis1 = []
     for i in missing.l:
         d = MyUtils.jsontodict(i)
-        k=MyUtils.key(d)
+        k = MyUtils.key(d)
         d = MyUtils.value(d)[0]
         path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{k}_{d["title"]}')
         print(f'checking {path}')
-        if os.path.exists(path) and not []==MyUtils.listfile(path):
+        if os.path.exists(path) and not [] == MyUtils.listfile(path):
             lis1.append(i)
         if os.path.exists(path + '.mp4'):
             lis1.append(i)
@@ -65,18 +63,19 @@ def adduser():
 # 统计总数
 def count():
     # pyperclip.copy(baijiahao'{allpieces.length()}\n{allusers.length()}\n{missing.length()}')
-    file=0
-    dir=0
+    file = 0
+    dir = 0
     for i in MyUtils.listdir('./抖音'):
-        dir+=len(MyUtils.listdir(i))
-        file+=len(MyUtils.listfile(i))
+        dir += len(MyUtils.listdir(i))
+        file += len(MyUtils.listfile(i))
     MyUtils.log(f'记录总数：{allpieces.length()}')
     MyUtils.log(f"作者总数：{allusers.length()}")
     MyUtils.log(f"失败总数：{missing.length()}")
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
-    table=MyUtils.table(MyUtils.projectpath('./抖音/record.csv'))
-    table.add((allpieces.length(),allusers.length(),missing.length(),file,dir,MyUtils.removetail(MyUtils.Time().s(),'.')))
+    table = MyUtils.table(MyUtils.projectpath('./抖音/record.csv'))
+    table.add((allpieces.length(), allusers.length(), missing.length(), file, dir, MyUtils.removetail(MyUtils.Time().s(), '.')))
+
 
 # 统计重复的作品
 def findduplicate():
@@ -102,9 +101,6 @@ def findduplicate():
     # 输出结果
     MyUtils.txt(MyUtils.desktoppath('new')).add(lis1)
     print(lis1)
-
-
-
 
 
 if __name__ == '__main__':
