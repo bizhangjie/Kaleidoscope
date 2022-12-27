@@ -13,7 +13,7 @@ for i in MyUtils.listdir('./bili'):
         bvid=MyUtils.gettail(j,'_')
         video=BUtils.video(bvid)
         if video.exist==False:
-            MyUtils.move(j,MyUtils.projectpath(f'./bili/疑似绝版/{MyUtils.filename(j)}'))
+            MyUtils.move(j,(f'./bili异常/疑似绝版/{MyUtils.filename(j)}'))
             continue
         if not author in video.authors:
             MyUtils.Open(j)

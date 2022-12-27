@@ -902,7 +902,7 @@ def copyfile(s1, s2):
 
 
 # 移动
-def move(s1, s2, strict=False):
+def move(s1, s2, strict=False,silent=True):
     if isfile(s1):
         if isfile(s2):
             if strict == False:
@@ -943,7 +943,8 @@ def move(s1, s2, strict=False):
                     return
 
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
-
+    if not silent:
+        log(f'移动完成：从 {s1} 到 {s2}')
 
 @listed
 def listdir(path):

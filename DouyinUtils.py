@@ -16,6 +16,7 @@ readytodownload = MyUtils.cache('D:/Kaleidoscope/抖音/ReadytoDownload.txt')
 exceptuser = MyUtils.txt('D:/Kaleidoscope/抖音/FailedUsers.txt')
 failed = MyUtils.Json('D:/Kaleidoscope/抖音/FailedPieces.txt')
 missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
+expirepiecex=MyUtils.rjson(MyUtils.projectpath('./抖音/ExpiredPieces.txt'))
 
 diskusers = []
 for i in MyUtils.listdir('./抖音/'):

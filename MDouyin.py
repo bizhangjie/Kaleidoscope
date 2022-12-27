@@ -102,6 +102,9 @@ def findduplicate():
     MyUtils.txt(MyUtils.desktoppath('new')).add(lis1)
     print(lis1)
 
+# 删去作品
+def expirepiece():
+    pass
 
 if __name__ == '__main__':
     # adduser()

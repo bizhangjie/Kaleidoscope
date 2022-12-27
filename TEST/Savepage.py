@@ -6,7 +6,7 @@ if __name__ == '__main__':
     # page=MyUtils.Chrome(url,silent=True,mine=True)
     # page = MyUtils.Chrome(url, silent=True, mine=False)
     # for url in MyUtils.txt(MyUtils.desktoppath('new.txt')).l:
-    for url in ['https://kknews.cc/zh-hk/entertainment/xrq4g89.html']:
+    for url in ['https://wenhui.whb.cn/third/baidu/202102/01/390571.html']:
         page = MyUtils.Edge(url, silent=True)
         # page.set_window_size(1200,3000)
         # titletail=' - 掘金'

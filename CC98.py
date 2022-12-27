@@ -13,8 +13,8 @@ if __name__ == '__main__':
         f.add(lis)
     # get1()
 
-    def get2():
     #     已经记录，直接批量保存第一页
+    def get2():
         for i in f.l:
             page = MyUtils.Chrome(i,silent=True,mine=True)
             page.save(MyUtils.collectionpath('cc98/'),titletail=' - CC98论坛',minsize=(150,150),scale=400)
