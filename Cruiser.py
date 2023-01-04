@@ -6,16 +6,22 @@ import Apushgithub
 import MyUtils
 import RAM
 
+workgroup1=False
+workgroup2=False
+workgroup3=False
+workgroup4=False
 # 在注意各优先级不冲突的同时，进行巡航
 if __name__ == '__main__':
     MyUtils.Run()
     pool1 = multiprocessing.Pool(5)
+
+
     pool1.apply_async(A20min.main)
     pool1.apply_async(Apushgithub.main)
     pool1.apply_async(RAM.init)
 
-    work = False
-    if work == True:
+    workgroup2 = False
+    if workgroup2 == True:
         import DouyinDetect
         import DouyinDownload
         import provisional

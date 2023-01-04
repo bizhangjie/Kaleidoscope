@@ -14,6 +14,7 @@ MyUtils.delog(Time.yesterday())
 MyUtils.delog('-------------')
 
 MyUtils.delog(MyUtils.Time('2022-12-14'))
+MyUtils.delog(MyUtils.Time('2022-12-14').istime('这是一串乱码'))
 MyUtils.delog(MyUtils.Time('22:05'))
 MyUtils.delog(MyUtils.Time('22:05:01'))
 MyUtils.delog(MyUtils.Time('22:05:01.123456').mic())

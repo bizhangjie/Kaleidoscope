@@ -4,7 +4,7 @@ allusers=MyUtils.txt(MyUtils.projectpath('小红书/AllUsers.txt'))
 
 def fun():
     pass
-
+p
 
 def main():
     fun()

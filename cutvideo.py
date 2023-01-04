@@ -1,3 +1,3 @@
 import MyUtils
 
-MyUtils.cutvideo(r'D:\RNX\Screenrecorder-2022-07-17-21-27-16-718.mp4','00:00:00','00:44:46')
+MyUtils.cutvideo(r'F:\璐琪\2022-11-20\SVID_20221120_230413_2.mp4','00:00:00','00:00:20')

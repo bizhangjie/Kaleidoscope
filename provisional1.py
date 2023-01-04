@@ -1,10 +1,13 @@
 import MyUtils
+import BUtils
 
-signal='【NaNa】'
-target='./newbili/小份夹心呐呐酱w_115065744/'
-MyUtils.setrootpath('e')
+# dlis=[]
+# f=BUtils.collecitonvideorecord
+# for i in MyUtils.listfile('./bili/collection/待移动'):
+#     for j in f.l:
+#         if j in i:
+#             dlis.append(i)
+# MyUtils.deletedirandfile(dlis)
 
-for i in MyUtils.listdir(MyUtils.projectpath('./bili/疑似绝版')):
-    if signal in i:
-        fname=MyUtils.filename(i)
-        MyUtils.move(i,target+'/'+fname,silent=False)
+BUtils.repaircache()
+

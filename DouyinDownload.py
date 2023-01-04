@@ -69,9 +69,7 @@ def download():
             MyUtils.warn(f'下载失败，{VideoNum} 记录补全到 {Failed.path}.{author} 的编号:{VideoNum} 标题:{title}\n{VideoUrl}')
         # endregion
 
-MyUtils.setrootpath('g')
 def main():
-    MyUtils.setrootpath('g')
     # 持续性唤醒
     while True:
         download()

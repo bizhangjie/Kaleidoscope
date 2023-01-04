@@ -7,7 +7,7 @@ import BUtils
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l
 
-def download():
+def download(maxn=10):
     pagenum = 1
     BUtils.opendownloader()
     while True:
@@ -20,24 +20,31 @@ def download():
             if skipdownloaded(i['bvid']):
                 continue
             BUtils.download(bvid,overdownloaded=True)
-            BUtils.wait(t=5)
-            BUtils.collecitonvideorecord.add(bvid)
+            MyUtils.delog(f'downloading {i["bvid"]}')
+            BUtils.wait(t=5,silent=False)
             move()
+            maxn-=1
+            if maxn<0:
+                BUtils.quitdownloader()
+                return
     BUtils.quitdownloader()
 
 def move():
     for i in MyUtils.listdir(BUtils.cachepath):
-        MyUtils.move(i,f'./bili/collection/{MyUtils.filename(i)}')
+        MyUtils.move(i,f'./bili/collection/{MyUtils.removetail(MyUtils.filename(i),"-")}')
 
 
 # 加到记录
 def addtorecord():
     for i in MyUtils.listdir(BUtils.collectionpath):
-        i=MyUtils.removetail(i,'-')
+        if '待移动'in i:
+            continue
+
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
-download()
 move()
+# download(999)
+# move()
 addtorecord()
 # page=MyUtils.Chrome('https://space.bilibili.com/661654199/favlist?fid=1033475199')

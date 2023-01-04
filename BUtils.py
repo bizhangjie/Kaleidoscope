@@ -176,8 +176,11 @@ class video():
     @MyUtils.consume
     def __init__(self, a):
         self.exist=True
+        self.authors=[]
+        self.useruids=[]
 
         # 用网页视频列表json构建
+        # 这个有实际用到？？？？
         if type(a)in[dict]:
             self.bvid=a['bvid']
             self.length=a['length']
@@ -191,10 +194,30 @@ class video():
         if type(a)in [str] and 'BV'in a:
             self.bvid=bvid=a
             page=MyUtils.Edge(f'https://www.bilibili.com/video/{bvid}',silent=True)
+
+            # 视频已失效
             if '出错啦'in page.title() or '视频去哪了呢'in page.title():
                 self.exist=False
                 return
-            self.title=page.element('//*[@id="viewbox_report"]/h1').text
+
+            # 视频被收录到番剧内
+            isfanju=page.element('/html//meta[@content="哔哩哔哩番剧"]',strict=False)
+            if not isfanju==None:
+                page.get(f'https://search.bilibili.com/all?keyword={bvid}&from_source=webtop_search&spm_id_from=666.25')
+                time.sleep(2)
+                self.title=page.elements('//*[@id="i_cecream"]/div/div[2]//h3/span.text')[-1]
+                # 只保存第一个作者
+                self.authors=page.elements('//span[@class="bili-video-card__av--author"].text')
+                for i in page.elements('//a[@class="bili-video-card__av--owner"]@href'):
+                    self.useruids.append(MyUtils.gettail(i,'com/'))
+                self.author=self.authors[0]
+                self.useruid=self.useruids[0]
+                page.quit()
+                return
+
+
+            self.title=page.element(['//*[@id="viewbox_report"]/h1','//*[@id="app"]//div[@class="media-wrapper"]/h1']).text
+
             es=page.elements("//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip') or starts-with(@href,'//space') and contains(@class,'user') or starts-with(@href,'//space') and contains(@class,'up')]")
             useruids=[]
             authors=[]
@@ -272,20 +295,57 @@ def move(a=True):
 
 
 # 等待下载完毕
-def wait(t=20):
+def wait(t=20,silent=True):
     fsize=0
     while True:
-        newsize=MyUtils.size(cachepath)
-        if newsize==fsize:
-            MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
+        # 通过监视大小判断是否全部下载完成
+        # newsize=MyUtils.size(cachepath)
+        # if newsize==fsize:
+        #     MyUtils.log(f'下载文件大小停止变化，最终为{int(fsize)}MB.')
+        #     break
+        # fsize=newsize
+        # if not silent:
+        #     MyUtils.delog(f'{cachepath}  大小：){int(fsize)}MB')
+
+        # 通过检查是否存在.m4s文件判断是否全部下载完成
+        time.sleep(7)
+        bb=False
+        for i in MyUtils.listdir(cachepath):
+            for j in MyUtils.listfile(i):
+                if '.m4s'in j:
+                    bb=True
+                    break
+        if not bb:
             break
-        fsize=newsize
+        if not silent:
+            MyUtils.delog(f'waiting ... 等待所有下载完毕。还存在  {j}')
+
         time.sleep(t)
 
+
 def quitdownloader():
+    MyUtils.click(1426,209)
+    time.sleep(0.4)
     MyUtils.hotkey('alt','tab')
     time.sleep(0.4)
 
 def opendownloader():
     MyUtils.hotkey('alt','tab')
     time.sleep(0.4)
+    MyUtils.click(1426,209)
+
+# 清空空文件夹，删除包含m4s的，重命名文件夹
+def repaircache():
+    MyUtils.rmempty(cachepath)
+
+
+    for i in MyUtils.listdir(cachepath):
+        MyUtils.rename(i,MyUtils.removetail(i,'-'))
+
+    dlis=[]
+    for i in MyUtils.listdir(cachepath):
+        for j in MyUtils.listfile(i):
+            if 'm4s'in j:
+                dlis.append(i)
+                break
+    MyUtils.deletedirandfile(dlis)

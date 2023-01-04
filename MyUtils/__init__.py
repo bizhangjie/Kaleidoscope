@@ -46,7 +46,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 注解
 # region
 # 多名函数
-import MyUtils
 
 
 def newname(func):
@@ -237,6 +236,12 @@ class Time():
 
     def strtotime(s):
         return strtotime(s)
+
+    def istime(*a):
+        try:
+            return strtotime(a[-1])
+        except:
+            return False
 
     def __call__(self, *args, **kwargs):
         self.__init__()
@@ -564,12 +569,12 @@ def size(a, sum=0,strict=False):
         if isfile(s):
             if strict:
                 return os.stat(s).st_size
-                return os.stat(s).st_size / 1024 / 1024
+            return os.stat(s).st_size / 1024 / 1024
 
         #     文件夹
         if isdir(s):
             sum = 0
-            for i in listfile(s,strict=strict):
+            for i in listfile(s):
                 sum += size(i,strict=strict)
             for i in listdir(s):
                 sum += size(i,strict=strict)
@@ -740,7 +745,7 @@ def look(path):
         os.startfile(path)
         return
     if not isfile(path) and not 'https' in path:
-        warn(f'不存在文件{path}')
+        warn(f'不存在文件或文件夹{path}')
         return
     os.startfile(path)
 
@@ -920,8 +925,8 @@ def move(s1, s2, strict=False,silent=True):
             else:
     #             merge
                     delis=[]
-                    for i in MyUtils.listall(s1):
-                        target=f'{s2}/{MyUtils.filename(i)}'
+                    for i in listall(s1):
+                        target=f'{s2}/{filename(i)}'
                         # 不存在的直接移动
                         if not isfile(target) and not isdir(target):
                             move(i,target)
@@ -939,7 +944,7 @@ def move(s1, s2, strict=False,silent=True):
                                     target=target+'_copy'
                                 move(i,target)
                     delis.append(s1)
-                    MyUtils.deletedirandfile(delis)
+                    deletedirandfile(delis)
                     return
 
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
@@ -1786,6 +1791,7 @@ def Log(s, front=242,font=1,background=238):
     global Logcount
     m=500
     try:
+        s=str(s)
         s.replace(u'\xa0', u'<?>')
         s1=''
         if len(s)>m:
@@ -1972,7 +1978,7 @@ def tellstringsame(s1, s2):
 
 
 # 去除字符串末尾
-def Strip(s, tail):
+def Strip(s, tail,strict=False):
     # if not type(s) in [str] and type(tail) in [str]:
     #     Exit(s, tail)
     if s[-len(tail):] == tail:
@@ -2032,17 +2038,24 @@ def strre(s, pattern):
 # 分布式
 # region
 
-#   更改工作目录
+#   更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
 def setRootPath(dir=None):
     if dir == None:
+        # 盘未初始化
         if not os.path.exists(f'{activedisk.l[0]}:/'):
             Open(activedisk.path)
             Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
-        for i in activedisk.l:
-            if info(i) >= 0.2:
-                break
+
+        # 根据文本更改操作盘
+        i=activedisk.l[0]
     else:
-        i = dir
+        if dir==False:
+            i=input(f'请输入操作盘。默认为{activedisk.l[0]}')
+            if i=='':
+                i=activedisk.l[0]
+        # 默认值
+        else:
+            i = dir
     os.chdir(i + ':/')
     log(f'operating DISK {str.title(i)}')
 
@@ -2081,19 +2094,41 @@ def getdiskname():
 # 爬虫
 # region
 #  爬取论坛的每一页
-def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150),t=3,scale=200):
+def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150),t=3,scale=200, saveuid=True,look=True):
+    if firsturl=='':
+        return
+    # uid是否文件夹注入帖子uid前缀
     #     先打开第一页，获取标题，每页数
     page = Chrome(mine=True, silent=True)
     page.get(firsturl)
     sleep(t)
     title = page.title()
     if ' '+titletail in title:
-        title=MyUtils.removetail(title,' '+titletail)
+        title=removetail(title,' '+titletail)
     if titletail in title:
-        title=MyUtils.removetail(title,titletail)
+        title=removetail(title,titletail)
     # func1  返回当前帖子的Uid
     uid = func1(page.url())
-    page.save(collectionpath(f'{hostname}/{uid}_{title}/第1页/'), minsize=minsize, direct=True,look=True,scale=scale)
+    # 把以前的帖子重命名
+    pastcount=0
+    if isdir(collectionpath(f'{hostname}/{uid}_{title}')):
+        pastcount+=1
+        while isdir(collectionpath(f'{hostname}/{uid}_{title}_{pastcount}')):
+            pastcount+=1
+    if isdir(collectionpath(f'{hostname}/{title}')):
+        pastcount+=1
+        while isdir(collectionpath(f'{hostname}/{title}_{pastcount}')):
+            pastcount+=1
+    if pastcount==0:
+        pastcount=''
+    else:
+        pastcount=f'_{pastcount}'
+    delog(pastcount)
+
+    if saveuid:
+        page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第1页/'), minsize=minsize, direct=True,look=look,scale=scale)
+    else:
+        page.save(collectionpath(f'{hostname}/{title}{pastcount}/第1页/'), minsize=minsize, direct=True,look=look,scale=scale)
     # func2  根据帖子的uid，返回后面的每页的urllist
     urllist = func2([page, uid])
     page.quit()
@@ -2103,8 +2138,10 @@ def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150)
         page = Chrome(url, mine=True, silent=True)
         # func3  检查后面的每页是否被反爬了
         func3([page])
-
-        page.save(collectionpath(f'{hostname}/{uid}_{title}/第{count}页/'), minsize=minsize, direct=True,scale=scale)
+        if saveuid:
+            page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第{count}页/'), minsize=minsize, direct=True, look=look, scale=scale)
+        else:
+            page.save(collectionpath(f'{hostname}/{title}{pastcount}/第{count}页/'), minsize=minsize, direct=True, look=look, scale=scale)
         page.quit()
 
 
@@ -2358,7 +2395,8 @@ class Edge():
         e = self.element('/html/body')
         x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
         self.set_window_size(x, y)
-        self.elementshot(path, e)
+        # self.elementshot(path, e)
+        self.driver.get_screenshot_as_file(path)
 
     # 避开不安全网页警告
     def skipsystemwarn(self):
@@ -2370,6 +2408,8 @@ class Edge():
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
     # 可选点击展开按钮，
     def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None, autodown=True, look=False):
+        if self.url()=='':
+            return
         if minsize in [False, None]:
             minsize = (9999, 9999)
         if path == None:
@@ -2407,7 +2447,7 @@ class Edge():
         self.savepics(path, 7, minsize=minsize)
 
         # 保存页面视频
-        # self.savevideos(path,20)
+        self.savevideos(path,20)
 
         # 留下url记录
         f = txt(f'{path}/url.txt').add(self.url())
@@ -2423,6 +2463,8 @@ class Edge():
 
     # 保存页面上的所有图片
     def savepics(self, path=None, t=5, minsize=(100, 100)):
+        if self.url()=='':
+            return
         res = []
         if path == None:
             path = collectionpath(f'/其它/{self.title()}/')
@@ -2455,6 +2497,7 @@ class Edge():
             fname = standarlizedFileName(fname)
             dpath = f'{path}/img/<{count}>{fname}'
             log(f'saving {self.url()}的 {url} 到 {dpath}')
+            delog(path)
             pagedownload(url, dpath, t=t)
 
     # 保存页面上的所有视频
@@ -2582,10 +2625,11 @@ class Edge():
         '''
         s = s1
         # 重写xpath规则
-        for i in ['@href', '@src', 'text()']:
+        for i in ['@href', '@src', 'text()','.text']:
             if '//'+i in s:
                 Exit('暂不支持这种用法。在属性前使用 \"//\" ')
             s = Strip(s, '/' + i)
+            s = Strip(s, i)
 
         # 获取元素列表
         if not type(s) == list:
@@ -2600,7 +2644,7 @@ class Edge():
 
         # 重写xpath规则
         newret = []
-        if 'text()' in s1[-6:]:
+        if 'text()' in s1[-6:] or 'text'in s1[-4:] or '.text' in s1[-5:]:
             for i in ret:
                 if not i.text == '':
                     newret.append(i.text)
@@ -2746,6 +2790,7 @@ class Chrome(Edge):
         if mine == True:
             f = txt(projectpath('browser/ischromeusing.txt'))
             if not f.l==[]:
+                Open(f.path)
                 Exit('Chrome 似乎已经在使用了')
             f.l = context(4)
             f.l.append(nowstr())

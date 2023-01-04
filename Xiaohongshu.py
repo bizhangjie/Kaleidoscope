@@ -1,10 +1,6 @@
 import MyUtils
 import XHSUtils
-
 allusers=XHSUtils.allusers
-MyUtils.setrootpath('f')
-def main():
-    pass
 
 if __name__ == '__main__':
     page=MyUtils.Chrome(mine=True,silent=False)

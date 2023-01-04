@@ -2,7 +2,6 @@ import MyUtils
 
 # 移动根目录的文件
 todolist=[]
-MyUtils.setrootpath('f')
 # 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):
     if 'Scree' in file or 'SVID' in file:
@@ -14,6 +13,8 @@ for file in MyUtils.listfile(['./', './璐琪/']):
         targetdir=f'./璐琪/{year}-{month}-{day}/'
         if not MyUtils.isfile(targetdir + filename):
             todolist.append((file, targetdir+filename))
+        else:
+            MyUtils.warn(f'似乎已存在：{targetdir+filename}')
 
 MyUtils.out(todolist)
 #  执行并添加记录

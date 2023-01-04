@@ -1,55 +1,25 @@
-import os
-from glob import glob
-import subprocess as sp
+from ProgressBar import *
 
+# 定义一个返回函数的函数
+# 参数cost为任务耗时（秒）、epoch为迭代次数、name为任务名、_sub_task为子任务
+def task(cost=0.5, epoch=3, name="", _sub_task=None):
+    def _sub():
+        bar = ProgressBar(max_value=epoch, name=name)
+        # 调用start方法进行进度条的初始化
+        bar.start()
+        for _ in range(epoch):
+            # 利用time.sleep方法模拟任务耗时
+            # 自己要计时程序位置
+            time.sleep(cost)
 
-class CMD:
-    # https://blog.csdn.net/weixin_42133116/article/details/114371614
-    def __init__(self, coding='utf-8', ):
-        cmd = [self._where('PowerShell.exe'),
-               "-NoLogo", "-NonInteractive",  # Do not print headers
-               "-Command", "-"]  # Listen commands from stdin
-        startupinfo = sp.STARTUPINFO()
-        startupinfo.dwFlags |= sp.STARTF_USESHOWWINDOW
-        self.popen = sp.Popen(cmd, stdout=sp.PIPE, stdin=sp.PIPE, stderr=sp.STDOUT, startupinfo=startupinfo)
-        self.coding = coding
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, a, b, c):
-        self.popen.kill()
-
-    def run(self, cmd, timeout=15):
-        b_cmd = cmd.encode(encoding=self.coding)
-        try:
-            b_outs, errs = self.popen.communicate(b_cmd, timeout=timeout)
-        except sp.TimeoutExpired:
-            self.popen.kill()
-            b_outs, errs = self.popen.communicate()
-        outs = b_outs.decode(encoding=self.coding)
-        return outs, errs
-
-    @staticmethod
-    def _where(filename, dirs=None, env="PATH"):
-        if dirs is None:
-            dirs = []
-        if not isinstance(dirs, list):
-            dirs = [dirs]
-        if glob(filename):
-            return filename
-        paths = [os.curdir] + os.environ[env].split(os.path.pathsep) + dirs
-        try:
-            return next(os.path.normpath(match)
-                        for path in paths
-                        for match in glob(os.path.join(path, filename))
-                        if match)
-        except (StopIteration, RuntimeError):
-            raise IOError("File not found: %s" % filename)
-
-
-if __name__ == '__main__':
-    with PowerShell() as ps:
-        outs, errs = ps.run('cd a:;ls')
-    print(errs)
-    print(outs)
+            # 如果有子任务的话就执行子任务
+            if _sub_task is not None:
+                _sub_task()
+            # 调用update方法更新进度条
+            bar.update()
+    return _sub
+# 定义三个任务Task1、Task2、Task3
+# 其中Task2、Task3分别为Task1、Task2的子任务
+task(name="Task1", _sub_task=task(
+    name="Task2", _sub_task=task(
+        name="Task3")))()
