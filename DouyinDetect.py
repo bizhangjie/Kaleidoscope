@@ -36,7 +36,7 @@ def main():
         # 作品网页
         page.get(elementurl)
         MyUtils.delog(f' 探测 {elementurl} ...')
-        MyUtils.skip([page, By.ID, "captcha-verify-image"])
+        DouyinUtils.skipverify([page])
 
         # 获取参数-标题
         # region
@@ -77,7 +77,7 @@ def main():
         # endregion
         # 获取变量
         # region
-        MyUtils.skip([Host, By.ID, "captcha-verify-image"])
+        DouyinUtils.skipverify([page])
         author = MyUtils.Element([Host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
         DouyinUtils.addauthor(useruid, author, users)

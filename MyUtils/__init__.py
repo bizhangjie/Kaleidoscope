@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 from glob import glob
+import PIL
 
 import PySimpleGUI
 import moviepy
@@ -22,6 +23,7 @@ import selenium
 import urllib3
 import win32api
 import win32con
+import cv2
 from moviepy.editor import VideoFileClip
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -35,7 +37,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 # region
-# 复制代码块
+# 参考代码
 # 列表传参法是可行的，只不过最好不要传不是自定义的类
 # 如果传参已经是列表就不要再列表传参。直接在函数内使用index。不要在函数内声明，这样会直接创建新的局部变量
 # 不建议传递列表进行写。列表本身的大小不能在函数内再改变。字典应该也是同理。
@@ -46,8 +48,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 注解
 # region
 # 多名函数
-
-
 def newname(func):
     def inner(originalfunc, *a, **b):
         return originalfunc(*a, **b)
@@ -90,24 +90,6 @@ def listed(func):
 
 
 # 计算函数的消耗时间
-# def consume(func):
-#     def inner(*a,**b):
-#         def inner1(f,*a,**b):
-#             stole = nowstr()
-#             ret = f(*a,**b)
-#             funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
-#             funcname2=None
-#             try:
-#                 funcname2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[3]
-#                 funcname2=(funcname2[0])
-#                 funcname2=funcname2[funcname2.find('.')+1:funcname2.find('(')]
-#             except:
-#                 pass
-#             delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{counttime(stole)} s')
-#             return ret
-#         return inner1(func,*a,**b)
-#     return inner
-
 def consume(func):
     def inner(*a, **b):
         def inner1(f, *a, **b):
@@ -128,8 +110,6 @@ def consume(func):
         return inner1(func, *a, **b)
 
     return inner
-
-
 # endregion
 
 # 时间
@@ -138,6 +118,9 @@ def consume(func):
 # timestamp只对内使用
 
 # 字符串
+def research(*a):
+    return re.search(*a)
+
 def nowstr(mic=True):
     ret = str(datetime.datetime.now())
     if mic:
@@ -192,8 +175,7 @@ def counttime(*args):
     #     return str(datetime.datetime.nowstr())
 
 
-# 底层维护一个时间类
-# 再由这个时间类导出字符串，进行操作
+# 底层维护一个时间类，再由这个时间类导出字符串，进行操作
 class Time():
     def __init__(self, *a, **b):
         # 什么都没有就默认是现在
@@ -605,8 +587,68 @@ def Input(x, y, s):
     sleep(1)
 
 
-# 音视频
+# 音视频、图片
 # region
+class pic():
+    def __init__(self,path):
+        self.path=path
+        self.img=PIL.Image.open(path)
+        self.width,self.height=self.img.size
+        self.type=self.img.format
+
+#         自动补全后缀名
+        def complete_img_suffix(self):
+            if self.type=='JPEG':
+                rename(self.path,self.path+'.jpeg')
+            elif self.type=='PNG':
+                rename(self.path,self.path+'.png')
+            elif self.type=='GIF':
+                rename(self.path,self.path+'.gif')
+            elif self.type=='BMP':
+                rename(self.path,self.path+'.bmp')
+            elif self.type=='TIFF':
+                rename(self.path,self.path+'.tiff')
+            elif self.type=='WEBP':
+                rename(self.path,self.path+'.webp')
+
+class img(pic):
+    pass
+
+class video():
+    def __init__(self,path):
+        self.path=path
+        self.cap=cv2.VideoCapture(path)
+        self.width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.fps=int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.framecount=int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.duration=self.framecount/self.fps
+        self.type=self.path.split('.')[-1]
+
+
+
+# 识别图片格式（后缀名）
+def imgtype(path):
+    img=PIL.Image.open(path)
+    return img.format
+
+# 从视频中提取声音
+def mp4tomp3(src, tar=None):
+    if tar==None:
+        tar=f'{removetail(src,"mp4")}mp3'
+    src, tar = standarlizedPath(src, strict=True), standarlizedPath(tar, strict=True)
+    if isdir(src) and isdir(tar):
+        for f in listfiletree(src):
+            if '.mp4' in f:
+                moviepy.editor.VideoFileClip(f).audio.write_audiofile(f'{tar}\\{filename(f)}.mp3')
+        return
+    if not isfile(src) and not '.mp4' in src:
+        Exit(f'{src}不是mp4文件1')
+    moviepy.editor.VideoFileClip(src).audio.write_audiofile(tar)
+
+def videotoaudio(*a, **b):
+    return mp4tomp3(*a, **b)
+
 # 使用ffmpeg剪切视频
 def cutvideo(inputpath, start, end, outputpath=None):
     if outputpath == None:
@@ -619,11 +661,11 @@ def cutvideo(inputpath, start, end, outputpath=None):
 
 
 # 使用ffmpeg提取音频
-def extractaudio(inputpath, outputpath):
-    sourcepath = os.path.abspath(standarlizedPath(inputpath))
-    command = f'ffmpeg -i {inputpath} -vn -codec copy {outputpath}'
-    print(command)
-    os.system('"%s"' % command)
+# def extractaudio(inputpath, outputpath):
+#     sourcepath = os.path.abspath(standarlizedPath(inputpath))
+#     command = f'ffmpeg -i {inputpath} -vn -codec copy {outputpath}'
+#     print(command)
+#     os.system('"%s"' % command)
 
 
 # 返回音频的秒数
@@ -3021,23 +3063,6 @@ def scrshot(l):
 
 # endregion
 
-# 视频音频
-def mp4tomp3(src, tar=None):
-    if tar==None:
-        tar=f'{removetail(src,"mp4")}mp3'
-    src, tar = standarlizedPath(src, strict=True), standarlizedPath(tar, strict=True)
-    if isdir(src) and isdir(tar):
-        for f in listfiletree(src):
-            if '.mp4' in f:
-                moviepy.editor.VideoFileClip(f).audio.write_audiofile(f'{tar}\\{filename(f)}.mp3')
-        return
-    if not isfile(src) and not '.mp4' in src:
-        Exit(f'{src}不是mp4文件1')
-    moviepy.editor.VideoFileClip(src).audio.write_audiofile(tar)
-
-
-def videotoaudio(*a, **b):
-    return mp4tomp3(*a, **b)
 
 
 # 写死变量

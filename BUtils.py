@@ -336,12 +336,18 @@ def opendownloader():
 
 # 清空空文件夹，删除包含m4s的，重命名文件夹
 def repaircache():
+    # 删除空文件夹
     MyUtils.rmempty(cachepath)
 
-
+    # 删除散列号
     for i in MyUtils.listdir(cachepath):
-        MyUtils.rename(i,MyUtils.removetail(i,'-'))
+        position1 = MyUtils.research(r'-\w+$', i)
+        position2 = MyUtils.research(r'-BV\w+-', i)
+        if not position2==None and not position1==None:
+            MyUtils.rename(i, i[:position1.start()])
 
+
+    # 删除包含m4s的文件夹
     dlis=[]
     for i in MyUtils.listdir(cachepath):
         for j in MyUtils.listfile(i):
