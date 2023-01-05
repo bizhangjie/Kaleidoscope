@@ -22,8 +22,10 @@ def main():
     users.rollback()
     MyUtils.Run()
     # 变量
-    Host = MyUtils.chrome()
+    host = MyUtils.chrome()
     page = MyUtils.chrome()
+    Host=MyUtils.Chrome(driver=[host])
+    Page=MyUtils.Chrome(driver=[page])
     useruid = 'nothing'
 
     def detect():
@@ -36,7 +38,7 @@ def main():
         # 作品网页
         page.get(elementurl)
         MyUtils.delog(f' 探测 {elementurl} ...')
-        DouyinUtils.skipverify([page])
+        DouyinUtils.skipverify([Page])
 
         # 获取参数-标题
         # region
@@ -72,34 +74,34 @@ def main():
         # 用户主页
         # region
         HostUrl = 'https://www.douyin.com/user/' + useruid.replace('https://www.douyin.com/user/', '')
-        Host.get(HostUrl)
+        host.get(HostUrl)
         # 为什么这句会有两次import输出？？？
         # endregion
         # 获取变量
         # region
-        DouyinUtils.skipverify([page])
-        author = MyUtils.Element([Host, By.XPATH, '/html/head/title']).get_attribute('text')
+        DouyinUtils.skipverify([Host])
+        author = MyUtils.Element([host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
         DouyinUtils.addauthor(useruid, author, users)
         #     continue
         MyUtils.log(f'  ------转到{author}的主页-----')
         MyUtils.delog(HostUrl)
         douyinSum = 0
-        PiecesNum = DouyinUtils.HostPiecesNum([Host])
+        PiecesNum = DouyinUtils.HostPiecesNum([host])
         if PiecesNum == 0:
             ExceptionUser.add(useruid)
             continue
         # endregion
         # 滑动滑块
         # region
-        MyUtils.scroll([Host])
+        MyUtils.scroll([host])
         # endregion
         # 获取变量
         # region
         # endregion
 
         # 作品列表循环
-        for VideoElement in DouyinUtils.HostPieces([Host]):
+        for VideoElement in DouyinUtils.HostPieces([host]):
             # 获取变量
             # region
             (elementurl, VideoNum) = DouyinUtils.piecetourlnum([VideoElement])

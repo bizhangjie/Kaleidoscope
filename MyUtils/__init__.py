@@ -591,25 +591,23 @@ def Input(x, y, s):
 # region
 class pic():
     def __init__(self,path):
+        path=standarlizedPath(path)
         self.path=path
         self.img=PIL.Image.open(path)
         self.width,self.height=self.img.size
         self.type=self.img.format
+        self.complete_img_suffix()
 
 #         自动补全后缀名
-        def complete_img_suffix(self):
-            if self.type=='JPEG':
-                rename(self.path,self.path+'.jpeg')
-            elif self.type=='PNG':
-                rename(self.path,self.path+'.png')
-            elif self.type=='GIF':
-                rename(self.path,self.path+'.gif')
-            elif self.type=='BMP':
-                rename(self.path,self.path+'.bmp')
-            elif self.type=='TIFF':
-                rename(self.path,self.path+'.tiff')
-            elif self.type=='WEBP':
-                rename(self.path,self.path+'.webp')
+    def complete_img_suffix(self):
+        if not '.'in self.path:
+            self.img.close()
+            newname=self.path+'.'+(self.type.lower())
+            rename(self.path,newname)
+            self.__init__(newname)
+
+    def __del__(self):
+        self.img.close()
 
 class img(pic):
     pass
@@ -2369,7 +2367,7 @@ def requestdownload(LocalPath, url, mode='rb'):
 
 
 def chrome(url='', mine=None, silent=None, t=100, mute=True):
-    if not url == '' and not 'http' in url:
+    if not url in ['',None] and not 'http' in url:
         url = 'https://' + url
     options = webdriver.ChromeOptions()
     options.add_argument('--start-maxmized')
@@ -2397,9 +2395,13 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
 
 
 class Edge():
-    def __init__(self, url='', silent=None):
-        self.driver = edge(url='', silent=silent)
-        if not url == '':
+    def __init__(self, url=None, silent=None,driver=None):
+        if not driver==None:
+            self.driver = driver[0]
+            return
+        else:
+            self.driver = edge(url='', silent=silent)
+        if not url ==  None:
             self.get(url)
         self.silent = silent
         self.mine = None
@@ -2448,8 +2450,9 @@ class Edge():
         time.sleep(1)
 
     # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    # 可选点击展开按钮，
-    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None, autodown=True, look=False):
+    # 可选点击展开
+    # 可选是覆盖还是新建已保存网页的副本
+    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None, autodown=True, look=False,duplication=False):
         if self.url()=='':
             return
         if minsize in [False, None]:
@@ -2468,9 +2471,22 @@ class Edge():
             path = removetail(path, titletail)
         # 没办法，这个空格在不在真的完全是一个玄学
         path += '/'
-        createpath(path)
 
-        # 展开
+        # 判断是否新建网页副本
+        if not isdir(path):
+            createpath(path)
+        elif not duplication:
+            warn(f'已存在 {path}，将覆盖已保存的网页')
+        else:
+            #遍历文件夹产生从0开始的新序号数字
+            count=0
+            while isdir(path+str(count)):
+                count+=1
+            path=re.sub(r'\\+$','',path)
+            path=path+str(count)+'/'
+            createpath(path)
+
+        # 展开页面
         if not clicktoextend == None:
             if type(clicktoextend) in (str,):
                 self.click(clicktoextend)
@@ -2537,10 +2553,11 @@ class Edge():
             if bb:
                 fname += j
             fname = standarlizedFileName(fname)
-            dpath = f'{path}/img/<{count}>{fname}'
+            dpath = (f'{path}/img/_{count}_{fname}')
             log(f'saving {self.url()}的 {url} 到 {dpath}')
             delog(path)
             pagedownload(url, dpath, t=t)
+            p=pic(dpath)
 
     # 保存页面上的所有视频
     def savevideos(self, path, t=5, minsize=None):
@@ -2814,8 +2831,8 @@ class Edge():
     def close(self):
         self.driver.close()
 
-    def skip(self, s):
-        return skip([self.driver, By.XPATH, s])
+    def skip(self, s,strict=False):
+        return skip([self.driver, By.XPATH, s],strict=strict)
 
     def title(self):
         if self.url() == '':
@@ -2826,7 +2843,7 @@ class Edge():
         self.driver.quit()
 
 class Chrome(Edge):
-    def __init__(self, url='', mine=None, silent=None, t=100):
+    def __init__(self, url=None, mine=None, silent=None, t=100, driver=None):
         self.mine = mine
         #     记录当前在使用mine chrome的context
         if mine == True:
@@ -2837,8 +2854,12 @@ class Chrome(Edge):
             f.l = context(4)
             f.l.append(nowstr())
             f.save()
-        self.driver = chrome(url='', mine=mine, silent=silent, t=t)
-        if not url == '':
+        if not driver==None:
+            self.driver = driver[0]
+            return
+        else:
+            self.driver = chrome(url=url, mine=mine, silent=silent, t=t)
+        if not url == None:
             self.get(url)
         self.silent = silent
         self.type = 'chrome'
@@ -2851,6 +2872,7 @@ class Chrome(Edge):
             if not f.l == []:
                 f.l = []
         f.save()
+
     def maximize(self):
         self.driver.maximize_window()
 
