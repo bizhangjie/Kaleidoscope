@@ -22,8 +22,8 @@ def deleteRecorded():
             if not i['disk'] == MyUtils.diskname:
                 continue
             author, title = i['author'], i['title']
-            if '7128697787717405965' in str(d):
-                print('isin')
+            # if '7128697787717405965' in str(d):
+            #     print('isin')
             if [] == MyUtils.listfile(f'./抖音/{author}/{d}_{title}') and not os.path.exists(f'./抖音/{author}/{d}_{title}.mp4'):
                 j = ({d: {"disk": MyUtils.diskname, 'author': author, "title": title}})
                 deletelis.append(j)

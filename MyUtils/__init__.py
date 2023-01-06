@@ -23,7 +23,7 @@ import selenium
 import urllib3
 import win32api
 import win32con
-import cv2
+# import cv2
 from moviepy.editor import VideoFileClip
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -388,8 +388,9 @@ def Exit(*a):
         warn(s)
     try:
         sys.exit(-1)
-    except:
+    except Exception as e:
         warn('程序失败。请手动终止。')
+        warn(e)
         context(2)
         sleep(9999)
         sleep(9999)
@@ -615,11 +616,11 @@ class img(pic):
 class video():
     def __init__(self,path):
         self.path=path
-        self.cap=cv2.VideoCapture(path)
-        self.width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.fps=int(self.cap.get(cv2.CAP_PROP_FPS))
-        self.framecount=int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        # self.cap=cv2.VideoCapture(path)
+        # self.width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        # self.height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        # self.fps=int(self.cap.get(cv2.CAP_PROP_FPS))
+        # self.framecount=int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.duration=self.framecount/self.fps
         self.type=self.path.split('.')[-1]
 
@@ -1602,7 +1603,12 @@ class RefreshJson(Json, RefreshTXT):
                 if value(d) in value(din):
                     return
                 RefreshTXT.delete(self, dicttojson(din))
-                din = {key(d): list(set(extend([value(d)], value(din))))}
+                try:
+                    din = {key(d): list(set(extend([value(d)], value(din))))}
+                except Exception as e:
+                    print(din)
+                    print(d)
+                    Exit(e)
                 RefreshTXT.add(self, dicttojson(din))
                 self.d.update(din)
                 return
@@ -1913,6 +1919,28 @@ def warn(*a):
 
 # 基础数据结构
 # region
+# 实现列表元素为字典的集合化
+def set(l):
+    res=[]
+    l1=[]
+    l2=[]
+    for i in l:
+        if not type(i)in [dict]:
+            res.append(i)
+        else:
+            l1.append(i)
+    for i in l1:
+        b=True
+        for j in l2:
+            if i==j:
+                b=False
+                break
+        if b:
+            l2.append(i)
+    res.extend(l2)
+    return res
+
+
 def simplinfo(num, author, title):
     return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
@@ -2383,7 +2411,7 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     driver.set_page_load_timeout(t)
     driver.set_script_timeout(t)
     try:
-        if not url == '':
+        if not url in[None,'']:
             driver.get(url)
         return driver
     except selenium.common.exceptions.InvalidArgumentException as e:

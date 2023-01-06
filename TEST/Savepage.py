@@ -6,11 +6,13 @@ if __name__ == '__main__':
     # page=MyUtils.Chrome(url,silent=True,mine=True)
     # page = MyUtils.Chrome(url, silent=True, mine=False)
     # for url in MyUtils.txt(MyUtils.desktoppath('new.txt')).l:
-    for url in ['https://view.inews.qq.com/a/20230105A03P0U00']:
+    for url in ['https://juejin.cn/post/6844904131581198349']:
         page = MyUtils.Edge(url, silent=True)
         # page.set_window_size(1200,3000)
-        # titletail=' - 掘金'
-        # path='./掘金'
-        # page.save(path=path,minsize=(200, 200), scale=300, autodown=True, look=True,titletail=titletail)
-        page.save(minsize=(200, 200), scale=300, autodown=True, look=True,t=2,duplication=False)
+        # 掘金
+        titletail=' - 掘金'
+        path='./掘金'
+        page.save(path=path,minsize=(200, 200), scale=300, autodown=True, look=True,titletail=titletail)
+
+        # page.save(minsize=(200, 200), scale=300, autodown=True, look=True,t=2,duplication=False)
         page.quit()
