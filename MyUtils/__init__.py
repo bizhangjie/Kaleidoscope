@@ -594,10 +594,13 @@ class pic():
     def __init__(self,path):
         path=standarlizedPath(path)
         self.path=path
-        self.img=PIL.Image.open(path)
-        self.width,self.height=self.img.size
-        self.type=self.img.format
-        self.complete_img_suffix()
+        try:
+            self.img=PIL.Image.open(path)
+            self.width,self.height=self.img.size
+            self.type=self.img.format
+            self.complete_img_suffix()
+        except:
+            pass
 
 #         自动补全后缀名
     def complete_img_suffix(self):
@@ -608,7 +611,10 @@ class pic():
             self.__init__(newname)
 
     def __del__(self):
-        self.img.close()
+        try:
+            self.img.close()
+        except:
+            pass
 
 class img(pic):
     pass
@@ -1210,6 +1216,7 @@ def standarlizedPath(s='', strict=False):
 
 # 合法化文件名
 def standarlizedFileName(str):
+    '_1_171915336a3bc770~tplv-t2oaga2asx-zoom-in-crop-mark 4536 0 0 0.image.webp'
     str = re.sub('/|\||\?|>|<|:|\n|/|"|\*', ' ', str)
     s = '_'
     str = str.replace('  ', s)
@@ -1423,7 +1430,7 @@ class RefreshTXT(txt):
         # self.rollback()
         RefreshTXT.backup(self)
         if self.length() < 2000:
-            self.set()
+            RefreshTXT.set(self)
 
     def backup(self):
         # 备份，set
@@ -1604,7 +1611,7 @@ class RefreshJson(Json, RefreshTXT):
                     return
                 RefreshTXT.delete(self, dicttojson(din))
                 try:
-                    din = {key(d): list(set(extend([value(d)], value(din))))}
+                    din = {key(d): list(Set(extend([value(d)], value(din))))}
                 except Exception as e:
                     print(din)
                     print(d)
@@ -1920,7 +1927,7 @@ def warn(*a):
 # 基础数据结构
 # region
 # 实现列表元素为字典的集合化
-def set(l):
+def Set(l):
     res=[]
     l1=[]
     l2=[]
@@ -2487,6 +2494,8 @@ class Edge():
             minsize = (9999, 9999)
         if path == None:
             path = collectionpath(f'其它/{self.title()}/')
+        else:
+            path=collectionpath(path)
         createpath(path)
         #     附加页面标题到文件夹名
         if not direct:
@@ -3012,6 +3021,7 @@ def setscrolltop(l):
 def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     # 如果下载失败，再下载一次
     # t：下载和下载后浏览器自动安全检查的时间
+    # 浏览器下载会自动重命名"~"为"_"
     def recursive():
         sleep(t)
         page.quit()
