@@ -147,6 +147,8 @@ def mistake():
 
 
 if __name__ == '__main__':
+    MyUtils.setrootpath('e')
+    BUtils.deletehash('./bili/collection')
     count()
     # adduser()
     # checkweb()

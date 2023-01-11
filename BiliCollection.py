@@ -7,7 +7,8 @@ import BUtils
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l
 
-def download(maxn=10):
+def download(maxn=10,clip=3):
+    # 最多总数；同时下载最多总数
     pagenum = 1
     BUtils.opendownloader()
     while True:
@@ -21,30 +22,44 @@ def download(maxn=10):
                 continue
             BUtils.download(bvid,overdownloaded=True)
             MyUtils.delog(f'downloading {i["bvid"]}')
-            BUtils.wait(t=5,silent=False)
-            move()
+            if 0==maxn%clip:
+                BUtils.wait(t=5,silent=False)
+                move()
             maxn-=1
+            MyUtils.delog(f'remaining {maxn}')
             if maxn<0:
                 BUtils.quitdownloader()
                 return
     BUtils.quitdownloader()
 
 def move():
-    for i in MyUtils.listdir(BUtils.cachepath):
-        MyUtils.move(i,f'./bili/collection/{MyUtils.removetail(MyUtils.filename(i),"-")}')
+    BUtils.deletehash(BUtils.cachepath)
+    for j in MyUtils.listdir(BUtils.cachepath):
+        for i in MyUtils.listfile(j):
+            BUtils.deletehash(i)
+        MyUtils.move(j,f'./bili/collection/{MyUtils.filename(j)}')
 
 
 # 加到记录
 def addtorecord():
-    for i in MyUtils.listdir(BUtils.collectionpath):
+    for i in MyUtils.listdir('./bili/collection'):
         if '待移动'in i:
             continue
-
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
+MyUtils.rmempty('./bili/collection')
+MyUtils.rmempty(BUtils.cachepath)
+BUtils.rmnomp4(BUtils.cachepath)
+MyUtils.setrootpath('e')
+BUtils.deletehash('./bili/collection')
 move()
-# download(999)
-# move()
 addtorecord()
+download(1000,4)
+move()
 # page=MyUtils.Chrome('https://space.bilibili.com/661654199/favlist?fid=1033475199')
+MyUtils.rmempty('./bili/collection')
+
+MyUtils.rmempty(BUtils.cachepath)
+BUtils.deletehash('./bili/collection')
+addtorecord()

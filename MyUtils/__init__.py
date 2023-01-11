@@ -769,6 +769,43 @@ class pool():
 
 # 文件系统读写
 # region
+# 当已有重名文件/文件夹时自动标号
+def duplicatename(path):
+    count=0
+    while isdir(path) and isdir(path+str(count)):
+        count+=1
+        return path+str(count)
+    while isfile(path) and isfile(path+str(count)):
+        count+=1
+        fname,ext=extentionandname(path)
+        return fname+str(count)+ext
+
+# 获取文件的扩展名
+def extention(fname,silent=False):
+    if not isfile(fname) :
+        if not silent:
+            warn(f'文件 {fname} 不存在')
+        return
+    if not  '.' in fname:
+        if not silent:
+            warn(f'文件 {fname} 没有扩展名')
+        return
+    fname=filename(fname)
+    return fname[fname.rfind('.')+1:]
+
+# 分割文件名和其扩展名
+def extentionandname(fname,silent=False):
+    if not isfile(fname) :
+        if not silent:
+            warn(f'文件 {fname} 不存在')
+        return
+    if not  '.' in fname:
+        if not silent:
+            warn(f'文件 {fname} 没有扩展名')
+        return
+    fname=filename(fname)
+    return fname[0:fname.rfind('.')],fname[fname.rfind('.'):]
+
 # 移除空文件夹
 def rmempty(root,tree=False):
     dlis = []
@@ -801,9 +838,10 @@ def Open(path):
     return look(path)
 
 
-# 返回收藏目录
-
+# 收藏目录
 def collectionpath(s=''):
+    if 'D:/Kaleidoscope'  in s:
+        return s
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -811,7 +849,7 @@ def collectionpath(s=''):
     return standarlizedPath(projectpath(f'self/MANUAL 文档 收藏 AUTO/网页集锦/{s}'))
 
 
-# 返回C盘用户目录
+# 用户目录
 def userpath(s=''):
     if 'C:/' in s:
         return
@@ -822,10 +860,10 @@ def userpath(s=''):
     return standarlizedPath(f'C:/Users/{user}{s}')
 
 
-# 返回项目源代码根目录
+# 项目根目录
 def projectpath(s=''):
     if 'D:/Kaleidoscope' in s:
-        return
+        return s
     if './' in s:
         s = s[2:]
     if not s == '':
@@ -833,7 +871,7 @@ def projectpath(s=''):
     return standarlizedPath(f'D:/Kaleidoscope{s}')
 
 
-# 返回项目临时文件根目录
+# 临时文件目录
 def cachepath(s=''):
     if 'Kaleidoscope/cache' in s:
         return
@@ -844,7 +882,7 @@ def cachepath(s=''):
     return standarlizedPath(f'{projectpath("cache" + s)}')
 
 
-# 返回文件夹和文件b
+# 下属的文件夹和文件
 def listall(path):
     return extend(listfile(path), listdir(path))
 
@@ -919,8 +957,16 @@ def provisionalin():
     return f.l
 
 
-# 重命名文件
-def rename(s1, s2):
+# 重命名文件或文件夹
+def rename(s1, s2,overwrite=True):
+    s1 = standarlizedPath(s1)
+    s2 = standarlizedPath(s2)
+    if overwrite and (isdir(s2) or isfile(s2)):
+        if size(s1)>=size(s2):
+            deletedirandfile(s2)
+        else:
+            deletedirandfile(s1)
+            return
     os.rename(standarlizedPath(s1), standarlizedPath(s2))
 
 
@@ -1065,21 +1111,33 @@ def filename(s):
 
 
 class table():
-    def __init__(self, path, init=False):
+    def __init__(self, path, title=True):
+        '''
+        一定有表头
+        @param path:
+        @param title:表头数组
+        '''
         if not '.csv' in path:
-            path += 'csv'
+            path += '.csv'
         self.path = standarlizedPath(path)
 
         if not isfile(self.path):
-            if init == False:
+            if title == False:
                 Exit(f'{self.path} 不存在。')
-            self.create(*init)
+            self.create(*title)
 
         if not isfile(self.path):
             Exit()
-        self.read()
+        self.read(title=title)
+
+
+    def merge(self,t):
+        for  i in t.l:
+            self.l.append(i)
+        self.save()
 
     def create(self, *a):
+        copyfile(projectpath('database/sample.csv'),self.path)
         f = open(self.path, 'w')
         writer = csv.writer(f)
         writer.writerow(a)
@@ -1096,27 +1154,29 @@ class table():
             self.l.pop(self.l.index(''))
         self.save(self)
 
-    def read(self):
+    def read(self,title=True):
         f = open(self.path, encoding='utf-8-sig', mode='r')
-        self.reader = csv.DictReader(f)
-        self.l = []
-        for i in self.reader:
-            self.l.append(i)
-        self.d = {}
-        self.columns = []
-        for i in next(csv.reader(open(self.path, 'r'))):
-            self.columns.append(i)
-        for column in self.columns:
-            self.d.update({column: []})
-        for d in self.l:
-            for k in d:
-                self.d.update({k: extend(self.d[k], [d[k]])})
+        f1 = open(self.path, encoding='utf-8-sig', mode='r')
 
-    # def get(self):
+        if title:
+            self.reader = csv.DictReader(f)
+            self.l = []
+            self.d = {}
+            self.title = []
+            for i in next(csv.reader(f1)):
+                self.title.append(i)
+            for title in self.title:
+                self.d.update({title: []})
+            for i in self.reader:
+                self.l.append(i)
+            for d in self.l:
+                for k in d:
+                    self.d.update({k: extend(self.d[k], [d[k]])})
+
 
     def save(self):
         f = open(self.path, encoding='utf-8-sig', mode='w', newline="")
-        writer = self.writer = csv.DictWriter(f, self.colmuns)
+        writer = self.writer = csv.DictWriter(f, self.title)
         writer.writeheader()
         writer.writerows(self.l)
         log(f'saved {self.path}')
@@ -2121,6 +2181,7 @@ def setRootPath(dir=None):
             Open(activedisk.path)
             Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
 
+
         # 根据文本更改操作盘
         i=activedisk.l[0]
     else:
@@ -2934,7 +2995,7 @@ def edge(url='', silent=None, mute=True):
 
 
 # 点击屏幕
-def click(x, y=10, button='left', silent=True):
+def click(x, y=10, button='left', silent=True,interval=0.2):
     if type(x) in [str]:
         if not '.png' in x:
             x += '.png'
@@ -2953,7 +3014,7 @@ def click(x, y=10, button='left', silent=True):
         Exit(path)
     try:
         pyautogui.click(x, y, button=button)
-        sleep(0.2)
+        sleep(interval)
         if not silent:
             print(f'{x}   {y}')
     except Exception as e:

@@ -15,7 +15,7 @@ def deleteRecorded():
     for d in allpieces.d:
         count += 1
         if count % 1000 == 0:
-            print(f'{count}/{allpieces.length()}')
+            print(f'{count}/{allpieces.length()} (){len(deletelis)}')
         for i in allpieces.d[d]:
             if type(i) == list:
                 print(i)
@@ -28,8 +28,8 @@ def deleteRecorded():
                 j = ({d: {"disk": MyUtils.diskname, 'author': author, "title": title}})
                 deletelis.append(j)
                 missing.add(j)
-    print(len(deletelis))
-    # print(deletelis)
+    print(f'将删除 {len(deletelis)} 个记录')
+    MyUtils.out(deletelis)
     for i in deletelis:
         allpieces.delete(i)
 
