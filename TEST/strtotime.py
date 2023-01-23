@@ -17,5 +17,12 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print(MyUtils.strtotime('2022-11-06 21:52:39.267631').t.minute)
+    print(MyUtils.Time('星期一'))
+    print(MyUtils.Time('星期三'))
+    print(MyUtils.Time('星期日'))
+    print(MyUtils.strtotime('2022-11-06 21:52:39.267631'))
+    print(MyUtils.strtotime('2022-11-06'))
+    print(MyUtils.strtotime('21:52:39.267631'))
+    print(MyUtils.strtotime('2022-11-06 21:52'))
+    print(MyUtils.strtotime('11-06 21:52'))
     print(MyUtils.Now().counttime(MyUtils.strtotime('2022-11-06 21:52:39.267631')))

@@ -11,7 +11,7 @@ BUtils.opendownloader()
 def main():
     count=0
     while count<500:
-        BUtils.checkempty()
+        BUtils.iscacheempty()
         count+=1
         d = readytodownload.get()
         d = readytodownload.get()

@@ -34,7 +34,7 @@ def deleteRecorded():
         allpieces.delete(i)
 
 
-#  删除下载的missing
+#  删除后来又下载的missing
 def deleteMissing():
     lis1 = []
     for i in missing.l:
@@ -42,7 +42,7 @@ def deleteMissing():
         k = MyUtils.key(d)
         d = MyUtils.value(d)[0]
         path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{k}_{d["title"]}')
-        print(f'checking {path}')
+        print(f'eecking {path}')
         if os.path.exists(path) and not [] == MyUtils.listfile(path):
             lis1.append(i)
         if os.path.exists(path + '.mp4'):
@@ -62,7 +62,6 @@ def adduser():
 
 # 统计总数
 def count():
-    # pyperclip.copy(baijiahao'{allpieces.length()}\n{allusers.length()}\n{missing.length()}')
     file = 0
     dir = 0
     for i in MyUtils.listdir('./抖音'):

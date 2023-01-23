@@ -12,7 +12,7 @@ Aurl = 'https://www.zhihu.com/collection/782323705'
 page = MyUtils.Chrome(Aurl, silent=True, mine=True)
 # page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
-time.sleep(2)
+MyUtils.sleep(2)
 
 while True:
     # 获取标题
@@ -26,12 +26,17 @@ while True:
         page.switchto(-1)
     else:
         MyUtils.Exit()
-    time.sleep(2)
+    MyUtils.sleep(2)
     # 第二窗口，如果是文章
     if '/p/' in page.url():
         page.save(MyUtils.collectionpath(f'知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎')
     else:
         # 打开第二个窗口，在这里操作回答
+
+        # 展开问题描述
+        page.click('//*[@id="root"]//main//button[contains(@class,"Button QuestionRichText-more")]',strict=False)
+
+
         Answer = page.element(['//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[@class="ContentItem AnswerItem"]',
                                '/html/body/div[1]/div/main/div/article',  # 文章，全屏
                                '/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]/div/div/div/div[2]/span[1]/div',
@@ -47,7 +52,7 @@ while True:
         #     MyUtils.txt(f'./知乎/plaintext/{title}').add(te)
 
         # 展开回答
-        page.click('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[contains(@class,"RichContent")]//button[contains(@class,"plain")]')
+        page.click('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[contains(@class,"RichContent")]//button[contains(@class,"plain")]',strict=False)
         MyUtils.sleep(2)
 
         # 再展开一次页面
@@ -66,7 +71,7 @@ while True:
         # MyUtils.scrshot([page.element(['/html/body/div[1]/div/main/div/div/div[3]/div[1]/div/div[2]/div/div',
         #                                '/html/body/div[1]/div/main/div/article',
         #                                '/html/body/div[1]/div/main/div/div[1]/div[2]/div[2]/div[1]/div[1]']), (f'./知乎/{title}/{title}.png')])
-        # time.sleep(2)
+        # MyUtils.sleep(2)
 
         # # 回答里的图片保存
         # piccount = 0
@@ -99,7 +104,7 @@ while True:
         page.look()
         MyUtils.Exit('取消收藏失败')
     page.click(e)
-    time.sleep(2)
+    MyUtils.sleep(2)
     page.refresh()
 
     MyUtils.log(f'已保存回答：{title}')

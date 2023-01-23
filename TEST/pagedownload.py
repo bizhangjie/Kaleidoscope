@@ -1,5 +1,7 @@
 import MyUtils
 
-url = 'https://gimg3.baidu.com/search/src=http%3A%2F%2Fpics1.baidu.com%2Ffeed%2Fa08b87d6277f9e2fcde08b9183bae72fba99f3ec.jpeg%3Ftoken%3Dbd7e500d5af4888f5fbd0540a8859526&refer=http%3A%2F%2Fwww.baidu.com&app=2021&size=f360,240&n=0&g=0n&q=75&fmt=auto?sec=1665075600&t=bf93462238e2fe36c538ad36aa3f3ac9'
-path = MyUtils.desktoppath('1.png')
-MyUtils.pagedownload(url, path, t=1)
+url ='https://v26-web.douyinvod.com/5c4b37728f7ad52505df73a785168435/63c40b71/video/tos/cn/tos-cn-ve-15/oQuABhHzglCBKwpfN9xeAQAOIODJO4Uid4JnsN/?a=6383&ch=26&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1339&bt=1339&cs=0&ds=3&ft=bvTKJbQQqUWXf_4ZDo0OqY8hFgpiwRhS~jKJQk9cv.0P3-A&mime_type=video_mp4&qs=0&rc=aWZkMzpnNGQ7ODw8ZmkzZEBpajhkNWg6ZnZ1aTMzNGkzM0AwLWNiYS0vXi8xY140MmA1YSMwZzY0cjQwZC5gLS1kLWFzcw%3D%3D&l=20230115211910780E033A813BB0EA4676&btag=10000'
+# path = MyUtils.cachepath('pagedownload.png')
+path = MyUtils.cachepath('pagedownload')
+# path = MyUtils.cachepath('pagedownload.mp4')
+MyUtils.pagedownload(url, path,t=7,silent=False)

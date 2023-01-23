@@ -13,8 +13,8 @@ def main():
 
 if __name__ == '__main__':
     # 持续推送到github
+    b=True
     while True:
-        b=True
         f=MyUtils.txt(MyUtils.projectpath('txt.txt'))
         if b:
             f.add(' ')
@@ -22,6 +22,7 @@ if __name__ == '__main__':
             f.l=f.l[:-1]
             f.save()
         b=not b
+        MyUtils.delog(b)
         MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "latest -WYJ";git push',silent=True)
         MyUtils.log('已提交并推送。')
         while not MyUtils.now().time().hour in list(range(10,24)):

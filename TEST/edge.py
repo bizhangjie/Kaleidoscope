@@ -1,9 +1,14 @@
 import time
 
 import MyUtils
+import MyUtils
+import selenium
+from selenium import webdriver
 
+def main():
+    MyUtils.sleep(30)
+if __name__ == '__main__':
+    main()
 # page=MyUtils.edge()
 page = MyUtils.Edge()
-print(type(page))
-page.open('www.baidu.com')
 time.sleep(9999)

@@ -1,7 +1,7 @@
 import MyUtils
 
 # 移动根目录的文件
-MyUtils.setrootpath('e')
+MyUtils.setrootpath('f')
 todolist=[]
 # 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):

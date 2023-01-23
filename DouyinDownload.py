@@ -21,6 +21,9 @@ def download():
         if rec == None:
             return
         (VideoNum, author, title, VideoUrl, flag) = rec["list"]
+        if VideoUrl==[]:
+            MyUtils.warn(f'下载url为空。')
+            return
         if DouyinUtils.skipdownloaded(flag, allpieces, VideoNum, title, author):
             MyUtils.warn('已下载。弹回。', f'VideoNum={VideoNum} HostID={author} title={title} VideoUrl={VideoUrl}')
             return
@@ -69,12 +72,12 @@ def download():
             MyUtils.warn(f'下载失败，{VideoNum} 记录补全到 {Failed.path}.{author} 的编号:{VideoNum} 标题:{title}\n{VideoUrl}')
         # endregion
 
-def main():
+def main(t=10):
     # 持续性唤醒
     while True:
         download()
         MyUtils.log(f'下载队列已空。Downloader 等待中...')
-        time.sleep(15)
+        time.sleep(t)
 
 if __name__=='__main__':
     main()

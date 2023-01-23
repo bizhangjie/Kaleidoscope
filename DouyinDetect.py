@@ -21,12 +21,13 @@ def main():
     Maintainace.SeleniumSpace()
     users.rollback()
     MyUtils.Run()
-    # 变量
+    # region
     host = MyUtils.chrome()
     page = MyUtils.chrome()
     Host=MyUtils.Chrome(driver=[host])
     Page=MyUtils.Chrome(driver=[page])
     useruid = 'nothing'
+    # endregion
 
     def detect():
         # 探测
@@ -58,13 +59,12 @@ def main():
 
     # 开始用户循环
     while useruid:
+        # region
         User = users.get()[0]
         fffff = MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
         fffff.add(str(User))
         useruid = list(User.keys())[0]
-
         # 清除UserUID的https://www.douyin.com/user/前缀
-        # region
         if useruid.find('www.douyin.com') > 0:
             users.delete(useruid)
             useruid.replace('https://www.douyin.com/user/', '')
@@ -83,7 +83,6 @@ def main():
         author = MyUtils.Element([host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
         DouyinUtils.addauthor(useruid, author, users)
-        #     continue
         MyUtils.log(f'  ------转到{author}的主页-----')
         MyUtils.delog(HostUrl)
         douyinSum = 0

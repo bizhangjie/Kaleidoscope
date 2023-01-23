@@ -19,7 +19,7 @@ def main():
         vlist = []
         page = 1
     # 准备工作 - 检查为空，添加下载列表
-        BUtils.checkempty()
+        BUtils.iscacheempty()
         res = BUtils.hostjson(useruid, page)
         for a in res['data']['list']['vlist']:
             vlist.append(a['bvid'])

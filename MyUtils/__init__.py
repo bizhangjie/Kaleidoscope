@@ -15,6 +15,7 @@ from glob import glob
 import PIL
 
 import PySimpleGUI
+import cv2
 import moviepy
 import pyautogui
 import pyperclip
@@ -70,21 +71,21 @@ def multisingleargs(func):
 
 # 最后一个参数可以是列表以重复执行
 def listed(func):
-    def inner(*a):
+    def inner(*a,**c):
         res = []
         if a in [None, (), []]:
             return func()
         if type(a[-1]) == list:
             b = a[:-1]
             for i in a[-1]:
-                ret = (func(*b, i))
+                ret = (func(*b, i,**c))
                 if not type(ret) == list:
                     res.append(ret)
                 else:
                     extend(res, ret)
             return res
         else:
-            return func(*a)
+            return func(*a,**c)
 
     return inner
 
@@ -120,6 +121,8 @@ def consume(func):
 # 字符串
 def research(*a):
     return re.search(*a)
+def rematch(*a):
+    return re.match(*a)
 
 def nowstr(mic=True):
     ret = str(datetime.datetime.now())
@@ -178,10 +181,12 @@ def counttime(*args):
 # 底层维护一个时间类，再由这个时间类导出字符串，进行操作
 class Time():
     def __init__(self, *a, **b):
-        # 什么都没有就默认是现在
+        # 默认是现在
+        # 可以用字典传入
         # 如果是一个变量，就是timestamp或者字符串
-        # 如果是三个数字，就默认是时分秒，年月日定为现在
-        # 如果是六个数字就默认是年月日，时分秒定位0
+        # 如果是三个数字，时分秒或者年月日，其它定为0或现在
+        # 如果是六七个数字就默认是年月日，时分秒
+        # 如果是字符串就转换
 
         def reset(self, year=now().year, month=now().month, day=now().day, hour=now().hour, min=now().minute, sec=now().second, mic=now().microsecond):
             self[0].t = datetime.datetime(int(year), int(month), int(day), int(hour), int(min), int(sec), int(mic))
@@ -192,6 +197,12 @@ class Time():
         if b == {}:
             if len(a) in [1]:
                 i = a[0]
+                if type(i)in [Time]:
+                    self.t=i.t
+                    return
+                if type(i)in [datetime.datetime]:
+                    self.t = i
+                    return
                 if type(i) in [float]:
                     struct = time.localtime(i)
                     year, month, day, hour, min, sec, mic = struct.tm_year, struct.tm_mon, struct.tm_mday, struct.tm_hour, struct.tm_min, struct.tm_sec, int(
@@ -211,12 +222,16 @@ class Time():
                 reset([self], *a)
         # 是通过*b传参，则忽略所有的*a
         else:
-            reset([self], b)
-            year, month, day, hour, min, sec, mic = b['year'], b['month'], b['day'], b['hour'], b['min'], b['sec'], b['mic']
+            reset([self], **b)
+            # year, month, day, hour, min, sec, mic = b['year'], b['month'], b['day'], b['hour'], b['min'], b['sec'], b['mic']
         # timestamp = datetime.datetime(year, month, day, hour, min, sec, mic).timestamp()
         # self.t = datetime.datetime.fromtimestamp(timestamp)
 
     def strtotime(s):
+        '''
+        字符串返回时间类
+        @return:
+        '''
         return strtotime(s)
 
     def istime(*a):
@@ -245,6 +260,12 @@ class Time():
     def day(self):
         return str(self.t.day)
 
+    def weekday(self):
+        return str(self.t.weekday())
+
+    def second(self):
+        return str(self.t.second)
+
     def min(self):
         return str(self.t.minute)
 
@@ -262,13 +283,20 @@ class Time():
 
     def __sub__(self, other):
         if type(other) in [int, float]:
-            return self.t.__sub__(datetime.timedelta(seconds=other))
-        return self.t.__sub__(other)
+            return Time(self.t.__sub__(datetime.timedelta(seconds=other)))
+        return Time(self.t.__sub__(other.t))
+
+    # 重写<，>
+    def __lt__(self, other):
+        return self.t.__lt__(other.t)
+
+    def __gt__(self, other):
+        return self.t.__gt__(other.t)
 
     def __add__(self, other):
         if type(other) in [int, float]:
-            return self.t.__add__(datetime.timedelta(seconds=other))
-        return self.t.__add__(datetime.timedelta(seconds=other))
+            return Time(self.t.__add__(datetime.timedelta(seconds=other)))
+        return Time(self.t.__add__(other.t))
 
     def add(self, sec):
         if not type(sec) == int:
@@ -277,9 +305,12 @@ class Time():
         self.t = datetime.datetime.fromtimestamp(self.t.timestamp() + sec)
         return self.s()
 
-    def s(self):
+    def s(self,mic=False):
         # return f'{str(self.year).zfill(2)}-{str(self.month).zfill(2)}-{str(self.day).zfill(2)} {str(self.hour).zfill(2)}:{str(self.min).zfill(2)}:{str(self.sec).zfill(2)}.{str(self.mic).zfill(6)}'
-        return str(self.t)
+        if not mic:
+            return str(self.t)
+        else:
+            return removetail(str(self.t),'.')
 
     def __str__(self):
         return self.s()
@@ -305,45 +336,95 @@ class Time():
         return self.t.timestamp()
 
 
-# 字符串构造Time
+# 字符串返回Time
 def strtotime(s=nowstr()):
-    # return time.strftime("%Y-%m-%a %H:%M:%S", time.localtime())
     if not type(s) == str:
         warn(f'用法错误。s不是字符串而是{info(s)}')
         return
-    # 至少五项的字符串
-    if ':'in s and '-'in s:
-        (year, month, day, hour, min) = (
-            int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]),
-            int(s[s.rfind('-') + 1:s.find(' ')]), int(s[s.rfind(' ') + 1:s.find(':')]),
-            int(s[s.find(':') + 1:s.rfind(':')]))
-        try:
-            mic = int(s[s.find('.') + 1:])
-            sec = int(s[s.rfind(':') + 1:s.find('.')])
-        except:
-            sec = int(s[s.rfind(':') + 1:])
-            mic = 0
+    s=s.replace('年', '-').replace('月', '-').replace('日', '')
+    s = s.replace('时', ':').replace('分', ':').replace('秒', '')
+
+    # 星期（返回的是这周的）
+    if '星期'in s:
+        today=int(now().weekday())
+        t=Time()
+        if s=='星期一':
+            t.add((0-today)*24*3600)
+        if s=='星期二':
+            t.add((1-today)*24*3600)
+        if s=='星期三':
+            t.add((2-today)*24*3600)
+        if s=='星期四':
+            t.add((3-today)*24*3600)
+        if s=='星期五':
+            t.add((4-today)*24*3600)
+        if s=='星期六':
+            t.add((5-today)*24*3600)
+        if s=='星期日'or s=='星期天':
+            t.add((6-today)*24*3600)
+        return t
+
+    # 先处理毫秒
+    if '.'in s:
+        s,mic=splittail(s,'.')
+        mic=int(mic)
     else:
-        # 只有日期字符串
-        if '-'in s:
-            lis=s.split('-')
-            year,month,day=lis[0].strip(' '),lis[1].strip(' '),lis[2].strip(' ')
-            hour,min,sec,mic=0,0,0,0
-        else:
-    #         只有时间字符串
-            year,month,day=today().split('-')
-            if len(s)<7:
-    #             只有hour, min
-                hour,min=s.split(':')
-                sec,mic=0,0
-            elif len(s)<10:
-    #             没有mic
-                hour,min,sec=s.split(':')
-                mic=0
-            else:
-                hour,min,res=s.split(':')
-                sec,mic=res.split('.')
-    return Time(year, month, day, hour, min, sec, mic)
+        mic=0
+
+    # 没有年或者没有时间
+    t = rematch(r"(\d{4})?-?(\d{1,2})-(\d{1,2})\s?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?", s)
+    if t:
+        year, month, day, hour, min, sec = t.groups()
+        if year==None:
+            year=now().year
+        if hour==None:
+            hour=0
+        if min==None:
+            min=0
+        if sec==None:
+            sec=0
+        return Time(year=year,month=month,day=day,hour=hour,min=min,sec=sec,mic=mic)
+    else:
+    #     没有日期信息，可以没有秒（那就是时+分）
+        t=rematch(r"(\d{1,2}):(\d{1,2}):?(\d{1,2})?",s)
+        hour, min, sec = t.groups()
+        if sec==None:
+            sec=0
+        return Time(hour=hour, min=min, sec=sec, mic=mic)
+
+
+    # 至少五项的字符串
+    # if ':'in s and '-'in s:
+    #     (year, month, day, hour, min) = (
+    #         int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]),
+    #         int(s[s.rfind('-') + 1:s.find(' ')]), int(s[s.rfind(' ') + 1:s.find(':')]),
+    #         int(s[s.find(':') + 1:s.rfind(':')]))
+    #     try:
+    #         mic = int(s[s.find('.') + 1:])
+    #         sec = int(s[s.rfind(':') + 1:s.find('.')])
+    #     except:
+    #         sec = int(s[s.rfind(':') + 1:])
+    #         mic = 0
+    # else:
+    #     # 只有日期字符串
+    #     if '-'in s:
+    #         lis=s.split('-')
+    #         year,month,day=lis[0].strip(' '),lis[1].strip(' '),lis[2].strip(' ')
+    #         hour,min,sec,mic=0,0,0,0
+    #     else:
+    # #         只有时间字符串
+    #         year,month,day=today().split('-')
+    #         if len(s)<7:
+    # #             只有hour, min
+    #             hour,min=s.split(':')
+    #             sec,mic=0,0
+    #         elif len(s)<10:
+    # #             没有mic
+    #             hour,min,sec=s.split(':')
+    #             mic=0
+    #         else:
+    #             hour,min,res=s.split(':')
+    #             sec,mic=res.split('.')
 
 
 # timestamp构造Time
@@ -418,6 +499,23 @@ def retry(e):
 
 # 特殊功能函数
 # region
+# 计数工具语法糖
+def count(k=''):
+    f=rjson(projectpath('cache/count.txt'),silent=True)
+    f.l=[]
+    f.save()
+    if k in keys(f.d):
+        v=f.d[k][0]
+        f.delete({k:v},silent=True)
+        v+=1
+        f.add({k:v})
+        delog(v)
+    else:
+        f.add({k:1},silent=True)
+        delog(1)
+    f.save(silent=True)
+
+
 # 命令行
 # https://blog.csdn.net/weixin_42133116/article/details/114371614
 class CMD():
@@ -501,7 +599,7 @@ class CMD():
 def openedge(l):
     hotkey('win')
     typein('edge')
-    hotkey('enter')
+    hotkey('shift')
     hotkey('enter')
     sleep(2)
     if type(l) == str:
@@ -511,14 +609,19 @@ def openedge(l):
         copyto(url)
         hotkey('ctrl', 'v')
         hotkey('enter')
-        hotkey('ctrl', 't')
+        if not url==l[-1]:
+            hotkey('ctrl', 't')
 
 
 # 键盘输入
-def typein(s):
-    for i in str(s):
-        hotkey(i)
-
+def typein(s,strict=False):
+    if strict:
+        for i in str(s):
+            hotkey(i)
+    else:
+        copyto(s)
+        hotkey('ctrl', 'v')
+        sleep(0.5)
 
 # pyperclip
 def copyto(s):
@@ -622,11 +725,11 @@ class img(pic):
 class video():
     def __init__(self,path):
         self.path=path
-        # self.cap=cv2.VideoCapture(path)
-        # self.width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        # self.height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        # self.fps=int(self.cap.get(cv2.CAP_PROP_FPS))
-        # self.framecount=int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.cap=cv2.VideoCapture(path)
+        self.width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.fps=int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.framecount=int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.duration=self.framecount/self.fps
         self.type=self.path.split('.')[-1]
 
@@ -769,18 +872,41 @@ class pool():
 
 # 文件系统读写
 # region
-# 当已有重名文件/文件夹时自动标号
-def duplicatename(path):
-    count=0
-    while isdir(path) and isdir(path+str(count)):
-        count+=1
-        return path+str(count)
-    while isfile(path) and isfile(path+str(count)):
-        count+=1
-        fname,ext=extentionandname(path)
-        return fname+str(count)+ext
+def regeneratename(originalname, targetpath,regenerate=None,issame=None):
+    '''
+    解决文件/文件夹已存在问题的循环检查方法。线程不安全。
+    @param originalname:
+    @param targetpath:
+    @param regenerate: 传入旧名字，返回新名字
+    @param issame: 判断内容是否相同（相同内容就不保存）。
+    @return: 是否需要保存；新的文件/文件夹名
+    '''
+    newname=originalname
+    if regenerate==None:
+        # 自动生成新名字
+        def regenerate(oldname):
+            oldname,ext=extentionandname(oldname,exist=False)
+            if not research(r'_\d$',oldname):
+                return oldname+'_1'+ext
+            originalname,count=splittail(oldname,'_')
+            return f'{originalname}_{int(count)+1}{ext}'
+    # 检查名称是否被占用
+    def havename(newname,targetpath=targetpath):
+        return isfile(f'{targetpath}/{newname}') or isdir(f'{targetpath}/{newname}')
+    # 检查是否存在重复文件
+    def tellsame(newname,targetpath):
+        if havename(newname,targetpath):
+            if issame==None:
+                return True
+            return issame(newname,targetpath)
+        return False
+    b = not tellsame(newname, targetpath)
+    while havename(newname,targetpath) and b:
+        newname=regenerate(newname)
+        b=not tellsame(newname,targetpath)
+    return b,newname
 
-# 获取文件的扩展名
+# 获取文件的扩展名（后缀名）
 def extention(fname,silent=False):
     if not isfile(fname) :
         if not silent:
@@ -794,17 +920,23 @@ def extention(fname,silent=False):
     return fname[fname.rfind('.')+1:]
 
 # 分割文件名和其扩展名
-def extentionandname(fname,silent=False):
+def extentionandname(fname,silent=True,exist=True):
     if not isfile(fname) :
         if not silent:
             warn(f'文件 {fname} 不存在')
-        return
+        if exist:
+            return
     if not  '.' in fname:
         if not silent:
             warn(f'文件 {fname} 没有扩展名')
-        return
+        return fname,''
     fname=filename(fname)
     return fname[0:fname.rfind('.')],fname[fname.rfind('.'):]
+def filenameandext(*a,**b):
+    ret= extentionandname(*a,**b)
+    return ret[0],ret[1]
+def splitext(*a,**b):
+    return filenameandext(*a,**b)
 
 # 移除空文件夹
 def rmempty(root,tree=False):
@@ -862,7 +994,7 @@ def userpath(s=''):
 
 # 项目根目录
 def projectpath(s=''):
-    if 'D:/Kaleidoscope' in s:
+    if 'D:/Kaleidoscope' in s or r'D:\Kaleidoscope' in s:
         return s
     if './' in s:
         s = s[2:]
@@ -920,7 +1052,7 @@ def modifytime(path):
     return Time(t)
 
 
-# 新建文件以进行覆盖输出
+# 在项目目录下新建文件以进行覆盖输出
 def out(s, silent=False, target='out.txt'):
     f = txt(projectpath(target))
     f.l = []
@@ -999,12 +1131,19 @@ def copyfile(s1, s2):
         shutil.copy(s1, s2)
 
 
-# 移动
 def move(s1, s2, strict=False,silent=True):
+    '''
+    移动文件或文件夹
+    @param s1:
+    @param s2:
+    @param strict: 是否强制覆盖
+    @param silent:
+    @return:
+    '''
     if isfile(s1):
         if isfile(s2):
             if strict == False:
-                Exit('移动的目标路径已有目标文件。')
+                Exit(f'移动的目标路径已有目标文件。 {s1} -> {s2}')
             warn(f'移动的目标路径已有目标文件。即将覆盖。{s2}')
         if isdir(s2):
             Exit('把文件变成文件夹？目标文件失去了后缀名，请检查！')
@@ -1045,7 +1184,7 @@ def move(s1, s2, strict=False,silent=True):
         log(f'移动完成：从 {s1} 到 {s2}')
 
 @listed
-def listdir(path):
+def listdir(path,full=True):
     path = standarlizedPath(path)
     for (root, dirs, files) in os.walk(path):
         ret = dirs
@@ -1055,6 +1194,8 @@ def listdir(path):
             except:
                 pass
         # delog(str(ret))
+        if full==False:
+            return ret
         ret1 = []
         for i in ret:
             ret1.append(standarlizedPath(root + '/' + i))
@@ -1063,7 +1204,7 @@ def listdir(path):
 
 
 @listed
-def listfile(path):
+def listfile(path,full=True):
     path = standarlizedPath(path)
     for (root, dirs, files) in os.walk(path):
         ret = files
@@ -1072,6 +1213,8 @@ def listfile(path):
                 ret.remove(i)
             except:
                 pass
+        if not full:
+            return ret
         ret1 = []
         for i in ret:
             ret1.append(standarlizedPath(root + '/' + i))
@@ -1130,7 +1273,7 @@ class table():
             Exit()
         self.read(title=title)
 
-
+    # 合并表格，忽略表头，默认表头一致
     def merge(self,t):
         for  i in t.l:
             self.l.append(i)
@@ -1181,7 +1324,7 @@ class table():
         writer.writerows(self.l)
         log(f'saved {self.path}')
 
-    def add(self, d):
+    def add(self, d,withtitle=False,silent=True):
         if type(d) in [dict]:
             self.l.append(d)
             for key in d:
@@ -1190,7 +1333,7 @@ class table():
         if type(d) in [tuple, list]:
             count = 0
             newd = {}
-            for i in self.columns:
+            for i in self.title:
                 if count + 1 > len(d):
                     break
                 newd.update({i: d[count]})
@@ -1198,9 +1341,10 @@ class table():
             self.add(newd)
             return
         f = open(self.path, encoding='utf-8-sig', mode='a', newline="")
-        writer = self.writer = csv.DictWriter(f, self.columns)
+        writer = self.writer = csv.DictWriter(f, self.title)
         writer.writerows([self.l[-1]])
-        log(f'added {self.path} {self.l[-1]}')
+        if not silent:
+            delog(f'added {self.path} {self.l[-1]}')
 
 
 class Csv(table):
@@ -1267,8 +1411,14 @@ def standarlizedPath(s='', strict=False):
     s=s.replace('\\', '/')
     while (' /')in s:
         s=s.replace(' /','/')
-    while (' .')in s[-6:]:
-        s=s.replace(' .','.')
+    # while (' .')in s[-6:]:
+    #     s=s.replace(' .','.')
+    # 规范化每一层文件夹名
+    ss=s
+    s=ss[:2]
+    for i in ss.split('/')[1:]:
+        s+='/'+standarlizedFileName(i)
+
     if strict:
         return s.replace('/', '\\')
     return s.replace('\\', '/')
@@ -1279,7 +1429,6 @@ def standarlizedFileName(str):
     '_1_171915336a3bc770~tplv-t2oaga2asx-zoom-in-crop-mark 4536 0 0 0.image.webp'
     str = re.sub('/|\||\?|>|<|:|\n|/|"|\*', ' ', str)
     s = '_'
-    str = str.replace('  ', s)
     str = str.replace('\\', s)
     str = str.replace('\r', s)
     str = str.replace('\t', s)
@@ -1433,13 +1582,13 @@ class txt():
 
     @consume
     #         去重，去空，集合化
-    def set(self):
+    def set(self,silent=False):
         p = list(set(self.l))
         p.sort(key=self.l.index)
         self.l = p
         if '' in self.l:
             self.l.pop(self.l.index(''))
-        txt.save(self, 'Rtxt set')
+        txt.save(self, 'Rtxt set',silent=silent)
 
     @listed
     def add(self, i):
@@ -1459,7 +1608,7 @@ class txt():
         txt.add(i)
 
     @consume
-    def save(self, s='txt saved'):
+    def save(self, s='txt saved',silent=False):
         # 强制覆盖写
         slist = []
         if self.l == []:
@@ -1469,7 +1618,8 @@ class txt():
                 slist.append(str(i) + '\n')
             slist.append(str(self.l[-1]))
         file('w', self.path, slist, encoding=self.encoding)
-        warn(f'{tail(self.path).strip(".txt")}({(self.mode)}) - {s}')
+        if not silent:
+            warn(f'{rmtail(tail(self.path),".txt")}({(self.mode)}) - {s}')
 
     def length(self):
         return len(self.l)
@@ -1483,14 +1633,14 @@ class RefreshTXT(txt):
     # 实现逐行的记录仓库
     # 实现备份
     # 增删都会执行保存操作。
-    def __init__(self, path, encoding=None):
+    def __init__(self, path, encoding=None,silent=False):
         txt.__init__(self, path, encoding)
         self.loopcount = 0
         self.mode = 'Rtxt'
         # self.rollback()
         RefreshTXT.backup(self)
         if self.length() < 2000:
-            RefreshTXT.set(self)
+            RefreshTXT.set(self,silent=silent)
 
     def backup(self):
         # 备份，set
@@ -1508,12 +1658,12 @@ class RefreshTXT(txt):
                 f.save('refresh backup')
         # endregion
 
-    # 并行写入
+    # 根据l并行写入
     @consume
-    def save(self):
-        extend(self.l, rtxt(self.path).l)
-        RefreshTXT.set(self)
-        txt.save(self, 'Rtxt 合并保存')
+    def save(self,silent=False):
+        extend(self.l, rtxt(self.path,silent=silent).l)
+        RefreshTXT.set(self,silent=silent)
+        txt.save(self, 'Rtxt 合并保存',silent=silent)
 
     def get(self):
         self.__init__(self.path, self.encoding)
@@ -1534,7 +1684,7 @@ class RefreshTXT(txt):
         return self.l[0]
 
     @listed
-    def delete(self, i):
+    def delete(self, i,silent=False):
         b = False
         j = dicttojson(i)
         while j in self.l:
@@ -1542,10 +1692,10 @@ class RefreshTXT(txt):
             b = True
         if not b:
             warn(f'尝试删除但是记录{self.path}中没有以下列表中的任何一个元素 {i}.')
-        txt.save(self, f'删除{j}')
+        txt.save(self, f'删除{j}',silent=silent)
 
     @listed
-    def add(self, i):
+    def add(self, i,silent=False):
         i = str(i)
         i.strip('\n')
         if not i in self.l:
@@ -1587,12 +1737,12 @@ class Json(txt):
 
 class RefreshJson(Json, RefreshTXT):
     @consume
-    def __init__(self, path, encoding=None):
-        RefreshTXT.__init__(self, path, encoding)
+    def __init__(self, path, encoding=None,silent=False):
+        RefreshTXT.__init__(self, path, encoding=encoding,silent=silent)
         RefreshJson.depart(self)
         Json.addtodict(self)
         if self.length() < 20000:
-            RefreshJson.set(self)
+            RefreshJson.set(self,silent=silent)
         self.mode = 'Rjson'
 
         #     非列表的安全检查
@@ -1656,12 +1806,12 @@ class RefreshJson(Json, RefreshTXT):
             ret.append({key(d): i})
         return ret
 
-    def add(self, d):
+    def add(self, d,silent=False):
         d = jsontodict(d)
 
         if list == type(value(d)):
             for i in value(d):
-                rjson.add(self, {key(d): i})
+                rjson.add(self, {key(d): i},silent=silent)
             return
 
         for i in self.l:
@@ -1669,23 +1819,23 @@ class RefreshJson(Json, RefreshTXT):
             if key(din) == key(d):
                 if value(d) in value(din):
                     return
-                RefreshTXT.delete(self, dicttojson(din))
+                RefreshTXT.delete(self, dicttojson(din),silent=silent)
                 try:
                     din = {key(d): list(Set(extend([value(d)], value(din))))}
                 except Exception as e:
                     print(din)
                     print(d)
                     Exit(e)
-                RefreshTXT.add(self, dicttojson(din))
+                RefreshTXT.add(self, dicttojson(din),silent=silent)
                 self.d.update(din)
                 return
 
         d = {key(d): [value(d)]}
-        RefreshTXT.add(self, dicttojson(d))
+        RefreshTXT.add(self, dicttojson(d),silent=silent)
         self.d.update(d)
 
     @consume
-    def set(self):
+    def set(self,silent=False):
         allkey = []
         for dstr in self.l:
             d = jsontodict(dstr)
@@ -1708,8 +1858,8 @@ class RefreshJson(Json, RefreshTXT):
                 except:
                     print(values)
                     Exit()
-            RefreshTXT.delete(self, dlis)
-            RefreshJson.add(self, {k: values})
+            RefreshTXT.delete(self, dlis, silent=True)
+            RefreshJson.add(self, {k: values}, silent=True)
 
     def rollback(self):
         d = jsontodict(RefreshTXT.rollback(self))
@@ -1718,11 +1868,11 @@ class RefreshJson(Json, RefreshTXT):
             ret.append({key(d): i})
         return ret
 
-    def delete(self, i):
+    def delete(self, i,silent=False):
         i = jsontodict(i)
         if list == type(value(i)):
             for j in value(i):
-                RefreshJson.delete(self, {key(i): j})
+                RefreshJson.delete(self, {key(i): j},silent=silent)
             return
 
         for j in self.l:
@@ -1734,21 +1884,43 @@ class RefreshJson(Json, RefreshTXT):
                 newvalue.remove(value(i))
             newd = {key(din): newvalue}
 
-            RefreshTXT.delete(self, j)
+            RefreshTXT.delete(self, j,silent=silent)
             if not newvalue == []:
-                RefreshTXT.add(self, dicttojson(newd))
+                RefreshTXT.add(self, dicttojson(newd),silent=silent)
             else:
-                RefreshJson.delete(self, dicttojson({key(din): []}))
+                RefreshJson.delete(self, dicttojson({key(din): []}),silent=silent)
             self.d.update(newd)
             break
 
-    def pieceinfo(self, num, author, title):
-        return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+    def pieceinfo(self, num, author, title,extra=None):
+        if extra in ['',None]:
+            return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+        else:
+            # 有额外信息
+            if type(extra)in [dict]:
+                din={'disk': diskname, 'author': author, 'title': title}
+                for i in extra:
+                    din.update({i:extra[i]})
+                ret={str(num): din}
+                return json.dumps(ret, ensure_ascii=False)
+            elif type(extra) in [str]:
+                return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
-    def addpiece(self, num, author, title):
-        piece = jsontodict(self.pieceinfo(num, author, title))
+
+    def addpiece(self, num, author, title,extra=None):
+        '''
+
+        @param num: 作品唯一标识符
+        @param author: 作者
+        @param title: 标题
+        @param extra: 附加信息字符串
+        @return:
+        '''
+        piece = jsontodict(self.pieceinfo(num, author, title,extra))
         self.add(piece)
 
+    def adduser(self,uid,author):
+        self.add({uid:author})
 
 class cache():
     def __init__(self, path):
@@ -2075,16 +2247,19 @@ def value(d):
         warn(f'用法错误。d的类型为{type(d)}')
     return d[key(d)]
 
+def values(d):
+    d= jsontodict(d)
+    # ret=[]
+    # for i in d:
+    #     ret.append(d[i])
+    # return ret
+    return list(d.values())
 
 # endregion
 
 # 字符串
 # region
 # 正则
-class expression():
-    @staticmethod
-    def search(self, s, pattern):
-        ret = re.search(pattern, s)
 
 
 def TellStringSame(s1, s2, ratio=1):
@@ -2146,7 +2321,8 @@ def splittail(s, mark):
 
 def removetail(l, mark='.'):
     return cuttail(l, mark)[0]
-
+def rmtail(*a,**b):
+    return removetail(*a,**b)
 
 def strip(s, mark):
     pass
@@ -2172,6 +2348,10 @@ def strre(s, pattern):
 
 # 分布式
 # region
+# 检查磁盘是否可用（待机）
+def checkdiskusable(s):
+    s=s[0]
+    Open(f'{s}:/diskInfo.txt')
 
 #   更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
 def setRootPath(dir=None):
@@ -2346,9 +2526,14 @@ def Elements(l, depth=5, silent=None):
     :param l:
     :return:
     """
-    page = l[0]
-    method = l[1]
-    s = l[2]
+    if len(l)==3:
+        page = l[0]
+        method = l[1]
+        s = l[2]
+    else:
+        page=l[0]
+        method=By.XPATH
+        s=l[1]
     result = page.find_elements(method, s)
     # delog((page,method,s))
     # delog((result,type(result),len(result)))
@@ -2491,18 +2676,84 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
 
 
 class Edge():
-    def __init__(self, url=None, silent=None,driver=None):
+    def __init__(self, url=None, silent=None,driver=None,mine=False):
         if not driver==None:
             self.driver = driver[0]
             return
         else:
-            self.driver = edge(url='', silent=silent)
+            self.driver = edge(url='', silent=silent, mine=mine)
         if not url ==  None:
             self.get(url)
         self.silent = silent
-        self.mine = None
+        self.mine = mine
         self.type = 'edge'
         self.set_window_size(900, 1000)
+
+    # 历史后退
+    def backward(self):
+        self.driver.back()
+
+    # 历史前进
+    def forward(self):
+        self.driver.forward()
+
+    # 局内按键
+    def hotkey(self,*a):
+        for s in a:
+        # region
+            if s=='left':
+                ActionChains(self.driver).key_down(Keys.ARROW_LEFT).perform()
+            elif s=='right':
+                ActionChains(self.driver).key_down(Keys.ARROW_RIGHT).perform()
+            elif s=='up':
+                ActionChains(self.driver).key_down(Keys.ARROW_UP).perform()
+            elif s=='down':
+                ActionChains(self.driver).key_down(Keys.ARROW_DOWN).perform()
+            elif s=='enter':
+                ActionChains(self.driver).key_down(Keys.ENTER).perform()
+            elif s=='esc':
+                ActionChains(self.driver).key_down(Keys.ESCAPE).perform()
+            elif s=='backspace':
+                ActionChains(self.driver).key_down(Keys.BACKSPACE).perform()
+            elif s=='tab':
+                ActionChains(self.driver).key_down(Keys.TAB).perform()
+            elif s=='space':
+                ActionChains(self.driver).key_down(Keys.SPACE).perform()
+            elif s=='ctrl':
+                ActionChains(self.driver).key_down(Keys.CONTROL).perform()
+            elif s=='alt':
+                ActionChains(self.driver).key_down(Keys.ALT).perform()
+            elif s=='shift':
+                ActionChains(self.driver).key_down(Keys.SHIFT).perform()
+    #     # endregion
+        for s in a:
+    #         region
+            if s=='left':
+                ActionChains(self.driver).key_up(Keys.ARROW_LEFT).perform()
+            elif s=='right':
+                ActionChains(self.driver).key_up(Keys.ARROW_RIGHT).perform()
+            elif s=='up':
+                ActionChains(self.driver).key_up(Keys.ARROW_UP).perform()
+            elif s=='down':
+                ActionChains(self.driver).key_up(Keys.ARROW_DOWN).perform()
+            elif s=='enter':
+                ActionChains(self.driver).key_up(Keys.ENTER).perform()
+            elif s=='esc':
+                ActionChains(self.driver).key_up(Keys.ESCAPE).perform()
+            elif s=='backspace':
+                ActionChains(self.driver).key_up(Keys.BACKSPACE).perform()
+            elif s=='tab':
+                ActionChains(self.driver).key_up(Keys.TAB).perform()
+            elif s=='space':
+                ActionChains(self.driver).key_up(Keys.SPACE).perform()
+            elif s=='ctrl':
+                ActionChains(self.driver).key_up(Keys.CONTROL).perform()
+            elif s=='alt':
+                ActionChains(self.driver).key_up(Keys.ALT).perform()
+            elif s=='shift':
+                ActionChains(self.driver).key_up(Keys.SHIFT).perform()
+
+    #        # endregion
 
     def getscrollheight(self):
         return scrollheight([self.driver])
@@ -2516,12 +2767,16 @@ class Edge():
     def Width(self):
         return scrollwidth([self.driver])
 
-    # 获取向上滚动后的全屏
-    def fullscreen(self, path=None, scale=100, autodown=True):
+    # 向上滚动后获取全屏
+    def fullscreen(self, path=None, scale=100, autodown=True,pause=1):
         if not self.silent == True:
             Exit()
         if path == None:
             path = collectionpath(f'其它/{self.title()}/basic.png')
+        if not '/basic.png' in path:
+            path += '/basic.png'
+        path=standarlizedPath(path)
+        createpath(path)
         log(f'将把 {self.url()} 的全屏保存到  {path}')
         if autodown:
             self.down(ite=autodown)
@@ -2531,8 +2786,7 @@ class Edge():
                 autodown = False
         else:
             self.setscrolltop(self.Height())
-        self.up(scale=scale)
-        e = self.element('/html/body')
+        self.up(scale=scale,pause=pause)
         x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
         self.set_window_size(x, y)
         # self.elementshot(path, e)
@@ -2545,19 +2799,39 @@ class Edge():
             self.click('//*[@id="overrideLink"]')
         time.sleep(1)
 
-    # 保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-    # 可选点击展开
-    # 可选是覆盖还是新建已保存网页的副本
-    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False, clicktoextend=None, autodown=True, look=False,duplication=False):
+    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
+             clicktoextend=None, autodown=True, look=False,duplication=False,extrafunc=None,pause=1):
+        '''
+        保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
+        @param path:
+        @param video:
+        @param minsize:
+        @param t:
+        @param titletail:
+        @param scale:
+        @param direct:
+        @param clicktoextend: 可选点击展开
+        @param autodown:
+        @param look:
+        @param duplication: 可选是覆盖还是新建已保存网页的副本
+        @param extrafunc: 需要进行的额外操作
+        @param pause: 滚动间隔
+        @return:
+        '''
+        # region
         if self.url()=='':
             return
+
         if minsize in [False, None]:
             minsize = (9999, 9999)
+
+
         if path == None:
             path = collectionpath(f'其它/{self.title()}/')
         else:
             path=collectionpath(path)
         createpath(path)
+
         #     附加页面标题到文件夹名
         if not direct:
             sleep(t)
@@ -2593,11 +2867,15 @@ class Edge():
             else:
                 clicktoextend([self])
 
+        # 额外操作
+        if not extrafunc == None:
+            extrafunc([self])
+        # endregion
         # 保存页面截图
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown)
+            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown,pause=pause)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -2643,6 +2921,7 @@ class Edge():
             fname = gettail(url, '/')
 
             bb = True
+            # link里的图片后缀名后面还会有杂七杂八的东西
             for j in ['.jpeg', '.jpg', '.gif', '.png', '.bmp', '.webp']:
                 if j in fname:
                     fname = removetail(fname, j) + j
@@ -2760,6 +3039,26 @@ class Edge():
                 except Exception as e:
                     warn(['clickelement error！', e])
 
+    def moveto(self, *a, strict=True,x=None,y=None,xoffset=None,yoffset=None):
+        if len(a) > 1:
+            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
+            Exit(' 未实现')
+
+        if not x==None:
+            ActionChains(self.driver).move_by_offset(x,y).click().perform()
+
+
+        s = a[0]
+        if s == None:
+            return
+        if type(s) in [str]:
+            return Edge.click(self, Edge.element(self, s, strict=strict))
+        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            try:
+                ActionChains(self.driver).move_by_offset(x, y).perform()
+            except Exception as e:
+                warn(['moveto失败！', e])
+
     # 根据多个但只有一个有效的字符串匹配元素，返回第一个
     def element(self, *a, **b):
         ret = self.elements(*a, **b)
@@ -2790,7 +3089,7 @@ class Edge():
 
         # 获取元素列表
         if not type(s) == list:
-            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent)
+            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent,)
         else:
             for i in s:
                 ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=silent)
@@ -2866,6 +3165,7 @@ class Edge():
         if not self.driver==None:
             self.driver.quit()
 
+    # 新建标签页并跳转到标签页
     def open(self, url):
         url = 'https://' + url.strip('https://')
         self.driver.execute_script(f"window.open('{url}')")
@@ -2899,6 +3199,7 @@ class Edge():
         if not '.png' in path:
             path += '.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            createpath(path)
             file('wb', path, s.screenshot_as_png)
             return
         if type(s) in [str]:
@@ -2913,7 +3214,7 @@ class Edge():
             self.driver.get_screenshot_as_file(path)
             look(path)
             pyperclip.copy(self.driver.current_url)
-            Exit(f'{self.url()}   {context(2)}  t={t}')
+            Exit(f'{self.url()}   {context(4)}  t={t}')
 
     # 查看当前页面
     def look(self, a=None):
@@ -2926,8 +3227,13 @@ class Edge():
         self.driver.get_screenshot_as_file(path)
         look(path)
 
+    # 关闭标签页并跳转到上一个标签页
     def close(self):
         self.driver.close()
+        try:
+            self.switchto(-1)
+        except Exception as e:
+            warn(e)
 
     def skip(self, s,strict=False):
         return skip([self.driver, By.XPATH, s],strict=strict)
@@ -2974,12 +3280,15 @@ class Chrome(Edge):
     def maximize(self):
         self.driver.maximize_window()
 
-def edge(url='', silent=None, mute=True):
+def edge(url='', silent=None, mute=True, mine=False):
     options = webdriver.EdgeOptions()
     if not silent == None:
         options.add_argument('headless')
     if mute:
         options.add_argument('--mute-audio')
+    if mine:
+        options.add_argument('--user-data-dir=C:\\Users\\17371\\AppData\\Local\\Microsoft\\Edge\\User Data')
+        options.add_argument('headless')
     try:
         driver = webdriver.Edge(options=options)
     except selenium.common.exceptions.SessionNotCreatedException:
@@ -2995,14 +3304,15 @@ def edge(url='', silent=None, mute=True):
 
 
 # 点击屏幕
-def click(x, y=10, button='left', silent=True,interval=0.2):
+def click(x, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,gap=0.05,grayscale=True):
     if type(x) in [str]:
         if not '.png' in x:
             x += '.png'
         path = projectpath(x)
         if isfile(path):
-            for confidence in [0.6, 0.5, 0.4, 0.3]:
-                pos = pyautogui.locateOnScreen(path, confidence=confidence, grayscale=True)
+            while confidence>limit:
+                pos = pyautogui.locateOnScreen(path, confidence=confidence, grayscale=grayscale)
+                confidence-=gap
                 if pos == None:
                     continue
                 else:
@@ -3079,19 +3389,29 @@ def setscrolltop(l):
 
 
 @consume
-def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
-    # 如果下载失败，再下载一次
-    # t：下载和下载后浏览器自动安全检查的时间
-    # 浏览器下载会自动重命名"~"为"_"
+def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=None):
+    '''
+    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。浏览器下载会自动重命名"~"为"_"
+    @param url:
+    @param path:
+    @param t:下载和下载后浏览器自动安全检查的时间
+    @param silent:
+    @param depth:
+    @param auto:
+    @param newname: 重命名下载的文件名
+    @param redownload: 覆盖下载
+    @return:
+    '''
     def recursive():
         sleep(t)
         page.quit()
         sleep(1)
-        if os.path.exists(path + '.crdownload'):
-            os.remove(path + '.crdownload')
-            warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
-            # warn(f'download failed.No crdownload file left(auto deleted). you may try{url}')
-            return pagedownload(url, path, t=t + t, depth=depth + 1)
+        delog(f'正在下载到{path}')
+        for ii in listfile(parentpath(path)):
+            if name in ii and '.crdownload' in ii:
+                os.remove(ii)
+                warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
+                return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto,redownload=redownload)
         return True
 
     # 递归停止条件
@@ -3104,13 +3424,12 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None):
     # 获取变量
     # region
     path = standarlizedPath(path, strict=True)
-    if path.find('.') < 0:
-        path += '/'
     createpath(path)
-    if os.path.exists(path):
-        if not size(path) == 0:
-            warn(f'{path}已存在，将不下载')
-            return
+    if not redownload:
+        if os.path.exists(path):
+            if not size(path) == 0:
+                warn(f'{path}已存在，将不下载')
+                return
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
     options = webdriver.ChromeOptions()

@@ -24,19 +24,19 @@ if __name__ == '__main__':
 
     pool1 = multiprocessing.Pool(poolnum)
 
-    if workgroup0 == True:
+    if workgroup0:
         pool1.apply_async(A20min.main)
         pool1.apply_async(Apushgithub.main)
         pool1.apply_async(RAM.init)
 
-    if workgroup2 == True:
+    if workgroup2:
         import DouyinDetect
         import DouyinDownload
 
-        for i in range(2):
+        for i in range(int(workgroup2*0.4)):
             pool1.apply_async(DouyinDetect.main, ())
             time.sleep(3)
-        for i in range(3):
+        for i in range(int(workgroup2*0.6)):
             pool1.apply_async(DouyinDownload.main, ())
             time.sleep(3)
 

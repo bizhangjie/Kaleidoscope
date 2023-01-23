@@ -3,13 +3,14 @@ import time
 import MyUtils
 
 
-def fun():
+def fun(page):
     page = MyUtils.Chrome('https://www.baidu.com', silent=False)
     MyUtils.sleep(10)
 
 
 def main():
-    fun()
+    page = MyUtils.Chrome('https://www.baidu.com', silent=False)
+    fun(page)
 
 
 if __name__ == '__main__':

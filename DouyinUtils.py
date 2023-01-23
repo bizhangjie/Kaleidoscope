@@ -201,7 +201,9 @@ def skipdownloaded(flag, record, VideoNum, title, author,num=None):
 
 def skipverify(l):
     page=l[0]
+    MyUtils.sleep(1)
     page.skip('//*[@id="captcha-verify-image"]',strict=False)
     page.click('//div[@class="dy-account-close"]',strict=False)
+    page.click('//*[@id="login-pannel"]/div[@class="dy-account-close"]',strict=False)
 
 MyUtils.tip('DouyinUtils loaded.')

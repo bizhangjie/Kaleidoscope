@@ -1,31 +1,101 @@
+import calendar
+
 import MyUtils
 
-# 执行可执行文件生成csv
-def excute():
-    MyUtils.Open(r'D:\standardizedPF\repositories\hack-browser-data-windows-64bit\hack-browser-data-windows-64bit.exe')
-    MyUtils.sleep(7)
+root=r'D:\Kaleidoscope\self\记录 语录 随笔 随想\浏览器记录/'
+downloadpath=r'D:/'
+date=MyUtils.Time('2022-10-23')
 
-# 移植csv内容
-def move():
-    sourcepath=r'D:\standardizedPF\repositories\hack-browser-data-windows-64bit\results\microsoft_edge_default_history.csv'
-    targetpath=MyUtils.projectpath('self/记录 语录 随笔 随想/浏览器记录/edge.csv')
-#     将sourcepath csv的内容复制到targetpath csv
-    f1=MyUtils.Csv(sourcepath,title=['Title','URL','VisitCount','LastVisitTime'])
-    f2=MyUtils.Csv(targetpath,title=['Title','URL','VisitCount','LastVisitTime'])
-    f2.merge(f1)
-    # MyUtils.Open(f2.path)
+def spawnandmerge():
+    for i in MyUtils.listfile(downloadpath):
+        if not None==MyUtils.research('_times.txt',MyUtils.filename(i)):
+            ftimes=MyUtils.txt(i)
+            i=MyUtils.filename(i)
+            i=MyUtils.rmtail(i,',')
+            t=MyUtils.Time(i)
+        if not None==MyUtils.research('_urls.txt',MyUtils.filename(i)):
+            furls=MyUtils.txt(i)
+        if not None==MyUtils.research('_titles.txt',MyUtils.filename(i)):
+            ftitles=MyUtils.txt(i)
+    csvpath=root+'/edge/'+t.date()+'.csv'
+    if MyUtils.isfile(csvpath):
+        MyUtils.warn(t.date()+'重复了')
+        return
+    f=MyUtils.Csv(csvpath,title=['time','url','title'])
+    MyUtils.delog(len(ftimes.l))
+    for i in range(len(ftimes.l)):
+        f.add([ftimes.l[i],furls.l[i],ftitles.l[i]])
+    MyUtils.deletedirandfile([ftimes.path,furls.path,ftitles.path],silent=True)
 
-    sourcepath = r'D:\standardizedPF\repositories\hack-browser-data-windows-64bit\results\chrome_default_history.csv'
-    targetpath = MyUtils.projectpath('self/记录 语录 随笔 随想/浏览器记录/chrome.csv')
-    #     将sourcepath csv的内容复制到targetpath csv
-    f1 = MyUtils.Csv(sourcepath, title=['Title', 'URL', 'VisitCount', 'LastVisitTime'])
-    f2 = MyUtils.Csv(targetpath, title=['Title', 'URL', 'VisitCount', 'LastVisitTime'])
-    f2.merge(f1)
-    # MyUtils.Open(f2.path)
+def move(downloadpath):
+    if not []==MyUtils.listfile(root):
+        return
+    for i in MyUtils.listfile(downloadpath):
+        if not None==MyUtils.research(r"_\d+\.csv$", i):
+            MyUtils.move(i, root+'/'+MyUtils.filename(i))
 
-def main():
-    # excute()
-    move()
 
+def openpage():
+    MyUtils.openedge(['edge://history'])
+    MyUtils.sleep(2)
+
+
+def excutejs():
+    MyUtils.sleep(1)
+    MyUtils.hotkey('ctrl', 'shift', 'j')
+    MyUtils.sleep(1)
+    for file in ['getinfo.js','joinurls.js', 'jointimes.js', 'jointitles.js']:
+        MyUtils.sleep(0.5)
+        f=MyUtils.txt(MyUtils.projectpath('browser/'+file))
+        str=''
+        for i in f.l:
+            str+=i+'\n'
+        MyUtils.copyto(str)
+        MyUtils.click(730,960)
+        MyUtils.sleep(1)
+        MyUtils.hotkey('ctrl','v')
+        MyUtils.hotkey('enter')
+        MyUtils.sleep(1)
+
+
+def adjustdate(date=None):
+    picroot=MyUtils.projectpath('browser/calender/')
+    now=MyUtils.Now()
+    month=now.month()
+    if date==None:
+        t=now-24*3600
+    else:
+        t=MyUtils.Time(date)
+    day=t.day()
+    if t.day()=='1':
+        t=t+(24*3600*(calendar.monthrange(int(t.year()),int(t.month()))[1]))-1
+    while not month==t.month():
+        t=t+(24*3600*(calendar.monthrange(int(t.year()),int(t.month()))[1]))-1
+        MyUtils.click(picroot+'back.png')
+        MyUtils.sleep(1)
+#     不可能是蓝色已选中状态
+    MyUtils.click(picroot+str(day)+'.png',grayscale=False)
+    MyUtils.sleep(1)
+
+def close():
+    MyUtils.hotkey('ctrl','w')
+    MyUtils.hotkey('ctrl','w')
+
+
+def main(date=MyUtils.Time()-24*3600):
+    # # 打开网页和打开控制台
+    openpage()
+    # # 调整到正确的日期（昨天的日期）
+    adjustdate(date)
+    # # 获取所有的变量
+    excutejs()
+    # # 关闭窗口
+    close()
+    # 合并文件
+    spawnandmerge()
 if __name__ == '__main__':
-    main()
+        date=MyUtils.Now()-24*3600
+        MyUtils.delog(date)
+        main(date)
+        date+=24*3600
+        MyUtils.sleep(1)

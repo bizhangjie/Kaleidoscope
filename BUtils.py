@@ -3,6 +3,7 @@ import time
 
 import requests
 
+import BUtils
 import MyUtils
 
 videospectrum = MyUtils.rjson('D:/Kaleidoscope/bili/VideoSpectrum.txt')
@@ -19,8 +20,8 @@ collecitonvideorecord = MyUtils.rtxt(MyUtils.projectpath('./bili/CollectionVideo
 
 
 # 从收藏夹导入用户
-def addwebuser(f=videouserspectrum):
-    page = MyUtils.Chrome('https://space.bilibili.com/661654199/fans/follow?tagid=475631', mine=True)
+def addwebuser(f=videouserspectrum, url='https://space.bilibili.com/661654199/fans/follow?tagid=475631', ):
+    page = MyUtils.Chrome(url, mine=True)
     els = page.elements('/html/body/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/ul[1]/li/a')
     names = page.elements('/html/body/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/ul[1]/li/a/img')
     for i in range(len(els)):
@@ -30,21 +31,6 @@ def addwebuser(f=videouserspectrum):
         uid = uid[len('https://space.bilibili.com/'):].strip('/')
         f.add({uid: name})
     page.quit()
-
-
-@MyUtils.consume
-# 提供duplication的存储解决方案
-def addpiece(d):
-    d = MyUtils.jsontodict(d)
-    k = MyUtils.key(d)
-    v = MyUtils.value(d)
-    for i in videospectrum.l:
-        if k == MyUtils.key(MyUtils.jsontodict(i)):
-            if not v in MyUtils.value(MyUtils.jsontodict(i)):
-                videospectrum.add(MyUtils.dicttojson({k: MyUtils.extend(MyUtils.value(MyUtils.jsontodict(i)), [v])}))
-            else:
-                return
-    videospectrum.add(MyUtils.dicttojson({k: [v]}))
 
 
 # 获得用户主页的response （暂时不是json - request
@@ -64,7 +50,7 @@ def collectionjson(uid, pagenum, ):
     url = (f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
     MyUtils.delog(f'探测收藏夹{uid}视频页的第{pagenum}页')
     res = requests.get(url, headers=MyUtils.headers)
-    # 如果结束就退出
+    # 如果最后一页就退出
     if pagenum * 30 > res.json()['data']['info']['media_count'] and not pagenum == 1:
         return False
     return res.json()
@@ -81,15 +67,6 @@ def urltouseruid(c):
     else:
         pass
     return c
-
-
-# 将用户加入下载列表
-def add(uid=None):
-    if not uid == None:
-        c = input('请输入要添加的用户：')
-    else:
-        c = uid
-        MyUtils.log(f'{urltouseruid(c)} added.')
 
 
 # 获取bv
@@ -142,7 +119,7 @@ def uidtoid(UID, refresh=False):
 def idtouid(id):
     return videouserspectrum.find(id)
 
-
+# 跳过已下载
 def skipdownloaded(bvid):
     return str(bvid) in MyUtils.keys(videospectrum.d)
 
@@ -181,12 +158,16 @@ class up():
 class video():
     @MyUtils.consume
     def __init__(self, a):
+        # 变量
+        # region
         self.exist = True
         self.authors = []
         self.useruids = []
+        # endregion
 
         # 用网页视频列表json构建
         # 这个有实际用到？？？？
+        # region
         if type(a) in [dict]:
             self.bvid = a['bvid']
             self.length = a['length']
@@ -195,6 +176,7 @@ class video():
             self.description = a['description']
             self.pic = a['pic']
             self.subtitle = a['subtitle']
+        #     endregion
 
         #     用网页即时搜索构建
         if type(a) in [str] and 'BV' in a:
@@ -202,11 +184,11 @@ class video():
             page = MyUtils.Edge(f'https://www.bilibili.com/video/{bvid}', silent=True)
 
             # 视频已失效
-            if '出错啦' in page.title() or '视频去哪了呢' in page.title():
+            if self.tellexist(page=[page]):
                 self.exist = False
                 return
 
-            # 视频被收录到番剧内
+            # 处理番剧内的视频
             isfanju = page.element('/html//meta[@content="哔哩哔哩番剧"]', strict=False)
             if not isfanju == None:
                 page.get(f'https://search.bilibili.com/all?keyword={bvid}&from_source=webtop_search&spm_id_from=666.25')
@@ -223,6 +205,7 @@ class video():
 
             self.title = page.element(['//*[@id="viewbox_report"]/h1', '//*[@id="app"]//div[@class="media-wrapper"]/h1']).text
 
+            # 获取全部的作者
             es = page.elements(
                 "//body//*[@id='app']//a[starts-with(@href,'//space') and contains(@class,'vip') or starts-with(@href,'//space') and contains(@class,'user') or starts-with(@href,'//space') and contains(@class,'up')]")
             useruids = []
@@ -241,66 +224,65 @@ class video():
                 self.author = authors[0]
             page.quit()
 
+    def tellexist(self=None, page=None, bvid=None):
+        if page == None:
+            page=MyUtils.Chrome(f'https://www.bilibili.com/video/{bvid}', silent=True)
+        else:
+            page=page[0]
+        if '出错啦' in page.title() or '视频去哪了呢' in page.title():
+            return False
+        return True
+
 
 # 检查cache是否为空
-def checkempty():
-    if not [] == MyUtils.listdir(cachepath):
+def iscacheempty():
+    while not [] == MyUtils.listdir(cachepath):
         MyUtils.Open(MyUtils.standarlizedPath(cachepath))
-        MyUtils.Exit('cache不为空。')
+        MyUtils.warn('cache不为空。请清空后重试。')
+        MyUtils.sleep(7)
 
 
-# 下载器打开情况下MyUtils下载
 def download(bvid, author=None, useruid=None, overdownloaded=False):
     '''
-
+    下载器打开情况下MyUtils下载
     @param bvid:
     @param author:
     @param useruid:
     @param overdownloaded: 是否覆盖下载
     @return:
     '''
-    def step1(bvid,author,useruid,overdownloaded):
-        if skipdownloaded(bvid) and not overdownloaded:
-            return True
-        v=video(bvid)
-        if not v.exist:
-            return True
-        if author==None:
-            if useruid==None:
-                author=v.author
-            else:
-                author=uidtoid(useruid)
-        if useruid==None:
-            useruid=idtouid(author)
-        return v
-    def screenoperate():
-        MyUtils.copyto(f'https://www.bilibili.com/video/{bvid}')
-        MyUtils.click(1449, 214)
-        MyUtils.sleep(0.7)
-        MyUtils.click(988, 500)
-        MyUtils.sleep(1)
-        MyUtils.hotkey('ctrl', 'v')
-        MyUtils.sleep(0.7)
-        MyUtils.hotkey('enter')
-        MyUtils.sleep(5)
-
-        MyUtils.click(708, 504)
-        MyUtils.sleep(0.7)
-        MyUtils.click(1208, 556)
-        MyUtils.sleep(0.7)
-        MyUtils.click(1208, 576)
-        MyUtils.sleep(0.7)
-        # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
-        MyUtils.click(1208, 606)
-        MyUtils.sleep(0.7)
-        MyUtils.log(f'{author} {bvid}已加入下载器')
-        MyUtils.click(1246, 722)
-        MyUtils.sleep(1.5)
-
-    if step1()==True:
+    # 已下载或视频已失效
+    if skipdownloaded(bvid) and not overdownloaded or BUtils.video.tellexist(bvid=bvid) == False:
         return False
-    screenoperate()
+
+    # 操作屏幕下载器
+    # region
+    MyUtils.copyto(f'https://www.bilibili.com/video/{bvid}')
+    MyUtils.click(1449, 214)
+    MyUtils.sleep(0.7)
+    MyUtils.click(988, 500)
+    MyUtils.sleep(1)
+    MyUtils.hotkey('ctrl', 'a')
+    MyUtils.hotkey('ctrl', 'v')
+    MyUtils.sleep(0.7)
+    MyUtils.hotkey('enter')
+    MyUtils.sleep(5)
+
+    MyUtils.click(708, 504)
+    MyUtils.sleep(0.7)
+    MyUtils.click(1208, 556)
+    MyUtils.sleep(0.7)
+    MyUtils.click(1208, 576)
+    MyUtils.sleep(0.7)
+    # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
+    MyUtils.click(1208, 606)
+    MyUtils.sleep(0.7)
+    MyUtils.log(f'{author} {bvid}已加入下载器')
+    MyUtils.click(1246, 722)
+    MyUtils.sleep(1.5)
+    # endregion
     return True
+
 
 # 等待下载完毕后转移文件
 def move(a=True):
@@ -391,7 +373,7 @@ def deletehash(path=cachepath, flagbv='-', flaghash='-', silent=False):
         MyUtils.rename(oldname, newname, overwrite=True)
 
 
-# 删除包含m4s的文件夹
+# 删除未下载完成的文件夹
 def deleteuncompleted(path=cachepath):
     dlis = []
     for i in MyUtils.listdir(path):
@@ -402,7 +384,7 @@ def deleteuncompleted(path=cachepath):
     MyUtils.deletedirandfile(dlis)
 
 
-# 遍历文件夹，删除不含mp4的文件夹
+# 删除文件不完整的文件夹
 def rmnomp4(cachepath):
     for i in MyUtils.listdir(cachepath):
         b = False
