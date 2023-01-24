@@ -8,7 +8,7 @@ def provisional(page):
 if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
     # for url in ['https://m.thepaper.cn/baijiahao_6678131']:
-    for url in ['https://mp.weixin.qq.com/s/x7fZ32WcSKN43Lk85spFYQ']:
+    for url in ['https://new.qq.com/rain/a/20200228A0TCLG00']:
         page = MyUtils.Edge(url, silent=True)
         # 掘金
         # titletail=' - 掘金'
