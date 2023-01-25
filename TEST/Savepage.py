@@ -5,7 +5,7 @@ def provisional(page):
     page = page[0]
     page.scroll(800)
     page.click('//*[@id="artical"]/div[4]/a')
-
+    page.scroll(26000)
 
 if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
