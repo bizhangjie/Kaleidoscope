@@ -3,12 +3,14 @@ import MyUtils
 
 def provisional(page):
     page = page[0]
-    page.scroll(43100)
+    page.scroll(800)
+    page.click('//*[@id="artical"]/div[4]/a')
+
 
 if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
     # for url in ['https://m.thepaper.cn/baijiahao_6678131']:
-    for url in ['https://www.qz.net/page/756']:
+    for url in ['http://www.studyofnet.com/588830253.html']:
         page = MyUtils.Edge(url, silent=True)
         # 掘金
         # titletail=' - 掘金'

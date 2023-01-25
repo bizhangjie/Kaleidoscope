@@ -6,6 +6,8 @@ from selenium.webdriver.common.by import By
 import DouyinUtils
 import MyUtils
 
+Account='MS4wLjABAAAAlHut0BHZMJOe2xxGFCq9IDcV-MuLNL_XIxRTZiO8nThhJMYmWRhbFlzfrIo5MqCH'
+# Account='MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q'
 
 @retry(retry_on_exception=MyUtils.retry)
 def main():
@@ -23,7 +25,7 @@ def main():
     while True:
         # 登录
         # region
-        page.get('https://www.douyin.com/user/MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q?showTab=like')
+        page.get(f'https://www.douyin.com/user/{Account}?showTab=like')
         # MyUtils.skip([page, By.ID, "captcha-verify-image"])
         # MyUtils.skip([page, By.ID, "login-pannel"])
         # endregion
