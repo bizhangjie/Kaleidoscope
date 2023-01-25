@@ -3479,7 +3479,6 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
             page.execute_script(f"var a1=document.createElement('a');\
             a1.href='{url}';\
             a1.download='{name}';\
-            console.log(a1);\
             a1.click();")
             break
         except Exception as e:
