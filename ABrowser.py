@@ -2,7 +2,7 @@ import calendar
 
 import MyUtils
 
-root=r'D:\Kaleidoscope\self\记录 语录 随笔 随想\浏览器记录/'
+root=MyUtils.projectpath('self/记录 语录 随笔 随想/浏览器记录/edge/')
 downloadpath=r'D:/'
 date=MyUtils.Time('2022-10-23')
 
@@ -17,7 +17,7 @@ def spawnandmerge():
             furls=MyUtils.txt(i)
         if not None==MyUtils.research('_titles.txt',MyUtils.filename(i)):
             ftitles=MyUtils.txt(i)
-    csvpath=root+'/edge/'+t.date()+'.csv'
+    csvpath=root+t.date()+'.csv'
     if MyUtils.isfile(csvpath):
         MyUtils.warn(t.date()+'重复了')
         return
@@ -27,6 +27,7 @@ def spawnandmerge():
         f.add([ftimes.l[i],furls.l[i],ftitles.l[i]])
     MyUtils.deletedirandfile([ftimes.path,furls.path,ftitles.path],silent=True)
 
+# 下载的移动到
 def move(downloadpath):
     if not []==MyUtils.listfile(root):
         return
@@ -93,8 +94,19 @@ def main(date=MyUtils.Time()-24*3600):
     close()
     # 合并文件
     spawnandmerge()
+
+
+def getdate():
+    lastdate=MyUtils.Time('2023-01-01')
+    for i in MyUtils.listfile(root):
+        newdate=MyUtils.Time(MyUtils.removetail(MyUtils.filename(i),'.csv'))
+        if newdate>lastdate:
+            lastdate=newdate
+    return lastdate
+
 if __name__ == '__main__':
-        date=MyUtils.Now()-24*3600
+        date=getdate()
+        # date=MyUtils.Now()-24*3600
         MyUtils.delog(date)
         main(date)
         date+=24*3600
