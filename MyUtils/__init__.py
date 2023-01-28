@@ -3369,7 +3369,7 @@ def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit
     @param silent:
     @param interval:
     @param confidence: 图片识别精确度
-    @param limit:
+    @param limit:图片识别精确度下限
     @param gap:
     @param grayscale: 是否使用灰度识别图片
     @param xoffset: 图片识别结果的偏移量
