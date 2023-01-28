@@ -51,7 +51,7 @@ def addtorecord():
 MyUtils.rmempty('./bili/collection')
 MyUtils.rmempty(BUtils.cachepath)
 BUtils.rmnomp4(BUtils.cachepath)
-MyUtils.setrootpath('e')
+MyUtils.setrootpath('f')
 BUtils.deletehash('./bili/collection')
 move()
 addtorecord()

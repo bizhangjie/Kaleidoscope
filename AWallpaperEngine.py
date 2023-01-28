@@ -1,7 +1,7 @@
 import MyUtils
 
 downloadpath=r'D:\Programme Files\Steam\steamapps\workshop\content\431960'
-targetpath=r'e:/wallpaper engine/tifa/'
+targetpath=r'e:/wallpaper engine//'
 sourcepath=r'D:\Programme Files\Steam\steamapps\workshop\content\431960'
 
 

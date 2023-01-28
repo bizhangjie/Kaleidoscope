@@ -499,6 +499,57 @@ def retry(e):
 
 # 特殊功能函数
 # region
+# 获取锁
+def getlock(name):
+    f=txt(projectpath(f'{name}lock.txt'))
+    if f.l==[]:
+        f.l.append('1')
+        f.save()
+        return True
+    else:
+        sleep(10)
+        return getlock(name)
+
+# 释放锁
+def releaselock(name):
+    f=txt(projectpath(f'{name}lock.txt'))
+    f.l=[]
+    f.save()
+# 获取屏幕锁
+def getscreenlock():
+    return getlock('screen')
+def releasescreenlock():
+    return releaselock('screen')
+# 获取剪贴板锁
+def getcopylock():
+    return getlock('copy')
+
+# 释放剪贴板锁
+def releasecopylock():
+    return releaselock('copy')
+
+# 翻译
+def translate(s,limit=3):
+    if len(s)<limit:
+        return ''
+    hotkey('alt','tab')
+    getscreenlock()
+    getcopylock()
+    click(846,520)
+    hotkey('ctrl','a')
+    copyto(s)
+    hotkey('ctrl','v')
+    hotkey('enter')
+    sleep(len(s)/1000)
+    click(1000,358)
+    sleep(0.5)
+    hotkey('ctrl','a')
+    hotkey('ctrl','c')
+    hotkey('alt','tab')
+    releasescreenlock()
+    releasecopylock()
+    return pastefrom()
+
 # 计数工具语法糖
 def count(k=''):
     f=rjson(projectpath('cache/count.txt'),silent=True)
@@ -1552,6 +1603,9 @@ def desktop(s=''):
 
 
 class txt():
+    '''
+    读写txt文件。l，可以不是字符串，自动追加空格。
+    '''
     def __init__(self, path, encoding='utf-8'):
         self.mode = 'txt'
         if encoding == None:
@@ -1619,7 +1673,7 @@ class txt():
             slist.append(str(self.l[-1]))
         file('w', self.path, slist, encoding=self.encoding)
         if not silent:
-            warn(f'{rmtail(tail(self.path),".txt")}({(self.mode)}) - {s}')
+            warn(f'{rmtail(tail(self.path),".txt",strict=False)}({(self.mode)}) - {s}')
 
     def length(self):
         return len(self.l)
@@ -2303,14 +2357,14 @@ def refind(s, re):
 
 
 # 截取字符串末尾
-def cuttail(s, mark='_'):
+def cuttail(s, mark='_',strict=False):
     if type(s) == list:
         warn('用法错误。')
         sys.exit(-1)
     if mark == None:
         return s
     s, mark = str(s), str(mark)
-    t = tail(s, mark)
+    t = tail(s, mark,strict=strict)
     s = s[:(s.rfind(mark))]
     return s, t
 
@@ -2319,7 +2373,7 @@ def splittail(s, mark):
     return cuttail(s, mark)
 
 
-def removetail(l, mark='.'):
+def removetail(l, mark='.',strict=False):
     return cuttail(l, mark)[0]
 def rmtail(*a,**b):
     return removetail(*a,**b)
@@ -2329,13 +2383,14 @@ def strip(s, mark):
 
 
 # 截取字符串末尾
-def tail(s, mark='/'):
-    return gettail(s, mark)
+def tail(s, mark='/',strict=True):
+    return gettail(s, mark,strict=strict)
 
 
-def gettail(s, mark='/'):
+def gettail(s, mark='/',strict=True):
     s, mark = str(s), str(mark)
-    if not mark in s:
+    if not mark in s and strict:
+        warn(stepback(2))
         Exit(f'tail失败。字符串 {s} 中没有预计存在的子串：  {mark}。', (s, mark))
     return s[s.rfind(mark) + len(mark):]
 
