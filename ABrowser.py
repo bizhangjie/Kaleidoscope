@@ -102,12 +102,13 @@ def getdate():
         newdate=MyUtils.Time(MyUtils.removetail(MyUtils.filename(i),'.csv'))
         if newdate>lastdate:
             lastdate=newdate
-    return lastdate
+    return lastdate+3600*24
 
 if __name__ == '__main__':
         date=getdate()
-        # date=MyUtils.Now()-24*3600
-        MyUtils.delog(date)
-        main(date)
-        date+=24*3600
-        MyUtils.sleep(1)
+        while date<MyUtils.Now()-24*3600:
+
+            MyUtils.delog(date)
+            main(date)
+            date+=24*3600
+            MyUtils.sleep(1)
