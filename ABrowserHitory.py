@@ -73,13 +73,14 @@ def adjustdate(date=None):
         t=t+(24*3600*(calendar.monthrange(int(t.year()),int(t.month()))[1]))-1
     while not month==t.month():
         t=t+(24*3600*(calendar.monthrange(int(t.year()),int(t.month()))[1]))-1
-        MyUtils.click(picroot+'back.png',limit=0.8)
+        MyUtils.click(picroot+'back.png',limit=0.9)
         MyUtils.sleep(1)
 #     不可能是蓝色已选中状态
     MyUtils.click(picroot+str(day)+'.png',grayscale=False)
     MyUtils.sleep(1)
 
 def close():
+    MyUtils.sleep(1)
     MyUtils.hotkey('ctrl','w')
     MyUtils.hotkey('ctrl','w')
 
