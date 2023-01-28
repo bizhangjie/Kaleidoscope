@@ -3360,7 +3360,22 @@ def edge(url='', silent=None, mute=True, mine=False):
 
 
 # 点击屏幕
-def click(x, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,gap=0.05,grayscale=True):
+def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,gap=0.05,grayscale=True,xoffset=0,yoffset=0):
+    '''
+
+    @param x:
+    @param y:
+    @param button: 左键还是右键
+    @param silent:
+    @param interval:
+    @param confidence: 图片识别精确度
+    @param limit:
+    @param gap:
+    @param grayscale: 是否使用灰度识别图片
+    @param xoffset: 图片识别结果的偏移量
+    @param yoffset:
+    @return:
+    '''
     if type(x) in [str]:
         if not '.png' in x:
             x += '.png'
@@ -3373,7 +3388,7 @@ def click(x, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,
                     continue
                 else:
                     p = pyautogui.center(pos)
-                    click(p.x, p.y)
+                    click(p.x+xoffset, p.y+yoffset)
                     return
         #     没找到
         Open(path)

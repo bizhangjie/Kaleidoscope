@@ -52,7 +52,8 @@ def excutejs():
         for i in f.l:
             str+=i+'\n'
         MyUtils.copyto(str)
-        MyUtils.click(730,960)
+        MyUtils.sleep(0.3)
+        MyUtils.click(MyUtils.projectpath('browser/js console.png'),yoffset=-100)
         MyUtils.sleep(1)
         MyUtils.hotkey('ctrl','v')
         MyUtils.hotkey('enter')
