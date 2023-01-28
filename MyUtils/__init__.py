@@ -508,6 +508,7 @@ def getlock(name):
         return True
     else:
         sleep(10)
+        warn(f'awaitingLOCK {name}')
         return getlock(name)
 
 # 释放锁
