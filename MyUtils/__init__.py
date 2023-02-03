@@ -3300,7 +3300,8 @@ class Edge():
             y=s.location['y']
             if not yoffset==None:
                 y+=yoffset
-            if y+self.getscrolltop()>self.getscrollheight():
+            self.scroll(y)
+            if 100+s.size['height']>self.getscrollheight():
                 self.set_window_size(self.get_window_size()[0],self.get_window_size()+y)
             self.scroll(y)
             createpath(path)
