@@ -5,6 +5,7 @@ from retrying import retry
 import DouyinUtils
 import MyUtils
 
+MyUtils.setrootpath(dname=[ -2,-1 ])
 
 @retry(retry_on_exception=MyUtils.retry)
 def download():

@@ -50,6 +50,6 @@ if __name__ == '__main__':
         f.clear()
 
 
-    # get1(20)
+    get1(20)
     # get2()
-    get3()
+    # get3()

@@ -1836,6 +1836,10 @@ class RefreshJson(Json, RefreshTXT):
                 return key(i)
 
     def get(self):
+        '''
+        返回列表，txt内存储的值是列表，返回列表中每个值都添加一个键
+        @return:
+        '''
         dstr = (RefreshTXT.get(self))
         try:
             d = jsontodict(dstr)
@@ -1948,6 +1952,7 @@ class RefreshJson(Json, RefreshTXT):
             break
 
     def pieceinfo(self, num, author, title,extra=None):
+        diskname=getdiskname()
         if extra in ['',None]:
             return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
         else:
@@ -1978,6 +1983,9 @@ class RefreshJson(Json, RefreshTXT):
         self.add({uid:author})
 
 class cache():
+    '''
+    dict
+    '''
     def __init__(self, path):
         self.path = path
 
@@ -2235,7 +2243,9 @@ def Set(l):
     return res
 
 
-def simplinfo(num, author, title):
+def simplinfo(num, author, title, diskname=None):
+    if diskname == None:
+        diskname =getdiskname()
     return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
 
@@ -2409,15 +2419,34 @@ def checkdiskusable(s):
     s=s[0]
     Open(f'{s}:/diskInfo.txt')
 
-#   更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
-def setRootPath(dir=None):
+
+def setRootPath(dir=None,dname=None):
+    '''
+    更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
+    @param dir:
+    @param dname:根据txt内容设置
+    @return:diskname
+    '''
+    if not dname==None:
+        if type(dname)in [list]:
+            for dname in dname:
+                ret= setRootPath(dir=dir,dname=dname)
+                if ret:
+                    return
+            Exit('未找到磁盘{}。'.format(dname))
+        for root in ['d','e','f','g','h']:
+            if not isfile(f'{root}:/diskInfo.txt'):
+                continue
+            ff=rjson(f'{root}:/diskInfo.txt')
+            if dname == values(ff.get()[0])[0]:
+                setRootPath(root)
+                return root
+        return
     if dir == None:
         # 盘未初始化
         if not os.path.exists(f'{activedisk.l[0]}:/'):
             Open(activedisk.path)
             Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
-
-
         # 根据文本更改操作盘
         i=activedisk.l[0]
     else:
@@ -2430,23 +2459,28 @@ def setRootPath(dir=None):
             i = dir
     os.chdir(i + ':/')
     log(f'operating DISK {str.title(i)}')
+    global diskname
+    diskname=getdiskname()
+    return diskname
 
+def confirmRootPath(name):
+    return getdiskname()==name
 
-def setrootpath(s):
-    setRootPath(s)
+def setrootpath(*a,**b):
+    setRootPath(*a,**b)
 
 
 #     初始化一个分布式盘
-def initdisk(diskname):
+def initdisk(Diskname):
     diskinfo = RefreshJson('./diskInfo.txt')
     if not diskinfo.l == []:
         warn(f'初始化分布盘失败。当前盘{standarlizedPath("./")}已存在diskInfo.txt。请检查。')
         return False
-    if diskname in disknames.l:
+    if Diskname in disknames.l:
         warn(f'该名字已存在。请更换。')
         return getdiskname()
-    diskinfo.add({"name": str(diskname)})
-    disknames.add(diskname)
+    diskinfo.add({"name": str(Diskname)})
+    disknames.add(Diskname)
     return
 
 
@@ -2457,9 +2491,10 @@ def getdiskname():
         name = input(f'检测到当前操作盘未初始化。请输入盘符（后期沿用，慎重！）：\n\t\t\t\t（已启用的唯一名）{RefreshTXT("D:/Kaleidoscope/disknames.txt").l}')
         initdisk(name)
     else:
+        global disknames
+        disknames=RefreshTXT("D:/Kaleidoscope/disknames.txt")
         disknames.add(diskinfo.d['name'])
     return diskinfo.d['name'][0]
-
 
 # endregion
 
@@ -3248,13 +3283,15 @@ class Edge():
         self.driver.set_window_size(*a, **b)
 
     # 取决于当前窗口大小位置
-    def elementshot(self, path, s):
+    def elementshot(self, path, s,xoffset=None,yoffset=None):
         path = standarlizedPath(path)
         # if isfile(path):
         #     warn(f'{path}已存在。即将覆盖下载')
         if not '.png' in path:
             path += '.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            if not yoffset==None:
+                self.scroll(s.location['y']+yoffset)
             createpath(path)
             file('wb', path, s.screenshot_as_png)
             return
@@ -3597,9 +3634,8 @@ headers = {
 # 初始化
 user = txt(projectpath('user.txt')).l[0]
 activedisk = txt(projectpath('ActiveDisk.txt'))
+diskname=''
 setRootPath()
-disknames = RefreshTXT("D:/Kaleidoscope/disknames.txt")
-diskname = getdiskname()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
 def runningroot():

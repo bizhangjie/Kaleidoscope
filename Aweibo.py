@@ -8,7 +8,7 @@ allusers = WBUtils.allusers
 # endregion
 def getlinklist(page):
     page = page[0]
-    page.get('https://weibo.com/u/page/follow/5849475471')
+    page.get('https://weibo.com/u/page/follow/5849475471/followGroup?tabid=4864853400880908')
     return page.elements('//*[@id="scroller"]//div[@class="vue-recycle-scroller__item-view"]//a[contains(@href,"/")]/@href')
 
 
@@ -68,7 +68,7 @@ def addposters(page, useruid, author, userpath, t=2):
                 continue
             posteruids.append(posteruid)
             # 下载缩略封面
-            page.elementshot(f'{userpath}/{posteruid}_poster', e)
+            page.elementshot(f'{userpath}/{posteruid}_poster', e,yoffset=-44)
             # 打开详情页
             page.open(href)
             page.fullscreen(path=f'{userpath}/{posteruid}', autodown=True)
@@ -81,6 +81,7 @@ def addposters(page, useruid, author, userpath, t=2):
 
 
 if __name__ == '__main__':
+    MyUtils.setrootpath(dname=[-1])
     page = MyUtils.Chrome(mine=True, silent=True)
     linklist = getlinklist([page])
     for userlink in linklist:

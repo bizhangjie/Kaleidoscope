@@ -7,13 +7,15 @@ import DouyinUtils
 import MyUtils
 import Maintainace
 
-
+MyUtils.setrootpath(dname=[ -2, -1])
 # 变量
+# region
 users = DouyinUtils.allusers
 allpieces = DouyinUtils.allpieces
 readytodownload = DouyinUtils.readytodownload
 ExceptionUser = MyUtils.txt('/抖音/FailedUsers.txt')
 users.rollback()
+# endregion
 
 
 @retry(retry_on_exception=MyUtils.retry)

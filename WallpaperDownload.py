@@ -9,7 +9,7 @@ readytodownload=WallpaperUtils.readytodownload
 # 后台下载到图片/未分类
 page = MyUtils.Chrome(silent=True)
 def fun():
-    path=f'C:/Users/{MyUtils.user}/Pictures/WallPaper/static/未分类'
+    path=MyUtils.collectionpath('WallPaper/')
 #     开始下载
     url=MyUtils.value(readytodownload.get())[0]
     while not url==None:
@@ -17,7 +17,10 @@ def fun():
         durl=(page.element('//*[@id="wallpaper"]').get_attribute('src'))
         if not MyUtils.pagedownload(durl,f'{path}/{MyUtils.tail(durl,"/")}',t=2):
             MyUtils.Exit(url)
-        url=MyUtils.value(readytodownload.get())[0]
+        try:
+            url=MyUtils.value(readytodownload.get())[0]
+        except:
+            url=None
         MyUtils.delog(url)
 
 

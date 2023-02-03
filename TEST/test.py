@@ -1,6 +1,4 @@
-import time
-
 import MyUtils
 
-while True:
-    print(MyUtils.projectpath('./1'))
+# MyUtils.setrootpath(dname=['HerMAJESTY',1,-2,])
+MyUtils.setrootpath(dname=[-3])

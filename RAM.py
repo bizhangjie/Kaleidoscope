@@ -1,5 +1,5 @@
 import MyUtils
-
+MyUtils.setrootpath('d')
 def init():
     path=MyUtils.projectpath(f'./self/RAM/{MyUtils.today()}.md')
     if MyUtils.isfile(path):
@@ -29,4 +29,5 @@ def init():
         # 自动打开
         f.look()
 if __name__=='__main__':
+    MyUtils.sleep(3)
     init()

@@ -12,26 +12,24 @@ missing = DouyinUtils.missing
 def deleteRecorded():
     deletelis = []
     count = 0
-    for d in allpieces.d:
+    for dkey in allpieces.d:
         count += 1
-        if count % 1000 == 0:
-            print(f'{count}/{allpieces.length()} (){len(deletelis)}')
-        for i in allpieces.d[d]:
+        if count % 10000 == 0:
+            MyUtils.delog(f'正在检查记录中的是否存在操作盘内{count}/{allpieces.length()}  不存在的计数：{len(deletelis)}')
+        for i in allpieces.d[dkey]:
             if type(i) == list:
-                print(i)
-            if not i['disk'] == MyUtils.diskname:
+                MyUtils.delog(f'检测到存在多存储：{i}')
+            if not i['disk'] == diskname:
                 continue
             author, title = i['author'], i['title']
-            # if '7128697787717405965' in str(d):
-            #     print('isin')
-            if [] == MyUtils.listfile(f'./抖音/{author}/{d}_{title}') and not os.path.exists(f'./抖音/{author}/{d}_{title}.mp4'):
-                j = ({d: {"disk": MyUtils.diskname, 'author': author, "title": title}})
+            
+            if [] == MyUtils.listfile(f'./抖音/{author}/{dkey}_{title}') and not os.path.exists(f'./抖音/{author}/{dkey}_{title}.mp4'):
+                j = ({dkey: {"disk": diskname, 'author': author, "title": title}})
                 deletelis.append(j)
                 missing.add(j)
-    print(f'将删除 {len(deletelis)} 个记录')
-    MyUtils.out(deletelis)
+    MyUtils.out(MyUtils.extend([f'将删除以下{len(deletelis)} 个记录在 {allpieces.path} 中'],deletelis))
     for i in deletelis:
-        allpieces.delete(i)
+        allpieces.delete(i,silent=True)
 
 
 #  删除后来又下载的missing
@@ -42,13 +40,12 @@ def deleteMissing():
         k = MyUtils.key(d)
         d = MyUtils.value(d)[0]
         path = MyUtils.standarlizedPath(f'./抖音/{d["author"]}/{k}_{d["title"]}')
-        print(f'eecking {path}')
+        # MyUtils.delog(f'在Missing中检查是否已下载： {path}')
         if os.path.exists(path) and not [] == MyUtils.listfile(path):
             lis1.append(i)
         if os.path.exists(path + '.mp4'):
             lis1.append(i)
-    print(f'后来新增的{lis1}')
-    print(len(lis1))
+    MyUtils.log(f'后来新增的{len(lis1)} 个  ：{lis1}')
     for j in lis1:
         MyUtils.rtxt.delete(missing, j)
 
@@ -91,7 +88,7 @@ def findduplicate():
     for i in DouyinUtils.allpieces.l:
         d = MyUtils.jsontodict(i)
         d = d[MyUtils.keys(d)[0]]
-        if d['disk'] == MyUtils.diskname:
+        if d['disk'] == diskname:
             continue
         p = (d['author'], d['title'])
         if p in lis:
@@ -106,6 +103,7 @@ def expirepiece():
     pass
 
 if __name__ == '__main__':
+    diskname=MyUtils.setrootpath(False)
     # adduser()
     deleteRecorded()
     deleteMissing()

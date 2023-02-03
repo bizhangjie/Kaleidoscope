@@ -2,6 +2,8 @@ import MyUtils
 import BUtils
 
 # 不管是否和用户模式下载重复
+所有下载数=200
+单次下载数=8
 
 # MyUtils.hotkey('alt','tab')
 def skipdownloaded(bvid):
@@ -48,14 +50,14 @@ def addtorecord():
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
+MyUtils.setrootpath(dname=[-2,])
 MyUtils.rmempty('./bili/collection')
 MyUtils.rmempty(BUtils.cachepath)
 BUtils.rmnomp4(BUtils.cachepath)
-MyUtils.setrootpath('f')
 BUtils.deletehash('./bili/collection')
 move()
 addtorecord()
-download(1000,4)
+download(所有下载数,单次下载数)
 move()
 # page=MyUtils.Chrome('https://space.bilibili.com/661654199/favlist?fid=1033475199')
 MyUtils.rmempty('./bili/collection')
