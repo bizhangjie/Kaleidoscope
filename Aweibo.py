@@ -9,6 +9,7 @@ allusers = WBUtils.allusers
 def getlinklist(page):
     page = page[0]
     page.get('https://weibo.com/u/page/follow/5849475471/followGroup?tabid=4864853400880908')
+    MyUtils.sleep(1)
     return page.elements('//*[@id="scroller"]//div[@class="vue-recycle-scroller__item-view"]//a[contains(@href,"/")]/@href')
 
 
