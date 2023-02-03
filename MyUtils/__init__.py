@@ -3104,8 +3104,6 @@ class Edge():
     def url(self):
         return self.driver.current_url
 
-    def scrollto(self, a=None):
-        return Edge.scroll(self, a)
 
     @listed
     def clickelement(self, *a):
@@ -3225,6 +3223,8 @@ class Edge():
         if type(a) in [selenium.webdriver.remote.webelement.WebElement]:
             setscrolltop([self.driver, a.location['y'] - a.size['height']])
             return
+    def scrollto(self, a=None):
+        return Edge.scroll(self, a)
 
     def down(self, ratio=1, t=0.3, ite=None):
         scroll([self.driver], silent=True, ratio=ratio, t=t, ite=ite)
@@ -3295,12 +3295,18 @@ class Edge():
                 return True
         if not '.png' in path:
             path += '.png'
+
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            y=s.location['y']
             if not yoffset==None:
-                self.scroll(s.location['y']+yoffset)
+                y+=yoffset
+            if y+self.getscrolltop()>self.getscrollheight():
+                self.set_window_size(self.get_window_size()[0],self.get_window_size()+y)
+            self.scroll(y)
             createpath(path)
             file('wb', path, s.screenshot_as_png)
             return
+
         if type(s) in [str]:
             Edge.elementshot(self, path, Edge.element(self, s))
             return

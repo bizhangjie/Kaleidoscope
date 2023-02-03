@@ -69,10 +69,10 @@ def addposters(page, useruid, author, userpath, t=2):
                 continue
             posteruids.append(posteruid)
             # 下载缩略封面
-            page.elementshot(f'{userpath}/{posteruid}_poster', e,yoffset=-44,extend=True)
+            page.elementshot(f'{userpath}/{posteruid}_poster', e,yoffset=-53,extend=True)
             # 打开详情页
             page.open(href)
-            page.fullscreen(path=f'{userpath}/{posteruid}', autodown=True)
+            page.fullscreen(path=f'{userpath}/{posteruid}', autodown=True,scale=300)
             # 保存图片
             getpics(page=[page], path=f'{userpath}/{posteruid}', )
             page.close()
