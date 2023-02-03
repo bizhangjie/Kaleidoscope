@@ -3283,7 +3283,7 @@ class Edge():
         self.driver.set_window_size(*a, **b)
 
     # 取决于当前窗口大小位置
-    def elementshot(self, path, s,xoffset=None,yoffset=None):
+    def elementshot(self, path, s,xoffset=None,yoffset=None,extend=None):
         path = standarlizedPath(path)
         # if isfile(path):
         #     warn(f'{path}已存在。即将覆盖下载')

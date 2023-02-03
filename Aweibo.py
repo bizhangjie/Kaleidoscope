@@ -68,7 +68,7 @@ def addposters(page, useruid, author, userpath, t=2):
                 continue
             posteruids.append(posteruid)
             # 下载缩略封面
-            page.elementshot(f'{userpath}/{posteruid}_poster', e,yoffset=-44)
+            page.elementshot(f'{userpath}/{posteruid}_poster', e,yoffset=-44,extend=True)
             # 打开详情页
             page.open(href)
             page.fullscreen(path=f'{userpath}/{posteruid}', autodown=True)
