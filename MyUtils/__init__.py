@@ -3301,8 +3301,8 @@ class Edge():
             if not yoffset==None:
                 y+=yoffset
             self.scroll(y)
-            if 100+s.size['height']>self.getscrollheight():
-                self.set_window_size(self.get_window_size()[0],self.get_window_size()+y)
+            if 100+s.size['height']>self.get_window_size()[1]:
+                self.set_window_size(self.get_window_size()[0],self.get_window_size()[1]+100+s.size['height'])
             self.scroll(y)
             createpath(path)
             file('wb', path, s.screenshot_as_png)
