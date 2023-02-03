@@ -3278,15 +3278,21 @@ class Edge():
     def switchto(self, n=-1):
         self.driver.switch_to.window(self.driver.window_handles[n])
 
+    def get_window_size(self):
+        return self.driver.get_window_size()['width'], self.driver.get_window_size()['height']
+
     def set_window_size(self, *a, **b):
         log(f'扩展窗口至大小：{a, b}')
         self.driver.set_window_size(*a, **b)
 
-    # 取决于当前窗口大小位置
-    def elementshot(self, path, s,xoffset=None,yoffset=None,extend=None):
+    # 会改变窗口大小位置
+    def elementshot(self, path, s,xoffset=None,yoffset=None,extend=None,redownload=True):
         path = standarlizedPath(path)
-        # if isfile(path):
-        #     warn(f'{path}已存在。即将覆盖下载')
+        if isfile(path):
+            if redownload:
+                warn(f'{path}已存在。即将覆盖下载')
+            else:
+                return True
         if not '.png' in path:
             path += '.png'
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
