@@ -50,7 +50,7 @@ def addtorecord():
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
-MyUtils.setrootpath(dname=[-2,])
+MyUtils.setrootpath(dname=[-2,-1])
 MyUtils.rmempty('./bili/collection')
 MyUtils.rmempty(BUtils.cachepath)
 BUtils.rmnomp4(BUtils.cachepath)
