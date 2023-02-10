@@ -12,6 +12,7 @@ missing = DouyinUtils.missing
 def deleteRecorded():
     deletelis = []
     count = 0
+    tstart=MyUtils.now()
     for dkey in allpieces.d:
         count += 1
         if count % 10000 == 0:
@@ -19,17 +20,17 @@ def deleteRecorded():
         for i in allpieces.d[dkey]:
             if type(i) == list:
                 MyUtils.delog(f'检测到存在多存储：{i}')
-            if not i['disk'] == diskname:
+            if not i['disk'] == MyUtils.diskname:
+                # MyUtils.warn(f'记录不属于操作盘')
                 continue
             author, title = i['author'], i['title']
             
-            if [] == MyUtils.listfile(f'./抖音/{author}/{dkey}_{title}') and not os.path.exists(f'./抖音/{author}/{dkey}_{title}.mp4'):
-                j = ({dkey: {"disk": diskname, 'author': author, "title": title}})
+            if  not os.path.exists(f'./抖音/{author}/{dkey}_{title}.mp4') and [] == MyUtils.listfile(f'./抖音/{author}/{dkey}_{title}'):
+                j = ({dkey: {"disk": MyUtils.diskname, 'author': author, "title": title}})
                 deletelis.append(j)
-                missing.add(j)
+                missing.add(j,silent=True)
     MyUtils.out(MyUtils.extend([f'将删除以下{len(deletelis)} 个记录在 {allpieces.path} 中'],deletelis))
-    for i in deletelis:
-        allpieces.delete(i,silent=True)
+    allpieces.delete(deletelis,silent=True)
 
 
 #  删除后来又下载的missing
@@ -70,7 +71,8 @@ def count():
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
     table = MyUtils.table(MyUtils.projectpath('./抖音/record.csv'))
-    table.add((allpieces.length(), allusers.length(), missing.length(), file, dir, MyUtils.removetail(MyUtils.Time().s(), '.')))
+    if file>70000:
+        table.add((allpieces.length(), allusers.length(), missing.length(), file, dir, MyUtils.removetail(MyUtils.Time().s(), '.')))
 
 
 # 统计重复的作品
@@ -88,7 +90,7 @@ def findduplicate():
     for i in DouyinUtils.allpieces.l:
         d = MyUtils.jsontodict(i)
         d = d[MyUtils.keys(d)[0]]
-        if d['disk'] == diskname:
+        if d['disk'] == MyUtils.diskname:
             continue
         p = (d['author'], d['title'])
         if p in lis:
@@ -102,9 +104,27 @@ def findduplicate():
 def expirepiece():
     pass
 
+# 删除O抖音中重复的
+def O():
+    for originaluser in MyUtils.listdir('./O抖音', full=False):
+        if not originaluser in MyUtils.listdir('./抖音', full=False):
+            continue
+        originalpieces = MyUtils.listfile(f'./抖音/{originaluser}', full=False)
+        for piece in MyUtils.listfile(f'./抖音/{originaluser}', full=False):
+            for j in originalpieces:
+                if j in piece and MyUtils.size(f'./抖音/{originaluser}/{j}') == MyUtils.size(f'./O抖音/{originaluser}/{piece}'):
+                    MyUtils.log(f'./O抖音/{originaluser}/{piece}')
+                    continue
+
+
+def SET():
+    allusers.set()
+    allpieces.set()
+
+
 if __name__ == '__main__':
-    diskname=MyUtils.setrootpath(False)
     # adduser()
+    # SET()
     deleteRecorded()
     deleteMissing()
     count()

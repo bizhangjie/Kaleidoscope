@@ -7,14 +7,12 @@ import DouyinUtils
 import MyUtils
 import Maintainace
 
-MyUtils.setrootpath(dname=[ -2, -1])
 # 变量
 # region
 users = DouyinUtils.allusers
 allpieces = DouyinUtils.allpieces
 readytodownload = DouyinUtils.readytodownload
 ExceptionUser = MyUtils.txt('/抖音/FailedUsers.txt')
-users.rollback()
 # endregion
 
 
@@ -26,6 +24,7 @@ def main():
     # region
     host = MyUtils.chrome()
     page = MyUtils.chrome()
+    global Host,Page
     Host=MyUtils.Chrome(driver=[host])
     Page=MyUtils.Chrome(driver=[page])
     useruid = 'nothing'
@@ -36,11 +35,15 @@ def main():
         # 获取参数
         # region
         flag = DouyinUtils.IsPic([VideoElement])
+        if flag:
+            flagtext='图文'
+        else:
+            flagtext='视频'
         # endregion
 
         # 作品网页
         page.get(elementurl)
-        MyUtils.delog(f' 探测 {elementurl} ...')
+        MyUtils.delog(f' 探测{flagtext} {elementurl} ...')
         DouyinUtils.skipverify([Page])
 
         # 获取参数-标题
@@ -85,8 +88,7 @@ def main():
         author = MyUtils.Element([host, By.XPATH, '/html/head/title']).get_attribute('text')
         author = author[0:author.rfind('的主页')]
         DouyinUtils.addauthor(useruid, author, users)
-        MyUtils.log(f'  ------转到{author}的主页-----')
-        MyUtils.delog(HostUrl)
+        MyUtils.log(f'  ------转到{author}的主页-----',HostUrl)
         douyinSum = 0
         PiecesNum = DouyinUtils.HostPiecesNum([host])
         if PiecesNum == 0:

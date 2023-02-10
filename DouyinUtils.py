@@ -6,7 +6,7 @@ import time
 from selenium.webdriver.common.by import By
 
 import MyUtils
-
+MyUtils.setrootpath(dname=['-1','-2'])
 # 文件定义
 allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
 specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
@@ -61,10 +61,11 @@ def IsPic(l):
     elements = MyUtils.Elements([element, By.XPATH, './div/div[3]/div'], depth=9, silent=True)
     # 第一、二、三个标签
     # 思路是找到一个图文标签即可
+    # 似乎图文都是在svg里的
     for el in elements:
-        if not None == MyUtils.Element([el, By.XPATH, './div'], depth=9, silent=True):
-            # svg找不到
+        if not None == MyUtils.Element([el, By.XPATH, './/svg'], depth=9, silent=True) or el.text in ['图文']:
             return True
+            # if MyUtils.Element([el, By.XPATH, './/span/text()'], depth=9, silent=True) in ['置顶','共创']:
     return False
 
 
@@ -131,7 +132,8 @@ def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
         #     endregion
     else:
         # region
-        elements = MyUtils.Elements(depth=7, l=[page, By.XPATH, '/html/body/div[1]/div/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img'])
+        elements = MyUtils.Elements(depth=7, l=[page, By.XPATH,
+                                                '//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img'])
         # 跳过已下载
         if skipdownloaded(flag,allpieces,VideoNum,title,author,len(elements)):
             return

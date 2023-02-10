@@ -1111,7 +1111,7 @@ def out(s, silent=False, target='out.txt'):
     f.save()
 
     def do(s):
-        f.add(s)
+        f.add(s, silent=True)
 
     do(s)
     if silent == False:
@@ -1607,7 +1607,8 @@ class txt():
     '''
     读写txt文件。l，可以不是字符串，自动追加空格。
     '''
-    def __init__(self, path, encoding='utf-8'):
+    def __init__(self, path, encoding='utf-8',silent=None):
+        self.silent=silent
         self.mode = 'txt'
         if encoding == None:
             encoding = 'utf-8'
@@ -1646,7 +1647,7 @@ class txt():
         txt.save(self, 'Rtxt set',silent=silent)
 
     @listed
-    def add(self, i):
+    def add(self, i, silent=False):
         i = str(i)
         for k in i.split('\n'):
             k = str(k)
@@ -1656,7 +1657,8 @@ class txt():
             else:
                 file('a', self.path, [k], encoding='utf-8')
             self.l.append(str(k))
-            delog(f'txt add {k}')
+            if not silent:
+                delog(f'txt add {k}')
 
     def addline(selfself, i):
         txt.add('\n')
@@ -1673,7 +1675,7 @@ class txt():
                 slist.append(str(i) + '\n')
             slist.append(str(self.l[-1]))
         file('w', self.path, slist, encoding=self.encoding)
-        if not silent:
+        if not silent and not self.silent:
             warn(f'{rmtail(tail(self.path),".txt",strict=False)}({(self.mode)}) - {s}')
 
     def length(self):
@@ -1688,7 +1690,7 @@ class RefreshTXT(txt):
     # 实现逐行的记录仓库
     # 实现备份
     # 增删都会执行保存操作。
-    def __init__(self, path, encoding=None,silent=False):
+    def __init__(self, path, encoding=None,silent=None):
         txt.__init__(self, path, encoding)
         self.loopcount = 0
         self.mode = 'Rtxt'
@@ -1697,8 +1699,7 @@ class RefreshTXT(txt):
         if self.length() < 2000:
             RefreshTXT.set(self,silent=silent)
 
-    def backup(self):
-        # 备份，set
+    def backup(self,strict=False):
         # region
         backupname = self.path.strip('.txt') + '_backup.txt'
         if not os.path.exists(backupname):
@@ -1706,11 +1707,12 @@ class RefreshTXT(txt):
             extend(f.l, extend([nowstr()], self.l))
             f.save('create backup')
         else:
-            if counttime(txt(backupname).l[0]) > 3600 * 24:
-                RefreshTXT.set(self)
-                f = txt(backupname)
-                f.l = extend([nowstr()], self.l)
-                f.save('refresh backup')
+            if counttime(txt(backupname).l[0]) <= 3600 * 24 and strict==False:
+                return
+            RefreshTXT.set(self)
+            f = txt(backupname)
+            f.l = extend([nowstr()], self.l)
+            f.save('refresh backup')
         # endregion
 
     # 根据l并行写入
@@ -1792,7 +1794,7 @@ class Json(txt):
 
 class RefreshJson(Json, RefreshTXT):
     @consume
-    def __init__(self, path, encoding=None,silent=False):
+    def __init__(self, path, encoding=None,silent=None):
         RefreshTXT.__init__(self, path, encoding=encoding,silent=silent)
         RefreshJson.depart(self)
         Json.addtodict(self)
@@ -1894,6 +1896,7 @@ class RefreshJson(Json, RefreshTXT):
         self.d.update(d)
 
     @consume
+    # 合并相同的键
     def set(self,silent=False):
         allkey = []
         for dstr in self.l:
@@ -1913,7 +1916,7 @@ class RefreshJson(Json, RefreshTXT):
                 dlis.append(i)
                 extend(values, value(ii))
                 try:
-                    values = list(set(values))
+                    values = list(Set(values))
                 except:
                     print(values)
                     Exit()
@@ -1927,6 +1930,8 @@ class RefreshJson(Json, RefreshTXT):
             ret.append({key(d): i})
         return ret
 
+    @listed
+    @consume
     def delete(self, i,silent=False):
         i = jsontodict(i)
         if list == type(value(i)):
@@ -2422,10 +2427,11 @@ def checkdiskusable(s):
 
 def setRootPath(dir=None,dname=None):
     '''
+    动态更改MyUtils.diskname唯一标识符
     更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
     @param dir:
     @param dname:根据txt内容设置
-    @return:diskname
+    @return:盘路径根名
     '''
     if not dname==None:
         if type(dname)in [list]:
@@ -2437,7 +2443,7 @@ def setRootPath(dir=None,dname=None):
         for root in ['d','e','f','g','h']:
             if not isfile(f'{root}:/diskInfo.txt'):
                 continue
-            ff=rjson(f'{root}:/diskInfo.txt')
+            ff=rjson(f'{root}:/diskInfo.txt',silent=True)
             if dname == values(ff.get()[0])[0]:
                 setRootPath(root)
                 return root
@@ -2486,13 +2492,13 @@ def initdisk(Diskname):
 
 # 与操作盘diskinfo交互
 def getdiskname():
-    diskinfo = RefreshJson('./diskInfo.txt')
+    diskinfo = RefreshJson('./diskInfo.txt',silent=True)
     if not os.path.exists('./diskInfo.txt') or diskinfo.l == []:
         name = input(f'检测到当前操作盘未初始化。请输入盘符（后期沿用，慎重！）：\n\t\t\t\t（已启用的唯一名）{RefreshTXT("D:/Kaleidoscope/disknames.txt").l}')
         initdisk(name)
     else:
         global disknames
-        disknames=RefreshTXT("D:/Kaleidoscope/disknames.txt")
+        disknames=RefreshTXT("D:/Kaleidoscope/disknames.txt",silent=True)
         disknames.add(diskinfo.d['name'])
     return diskinfo.d['name'][0]
 
@@ -2613,7 +2619,7 @@ def elements(l, depth=5, silent=None):
 
 def Elements(l, depth=5, silent=None):
     """
-    返回元素列表，找不到为[]
+    传入完全规范的字符表达式和根元素。返回元素列表，找不到为[]
     :param l:
     :return:
     """
@@ -3159,16 +3165,20 @@ class Edge():
         return self.element(*a,**b)
 
     # 根据多个但只有一个有效的字符串匹配元素，返回第一组
-    def elements(self, s1, depth=9, silent=True, strict=True):
+    def elements(self, s1, depth=9, silent=True, strict=True,root=None):
         '''
 
-        @param s:
+        @param s1:匹配字符串或是元素
         @param depth:
         @param silent:
         @param strict:True表示如果没找到，直接报错
+        @param root:根元素。默认是self.driver
         @return:
         '''
+        s1=s1.replace('svg','[name()="svg"]')
         s = s1
+        if root == None:
+            root = self.driver
         # 重写xpath规则
         for i in ['@href', '@src', 'text()','.text']:
             if '//'+i in s:
@@ -3178,10 +3188,10 @@ class Edge():
 
         # 获取元素列表
         if not type(s) == list:
-            ret = Elements([self.driver, By.XPATH, s], depth=depth, silent=silent,)
+            ret = Elements([root, By.XPATH, s], depth=depth, silent=silent,)
         else:
             for i in s:
-                ret = Elements([self.driver, By.XPATH, i], depth=depth, silent=silent)
+                ret = Elements([root, By.XPATH, i], depth=depth, silent=silent)
                 if not ret == []:
                     break
         if strict:

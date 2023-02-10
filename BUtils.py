@@ -17,7 +17,7 @@ missing = MyUtils.rjson('D:\Kaleidoscope/bili/Missing.txt')
 cachepath = MyUtils.projectpath('cache/bili')
 collectionpath = MyUtils.standarlizedPath('./bili/collection/')
 collecitonvideorecord = MyUtils.rtxt(MyUtils.projectpath('./bili/CollectionVideo'))
-
+MyUtils.setrootpath(dname=['-1','-2'])
 
 # 从收藏夹导入用户
 def addwebuser(f=videouserspectrum, url='https://space.bilibili.com/661654199/fans/follow?tagid=475631', ):
@@ -224,6 +224,7 @@ class video():
                 self.author = authors[0]
             page.quit()
 
+    @MyUtils.consume
     def tellexist(self=None, page=None, bvid=None):
         if page == None:
             page=MyUtils.Chrome(f'https://www.bilibili.com/video/{bvid}', silent=True)
@@ -241,7 +242,7 @@ def iscacheempty():
         MyUtils.warn('cache不为空。请清空后重试。')
         MyUtils.sleep(7)
 
-
+@MyUtils.consume
 def download(bvid, author=None, useruid=None, overdownloaded=False):
     '''
     下载器打开情况下MyUtils下载
@@ -270,16 +271,16 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
 
     MyUtils.click(708, 504)
     MyUtils.sleep(0.7)
-    MyUtils.click(1208, 556)
+    MyUtils.click(1208, 556,interval=0.07)
     MyUtils.sleep(0.7)
-    MyUtils.click(1208, 576)
+    MyUtils.click(1208, 576,interval=0.07)
     MyUtils.sleep(0.7)
     # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
-    MyUtils.click(1208, 606)
-    MyUtils.sleep(0.7)
+    MyUtils.click(1208, 606,interval=0.07)
+    # MyUtils.sleep(0.7)
     MyUtils.log(f'{author} {bvid}已加入下载器')
     MyUtils.click(1246, 722)
-    MyUtils.sleep(1.5)
+    # MyUtils.sleep(1.5)
     # endregion
     return True
 

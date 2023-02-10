@@ -3,9 +3,10 @@ import BUtils
 
 # 不管是否和用户模式下载重复
 所有下载数=200
-单次下载数=8
+单次下载数=4
 
 # MyUtils.hotkey('alt','tab')
+@MyUtils.consume
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l
 
@@ -24,9 +25,10 @@ def download(maxn=10,clip=3):
                 continue
             BUtils.download(bvid,overdownloaded=True)
             MyUtils.delog(f'downloading {i["bvid"]}')
-            if 0==maxn%clip:
+            if 1==maxn%clip:
                 BUtils.wait(t=5,silent=False)
                 move()
+                page.refresh()
             maxn-=1
             MyUtils.delog(f'remaining {maxn}')
             if maxn<0:
@@ -50,7 +52,6 @@ def addtorecord():
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
-MyUtils.setrootpath(dname=[-2,-1])
 MyUtils.rmempty('./bili/collection')
 MyUtils.rmempty(BUtils.cachepath)
 BUtils.rmnomp4(BUtils.cachepath)
@@ -59,7 +60,7 @@ move()
 addtorecord()
 download(所有下载数,单次下载数)
 move()
-# page=MyUtils.Chrome('https://space.bilibili.com/661654199/favlist?fid=1033475199')
+page=MyUtils.Chrome('https://www.bilibili.com/video/BV1H3411v78r',mute=True)
 MyUtils.rmempty('./bili/collection')
 
 MyUtils.rmempty(BUtils.cachepath)

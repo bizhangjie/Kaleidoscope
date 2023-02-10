@@ -12,7 +12,7 @@ def main():
         MyUtils.getscreenlock()
         t = MyUtils.table(f'D:/Kaleidoscope/self/20MINUTES/{MyUtils.today()}.csv', title=['时间', '内容'])
         f=MyUtils.txt(MyUtils.projectpath('./self/20MINUTES/cache.txt'))
-        suggestion=['灵戒：宣称所有的主体时间点非现代等的架空产物均为不洁者。','请输入当前：']
+        suggestion=['请输入当前：']
         f.l=suggestion
         f.save()
         MyUtils.hotkey('win','d')
