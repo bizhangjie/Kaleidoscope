@@ -1,0 +1,8 @@
+opencv-python
+pywin32
+requests
+selenium
+pillow
+pysimplegui
+moviepy
+pyperclip

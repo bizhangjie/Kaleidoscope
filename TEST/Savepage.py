@@ -9,7 +9,7 @@ def provisional(page):
 
 if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
-    for url in ['https://baijiahao.baidu.com/s?id=1659339685940069837&wfr=spider&for=pc']:
+    for url in ['']:
     # for url in ['http://www.studyofnet.com/588830253.html']:
         page = MyUtils.Edge(url, silent=True)
 
