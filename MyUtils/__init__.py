@@ -89,6 +89,55 @@ def listed(func):
 
     return inner
 
+# 计算调试时函数的消耗时间
+def DebugConsume(func):
+    def inner(*a, **b):
+        def inner1(f, *a, **b):
+            if not debug:
+                stole = nowstr()
+            ret = f(*a, **b)
+            if debug:
+                return ret
+            funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
+            funcname2 = None
+            try:
+                funcname2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[3]
+                funcname2 = (funcname2[0])
+                funcname2 = funcname2[funcname2.find('.') + 1:funcname2.find('(')]
+            except:
+                pass
+            if counttime(stole) > 1:
+                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
+            return ret
+
+        return inner1(func, *a, **b)
+
+    return inner
+
+# 计算运行时函数的消耗时间
+def RuntimeConsume(func):
+    def inner(*a, **b):
+        def inner1(f, *a, **b):
+            if not debug:
+                stole = nowstr()
+            ret = f(*a, **b)
+            if debug:
+                return ret
+            funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
+            funcname2 = None
+            try:
+                funcname2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[3]
+                funcname2 = (funcname2[0])
+                funcname2 = funcname2[funcname2.find('.') + 1:funcname2.find('(')]
+            except:
+                pass
+            if counttime(stole) > 1:
+                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
+            return ret
+
+        return inner1(func, *a, **b)
+
+    return inner
 
 # 计算函数的消耗时间
 def consume(func):
@@ -111,6 +160,7 @@ def consume(func):
         return inner1(func, *a, **b)
 
     return inner
+# endregion
 # endregion
 
 # 时间
@@ -465,18 +515,23 @@ def timearr(s=nowstr()):
 # 调试模式
 # region
 def Exit(*a):
+    '''
+    如果是运行时，就抛出异常；否则无限挂起
+    @param a:
+    @return:
+    '''
     for s in a:
         warn(s)
-    try:
-        sys.exit(-1)
-    except Exception as e:
-        warn('程序失败。请手动终止。')
-        warn(e)
-        context(2)
-        sleep(9999)
-        sleep(9999)
-        sleep(9999)
-
+    if debug:
+        try:
+            sys.exit(-1)
+        except Exception as e:
+            warn('程序不能正常停止。请手动终止。')
+            warn(e)
+            context(2)
+            sleep(9999)
+    else:
+        return MyError()
 
 def Debug():
     global debug
@@ -500,10 +555,10 @@ def retry(e):
 # 特殊功能函数
 # region
 # 获取锁
-def getlock(name):
+def getlock(name,content=None):
     f=txt(projectpath(f'{name}lock.txt'))
     if f.l==[]:
-        f.l.append('1')
+        f.l.append(f'1')
         f.save()
         return True
     else:
@@ -1607,6 +1662,7 @@ class txt():
     '''
     读写txt文件。l，可以不是字符串，自动追加空格。
     '''
+    @DebugConsume
     def __init__(self, path, encoding='utf-8',silent=None):
         self.silent=silent
         self.mode = 'txt'
@@ -1619,6 +1675,7 @@ class txt():
         if not self.path.find('.') > 0:
             self.path += '.txt'
         self.l = []
+        delog('reloaded.')
         if not os.path.exists(self.path):
             createfile(self.path, encoding=encoding)
             return
@@ -1638,16 +1695,22 @@ class txt():
 
     @consume
     #         去重，去空，集合化
-    def set(self,silent=False):
+    def set(self,silent=None):
         p = list(set(self.l))
         p.sort(key=self.l.index)
         self.l = p
         if '' in self.l:
             self.l.pop(self.l.index(''))
-        txt.save(self, 'Rtxt set',silent=silent)
+        if not silent==None:
+            txt.save(self, 'Rtxt set',silent=silent)
+        else:
+            txt.save(self, 'Rtxt set',silent=self.silent)
+
 
     @listed
-    def add(self, i, silent=False):
+    def add(self, i, silent=None):
+        if silent==None:
+            silent=self.silent
         i = str(i)
         for k in i.split('\n'):
             k = str(k)
@@ -1665,8 +1728,10 @@ class txt():
         txt.add(i)
 
     @consume
-    def save(self, s='txt saved',silent=False):
+    def save(self, s='txt saved',silent=None):
         # 强制覆盖写
+        if silent==None:
+            silent=self.silent
         slist = []
         if self.l == []:
             slist = ['']
@@ -1690,8 +1755,9 @@ class RefreshTXT(txt):
     # 实现逐行的记录仓库
     # 实现备份
     # 增删都会执行保存操作。
+    @DebugConsume
     def __init__(self, path, encoding=None,silent=None):
-        txt.__init__(self, path, encoding)
+        txt.__init__(self, path, encoding,silent)
         self.loopcount = 0
         self.mode = 'Rtxt'
         # self.rollback()
@@ -1717,31 +1783,39 @@ class RefreshTXT(txt):
 
     # 根据l并行写入
     @consume
-    def save(self,silent=False):
+    def save(self,silent=None):
+        if silent==None:
+            silent=self.silent
         extend(self.l, rtxt(self.path,silent=silent).l)
         RefreshTXT.set(self,silent=silent)
         txt.save(self, 'Rtxt 合并保存',silent=silent)
 
-    def get(self):
-        self.__init__(self.path, self.encoding)
+    def get(self,silent=None):
+        if silent==None:
+            silent=self.silent
+        self.__init__(self.path, self.encoding,silent=self.silent)
         if len(self.l) < 1:
             return None
         self.l = extend(self.l[1:], [self.l[0]])
         self.loopcount -= 1
-        self.save()
+        self.save(silent=silent)
         return self.l[-1]
 
-    def rollback(self):
-        self.__init__(self.path, self.encoding)
+    def rollback(self,silent=None):
+        if silent==None:
+            silent=self.silent
+        self.__init__(self.path, self.encoding,silent=self.silent)
         if len(self.l) <= 1:
             return None
         self.l = extend([self.l[-1]], self.l[:-1])
         self.loopcount += 1
-        self.save()
+        self.save(silent=silent)
         return self.l[0]
 
     @listed
-    def delete(self, i,silent=False):
+    def delete(self, i,silent=None):
+        if silent==None:
+            silent=self.silent
         b = False
         j = dicttojson(i)
         while j in self.l:
@@ -1752,7 +1826,9 @@ class RefreshTXT(txt):
         txt.save(self, f'删除{j}',silent=silent)
 
     @listed
-    def add(self, i,silent=False):
+    def add(self, i,silent=None):
+        if silent==None:
+            silent=self.silent
         i = str(i)
         i.strip('\n')
         if not i in self.l:
@@ -1793,7 +1869,7 @@ class Json(txt):
 
 
 class RefreshJson(Json, RefreshTXT):
-    @consume
+    @DebugConsume
     def __init__(self, path, encoding=None,silent=None):
         RefreshTXT.__init__(self, path, encoding=encoding,silent=silent)
         RefreshJson.depart(self)
@@ -1809,7 +1885,9 @@ class RefreshJson(Json, RefreshTXT):
     # depatch
     # segment
     # 有时会产生异常，多行没有换行。分开。
-    def depart(self):
+    def depart(self,silent=None):
+        if silent is None:
+            silent=self.silent
         addl = []
         dell = []
         for i in self.l:
@@ -1820,9 +1898,9 @@ class RefreshJson(Json, RefreshTXT):
                 extend(addl, newl)
                 dell.append(i)
         for j in addl:
-            RefreshTXT.add(self, '{' + j + '}')
+            RefreshTXT.add(self, '{' + j + '}',silent=silent)
         for i in dell:
-            RefreshTXT.delete(self, i)
+            RefreshTXT.delete(self, i,silent=silent)
 
     # 返回列表，所有的record，一个value对应一个key
     def all(self):
@@ -1837,18 +1915,20 @@ class RefreshJson(Json, RefreshTXT):
             if v == value(i):
                 return key(i)
 
-    def get(self):
+    def get(self,silent=None):
         '''
         返回列表，txt内存储的值是列表，返回列表中每个值都添加一个键
         @return:
         '''
-        dstr = (RefreshTXT.get(self))
+        if silent is None:
+            silent=self.silent
+        dstr = (RefreshTXT.get(self,silent=silent))
         try:
             d = jsontodict(dstr)
         except Exception as e:
             if type(e) in [ValueError] and '}{' in dstr:
                 #         先分割
-                RefreshJson.depart(self)
+                RefreshJson.depart(self,silent=silent)
                 #         在返回全部的列表
                 newl = dstr.split('}{')
                 newl[0] = newl[0][1:]
@@ -1867,7 +1947,9 @@ class RefreshJson(Json, RefreshTXT):
             ret.append({key(d): i})
         return ret
 
-    def add(self, d,silent=False):
+    def add(self, d,silent=None):
+        if silent==None:
+            silent=self.silent
         d = jsontodict(d)
 
         if list == type(value(d)):
@@ -1897,7 +1979,9 @@ class RefreshJson(Json, RefreshTXT):
 
     @consume
     # 合并相同的键
-    def set(self,silent=False):
+    def set(self,silent=None):
+        if silent==None:
+            silent=self.silent
         allkey = []
         for dstr in self.l:
             d = jsontodict(dstr)
@@ -1920,8 +2004,8 @@ class RefreshJson(Json, RefreshTXT):
                 except:
                     print(values)
                     Exit()
-            RefreshTXT.delete(self, dlis, silent=True)
-            RefreshJson.add(self, {k: values}, silent=True)
+            RefreshTXT.delete(self, dlis, silent=silent)
+            RefreshJson.add(self, {k: values}, silent=silent)
 
     def rollback(self):
         d = jsontodict(RefreshTXT.rollback(self))
@@ -1932,7 +2016,9 @@ class RefreshJson(Json, RefreshTXT):
 
     @listed
     @consume
-    def delete(self, i,silent=False):
+    def delete(self, i,silent=None):
+        if silent==None:
+            silent=self.silent
         i = jsontodict(i)
         if list == type(value(i)):
             for j in value(i):
@@ -2043,8 +2129,13 @@ class rjson(RefreshJson):
 
 #  日志
 # region
-# 解释性语言，返回之前的程序上下文
-def context(step=0):
+def context(step=0,show=False):
+    '''
+    返回程序上下文
+    @param step:
+    @param show:是否通过txt显示
+    @return:
+    '''
     if step < 0:
         return None
     frame = inspect.currentframe()
@@ -2067,6 +2158,11 @@ def context(step=0):
                 ret.append(d)
         except:
             break
+    if show:
+        f=txt(cachepath('context.txt'))
+        f.add(ret)
+        f.save()
+        look(f.path)
     return ret
 def stepback(*a,**b):
     return context(*a,**b)
@@ -3638,7 +3734,7 @@ def scrshot(l):
 # 写死变量
 # region
 Logcount = 0
-debug = True
+debug = sys.gettrace()
 
 retrylist = [selenium.common.exceptions.WebDriverException,
              MyError, selenium.common.exceptions.ElementClickInterceptedException,
@@ -3661,7 +3757,7 @@ diskname=''
 setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
-def runningroot():
+def RuntimeRoot():
     ret= standarlizedPath(__file__)
     ret = ret[:ret.rfind('/')] + '/'
     return ret

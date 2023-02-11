@@ -1,10 +1,8 @@
 import json
 import os
-import sys
 import time
 
 from selenium.webdriver.common.by import By
-
 import MyUtils
 MyUtils.setrootpath(dname=['-1','-2'])
 # 文件定义
@@ -36,8 +34,7 @@ def HostPieces(l):
     ret = MyUtils.extend(ret, l3)
 
     if ret == []:
-        MyUtils.warn(f'获取视频元素列表错误。{l1, l2, l3}')
-        sys.exit(-1)
+        MyUtils.Exit(f'获取视频元素列表错误。{l1, l2, l3}')
     MyUtils.delog(f'准备操作的作品列表长度：{len(ret)}')
     return ret
 
@@ -184,20 +181,29 @@ def skiprecorded(VideoNum):
 
 
 def skipdownloaded(flag, record, VideoNum, title, author,num=None):
+    '''
+
+    @param flag:
+    @param record:
+    @param VideoNum:
+    @param title:
+    @param author:
+    @param num: 应该要有的图片数
+    @return:
+    '''
     path = './抖音/' + author
     if (os.path.exists(f'{path}/{VideoNum}_{title}.mp4') and not flag):
         record.add(simplinfo(VideoNum, author, title))
         MyUtils.log(f' {MyUtils.standarlizedPath(path)}/{VideoNum}_{title}.mp4  已存在磁盘中，补全记录')
         return True
-    # if (flag and os.path.exists(baijiahao'{path}/{VideoNum}_{title}/{len(VideoNum) - 1}.png')):
-    if flag and not None==num:
+    if flag:
         if  len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==num:
             record.add(simplinfo(VideoNum, author, title))
             MyUtils.log(f' {path}/{VideoNum}_{title} 共{num}张图片已存在磁盘中，补全记录')
             return True
         else:
-            # MyUtils.Open(f'{path}/{VideoNum}_{title}')
-            MyUtils.warn(f"声称未下载满：\n\t{path}/{VideoNum}_{title}  {len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))}/{num}")
+            if not MyUtils.isemptydir(f'{path}/{VideoNum}_{title}'):
+                MyUtils.warn(f"未下载满：\n\t{path}/{VideoNum}_{title}  {len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))}/{num}")
             return False
     return False
 

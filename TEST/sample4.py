@@ -1,17 +1,28 @@
-from tkinter import *
+class a():
+    def __init__(self,silent=None):
+        self.silent=silent
+        print('a已构造')
+    def checksilent(self,silent=None):
+        if silent is None:
+            silent=self.silent
+        print('silent:',silent)
 
-root = Tk()
+class b(a):
+    def __init__(self,silent=None):
+        a.__init__(self,silent=silent)
+        print('b已构造')
 
-w = Canvas(root, width=480, height=320, background='gray')
-w.pack()
+class c(a):
+    def __init__(self,silent=None):
+        a.__init__(self,silent=silent)
+        print('c已构造')
 
-line = w.create_line(0, 50, 400, 50, dash=(4, 4), fill='yellow')
-rect = w.create_rectangle(120, 80, 360, 240, outline='red')
-oval = w.create_oval(120, 80, 360, 240, fill='pink')
-text = w.create_text(240, 160, text='Chick')
+class d(b,c):
+    def __init__(self,silent=self.silent):
+        # b.__init__(self,silent=silent)
+        # c.__init__(self,silent=silent)
+        super().__init__(silent=silent)
+        print('d已构造')
 
-w.coords(line, 50, 50, 400, 100)
-w.itemconfig(rect, fill='blue')
-w.delete(oval)
 
-mainloop()
+d()

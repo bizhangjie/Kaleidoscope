@@ -71,7 +71,7 @@ def count():
     MyUtils.log(f"视频总数：{file}")
     MyUtils.log(f"图片总数：{dir}")
     table = MyUtils.table(MyUtils.projectpath('./抖音/record.csv'))
-    if file>70000:
+    if file>67000:
         table.add((allpieces.length(), allusers.length(), missing.length(), file, dir, MyUtils.removetail(MyUtils.Time().s(), '.')))
 
 
