@@ -227,6 +227,7 @@ class video():
     @MyUtils.consume
     def tellexist(self=None, page=None, bvid=None):
         if page == None:
+            MyUtils.delog(f'https://www.bilibili.com/video/{bvid}')
             page=MyUtils.Chrome(f'https://www.bilibili.com/video/{bvid}', silent=True)
         else:
             page=page[0]
