@@ -24,7 +24,6 @@ import selenium
 import urllib3
 import win32api
 import win32con
-# import cv2
 from moviepy.editor import VideoFileClip
 from selenium import webdriver
 from selenium.webdriver import ActionChains
