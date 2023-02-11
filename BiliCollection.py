@@ -28,6 +28,7 @@ def download(maxn=10,clip=3):
             if 1==maxn%clip:
                 BUtils.wait(t=5,silent=False)
                 move()
+                nonlocal page
                 page.refresh()
             maxn-=1
             MyUtils.delog(f'remaining {maxn}')
@@ -56,11 +57,12 @@ MyUtils.rmempty('./bili/collection')
 MyUtils.rmempty(BUtils.cachepath)
 BUtils.rmnomp4(BUtils.cachepath)
 BUtils.deletehash('./bili/collection')
+global page
+page=MyUtils.Chrome('https://www.bilibili.com/video/BV1H3411v78r',mute=True)
 move()
 addtorecord()
 download(所有下载数,单次下载数)
 move()
-page=MyUtils.Chrome('https://www.bilibili.com/video/BV1H3411v78r',mute=True)
 MyUtils.rmempty('./bili/collection')
 
 MyUtils.rmempty(BUtils.cachepath)
