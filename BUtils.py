@@ -17,7 +17,7 @@ missing = MyUtils.rjson('D:\Kaleidoscope/bili/Missing.txt')
 cachepath = MyUtils.projectpath('cache/bili')
 collectionpath = MyUtils.standarlizedPath('./bili/collection/')
 collecitonvideorecord = MyUtils.rtxt(MyUtils.projectpath('./bili/CollectionVideo'))
-MyUtils.setrootpath(dname=['-1','-2'])
+MyUtils.setrootpath(dname=[-1,'-2'])
 
 # 从收藏夹导入用户
 def addwebuser(f=videouserspectrum, url='https://space.bilibili.com/661654199/fans/follow?tagid=475631', ):
