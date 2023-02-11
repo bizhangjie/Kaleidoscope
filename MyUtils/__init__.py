@@ -515,22 +515,18 @@ def timearr(s=nowstr()):
 # region
 def Exit(*a):
     '''
-    如果是运行时，就抛出异常；否则无限挂起
+    直接结束或者无限挂起
     @param a:
     @return:
     '''
-    for s in a:
-        warn(s)
-    if debug:
-        try:
-            sys.exit(-1)
-        except Exception as e:
-            warn('程序不能正常停止。请手动终止。')
-            warn(e)
-            context(2)
-            sleep(9999)
-    else:
-        return MyError()
+    try:
+        warn(*a)
+        sys.exit(-1)
+    except Exception as e:
+        warn('程序不能正常停止。请手动终止。')
+        warn(e)
+        context(2)
+        sleep(9999)
 
 def Debug():
     global debug
@@ -2868,12 +2864,12 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
 
 
 class Edge():
-    def __init__(self, url=None, silent=None,driver=None,mine=False):
+    def __init__(self, url=None, silent=None,driver=None,mine=False, mute=True):
         if not driver==None:
             self.driver = driver[0]
             return
         else:
-            self.driver = edge(url='', silent=silent, mine=mine)
+            self.driver = edge(url='', silent=silent, mine=mine, mute=mute)
         if not url ==  None:
             self.get(url)
         self.silent = silent
@@ -3458,7 +3454,7 @@ class Edge():
         self.driver.quit()
 
 class Chrome(Edge):
-    def __init__(self, url=None, mine=None, silent=None, t=100, driver=None):
+    def __init__(self, url=None, mine=None, silent=None, t=100, driver=None, mute=True):
         self.mine = mine
         #     记录当前在使用mine chrome的context
         if mine == True:
@@ -3473,7 +3469,7 @@ class Chrome(Edge):
             self.driver = driver[0]
             return
         else:
-            self.driver = chrome(url=url, mine=mine, silent=silent, t=t)
+            self.driver = chrome(url=url, mine=mine, silent=silent, t=t,mute=mute)
         if not url == None:
             self.get(url)
         self.silent = silent
@@ -3491,7 +3487,7 @@ class Chrome(Edge):
     def maximize(self):
         self.driver.maximize_window()
 
-def edge(url='', silent=None, mute=True, mine=False):
+def edge(url='', silent=None, mine=False, mute=True):
     options = webdriver.EdgeOptions()
     if not silent == None:
         options.add_argument('headless')

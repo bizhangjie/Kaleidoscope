@@ -41,8 +41,6 @@ def main():
         stole = MyUtils.nowstr()
         countt = 0
         for VideoElement in DouyinUtils.HostPieces([page]):
-            countt += 1
-            print(countt)
             VideoUrl, VideoNum = DouyinUtils.piecetourlnum([VideoElement])
             urllist.append(VideoUrl)
             ispic.append(DouyinUtils.IsPic([VideoElement]))
@@ -81,11 +79,8 @@ def main():
 
             # 跳过直播
             try:
-                l1 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div[2]/div/div[1]/div[1]/a'], depth=9, silent=True)
-                l2 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/main/div[2]/div[1]/div[1]/a'], depth=9, silent=True)
-                userurl = MyUtils.extend(l1, l2)[0].get_attribute('href')
+                userurl = MyUtils.Element([page, By.XPATH, '//*[@id="root"]//div[@data-e2e="user-info"]//a[contains(@href,"www.douyin.com/user")]'], depth=9, silent=True).get_attribute('href')
             except Exception as e:
-                MyUtils.delog([l1, l2])
                 MyUtils.warn(e)
                 time.sleep(999)
             if userurl.rfind('live') > 0:
