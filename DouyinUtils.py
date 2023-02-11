@@ -154,10 +154,7 @@ def Title(l):
 
 
 def dislike(l):
-    page = l[0]
-    l1 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/div/div[1]/div[3]/div/div[2]/div[1]/div[1]'], depth=9)
-    l2 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/main/div[1]/div[2]/div/div[1]/div[1]'], depth=9)
-    MyUtils.clickelement([page, MyUtils.extend(l1, l2)[0]])
+    MyUtils.clickelement([l[0], By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div/div[1]/div[3]/div/div[2]/div[1]/div[1]/div'])
     time.sleep(3)
     # ???貌似要等很久？
 

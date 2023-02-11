@@ -38,13 +38,10 @@ def main():
         # 下滚，保存url列表
         MyUtils.scroll([page])
         urllist = []
-        stole = MyUtils.nowstr()
-        countt = 0
         for VideoElement in DouyinUtils.HostPieces([page]):
             VideoUrl, VideoNum = DouyinUtils.piecetourlnum([VideoElement])
             urllist.append(VideoUrl)
             ispic.append(DouyinUtils.IsPic([VideoElement]))
-        MyUtils.delog('所有喜欢作品元素使用时间', MyUtils.counttime(stole))
 
         # 逐一打开
         for url in urllist:

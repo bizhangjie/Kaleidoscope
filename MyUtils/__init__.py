@@ -2864,7 +2864,7 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
 
 
 class Edge():
-    def __init__(self, url=None, silent=None,driver=None,mine=False, mute=True):
+    def __init__(self, url=None, silent=None,driver=None,mine=False, mute=False):
         if not driver==None:
             self.driver = driver[0]
             return
