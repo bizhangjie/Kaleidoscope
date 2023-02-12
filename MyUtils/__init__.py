@@ -3557,7 +3557,7 @@ def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit
                     click(p.x+xoffset, p.y+yoffset)
                     if not silent:
                         log(p.x+xoffset, p.y+yoffset)
-                    return
+                    return True
         #     没找到
         if strict:
             Open(path)
