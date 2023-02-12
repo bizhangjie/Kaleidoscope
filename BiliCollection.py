@@ -55,8 +55,8 @@ def addtorecord():
 
 
 if __name__=='__main__':
-    MyUtils.getscreenlock()
-    MyUtils.getcopylock()
+    # MyUtils.getscreenlock()
+    # MyUtils.getcopylock()
     MyUtils.rmempty('./bili/collection')
     MyUtils.rmempty(BUtils.cachepath)
     BUtils.rmnomp4(BUtils.cachepath)
@@ -73,5 +73,5 @@ if __name__=='__main__':
     BUtils.deletehash('./bili/collection')
     addtorecord()
 
-    MyUtils.releasescreenlock()
-    MyUtils.releasecopylock()
+    # MyUtils.releasescreenlock()
+    # MyUtils.releasecopylock()
