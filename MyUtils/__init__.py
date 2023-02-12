@@ -3525,21 +3525,22 @@ def edge(url='', silent=None, mine=False, mute=True):
 
 
 # 点击屏幕
-def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,gap=0.05,grayscale=True,xoffset=0,yoffset=0):
+def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit=0,gap=0.05,grayscale=True,xoffset=0,yoffset=0,strict=False):
     '''
 
-    @param x:
+    @param x:x为坐标，或者图片路径
     @param y:
     @param button: 左键还是右键
     @param silent:
     @param interval:
     @param confidence: 图片识别精确度
     @param limit:图片识别精确度下限
-    @param gap:
+    @param gap: 图片识别精确度下降间隔
     @param grayscale: 是否使用灰度识别图片
     @param xoffset: 图片识别结果的偏移量
     @param yoffset:
-    @return:
+    @param strict: 是否严格模式，严格模式下，如果定位不存在，则会返回
+    @return:是否成功
     '''
     if type(x) in [str]:
         if not '.png' in x:
@@ -3556,8 +3557,11 @@ def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit
                     click(p.x+xoffset, p.y+yoffset)
                     return
         #     没找到
-        Open(path)
-        Exit(path)
+        if strict:
+            Open(path)
+            Exit(path)
+        else:
+            return False
     try:
         pyautogui.click(x, y, button=button)
         sleep(interval)

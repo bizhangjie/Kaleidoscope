@@ -1,30 +1,20 @@
-import time
-
 import MyUtils
-
-
-def fun():
-    pass
-
-
-def main():
-    fun()
-
+commission='latest -WYJ'
 
 if __name__ == '__main__':
     # 持续推送到github
-    b=True
+    b = True
     while True:
-        f=MyUtils.txt(MyUtils.projectpath('txt.txt'))
+        f = MyUtils.txt(MyUtils.projectpath('txt.txt'))
         if b:
             f.add(' ')
         else:
-            f.l=f.l[:-1]
+            f.l = f.l[:-1]
             f.save()
-        b=not b
+        b = not b
         MyUtils.delog(b)
-        MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "latest -WYJ";git push',silent=True)
+        MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "{commission}";git push', silent=True)
         MyUtils.log('已提交并推送。')
-        while not MyUtils.now().time().hour in list(range(10,24)):
-            time.sleep(60*5)
-        time.sleep(5*60)
+        while not MyUtils.now().time().hour in list(range(10, 24)):
+            MyUtils.sleep(60 * 5)
+        MyUtils.sleep(5 * 60)

@@ -2,34 +2,8 @@
 
 
 
-- [ ] 小红书
+- [ ] 小红书、微博、bilibili动态、微信、youtube、虎牙、快手
 
-- [ ] 微博
+- [x] 百度贴吧、biilibili视频（通过第三方）、dandanzan10.top、抖音、tiktok、普通网页、twitter、知乎、cc98
 
-- [x] 百度贴吧
-
-- [x] biilibili视频（第三方）
-
-- [ ] bilibili动态
-
-- [x] youtube
-
-- [x] dandanzan10.top
-
-- [x] 抖音
-
-- [x] tiktok
-
-- [ ] 微信
-
-- [x] 普通网页
-
-- [ ] 虎牙
-
-- [ ] 快手
-
-- [x] twitter
-
-- [x] 知乎
-
-- [x] cc98
+  
