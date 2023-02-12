@@ -3532,7 +3532,7 @@ def click(x=10, y=10, button='left', silent=True,interval=0.2,confidence=1,limit
     @param y:
     @param button: 左键还是右键
     @param silent:
-    @param interval:
+    @param interval:点击
     @param confidence: 图片识别精确度
     @param limit:图片识别精确度下限
     @param gap: 图片识别精确度下降间隔
