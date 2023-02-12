@@ -52,6 +52,7 @@ def collectionjson(uid, pagenum, ):
     res = requests.get(url, headers=MyUtils.headers)
     # 如果最后一页就退出
     if pagenum * 30 > res.json()['data']['info']['media_count'] and not pagenum == 1:
+        MyUtils.warn('已到最后一页')
         return False
     return res.json()
 
@@ -267,7 +268,7 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     MyUtils.hotkey('ctrl', 'v')
     MyUtils.sleep(0.7)
     MyUtils.hotkey('enter')
-    if MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+    if not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
         return False
     MyUtils.sleep(5)
 
