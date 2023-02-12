@@ -269,6 +269,7 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     MyUtils.sleep(0.7)
     MyUtils.hotkey('enter')
     if not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+        MyUtils.click(1449, 214)
         return False
     MyUtils.sleep(5)
 
