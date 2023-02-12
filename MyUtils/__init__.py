@@ -146,11 +146,11 @@ def consume(func):
             stole = nowstr()
             ret = f(*a, **b)
             funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
-            funcname2 = None
             try:
-                funcname2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[3]
-                funcname2 = (funcname2[0])
-                funcname2 = funcname2[funcname2.find('.') + 1:funcname2.find('(')]
+                funcname2 = inspect.getframeinfo(inspect.currentframe().f_back)[2]
+                # funcname2 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[3]
+                # funcname2 = (funcname2[0])
+                # funcname2 = funcname2[funcname2.find('.') + 1:funcname2.find('(')]
             except:
                 pass
             if counttime(stole) > 1:
