@@ -270,17 +270,18 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     MyUtils.hotkey('enter')
     if not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
         MyUtils.click(1449, 214)
+        MyUtils.warn('第三方解析视频失败。')
         return False
     MyUtils.sleep(5)
 
     MyUtils.click(708, 504)
     MyUtils.sleep(0.7)
-    MyUtils.click(1208, 556,interval=0.07)
-    MyUtils.sleep(0.7)
-    MyUtils.click(1208, 576,interval=0.07)
+    MyUtils.click(1220, 556,interval=0.07)
     MyUtils.sleep(0.7)
     # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
-    MyUtils.click(1208, 606,interval=0.07)
+    MyUtils.click(1220, 576,interval=0.07)
+    MyUtils.sleep(0.7)
+    MyUtils.click(1220, 606,interval=0.07)
     # MyUtils.sleep(0.7)
     MyUtils.log(f'{author} {bvid}已加入下载器')
     MyUtils.click(1246, 722)
