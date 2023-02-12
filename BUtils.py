@@ -46,6 +46,7 @@ def hostjson(uid, pagenum, ):
 
 
 # 获得收藏夹的response （暂时不是json - request
+@MyUtils.consume
 def collectionjson(uid, pagenum, ):
     url = (f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
     MyUtils.delog(f'探测收藏夹{uid}视频页的第{pagenum}页')
