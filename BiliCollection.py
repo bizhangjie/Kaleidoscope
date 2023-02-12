@@ -53,18 +53,25 @@ def addtorecord():
         bvid=MyUtils.gettail(i,'-')
         BUtils.collecitonvideorecord.add(bvid)
 
-MyUtils.rmempty('./bili/collection')
-MyUtils.rmempty(BUtils.cachepath)
-BUtils.rmnomp4(BUtils.cachepath)
-BUtils.deletehash('./bili/collection')
-global page
-page=MyUtils.Chrome('https://www.bilibili.com/video/BV1H3411v78r',mute=True, silent=True)
-move()
-addtorecord()
-download(所有下载数,单次下载数)
-move()
-MyUtils.rmempty('./bili/collection')
 
-MyUtils.rmempty(BUtils.cachepath)
-BUtils.deletehash('./bili/collection')
-addtorecord()
+if __name__=='__main__':
+    MyUtils.getscreenlock()
+    MyUtils.getcopylock()
+    MyUtils.rmempty('./bili/collection')
+    MyUtils.rmempty(BUtils.cachepath)
+    BUtils.rmnomp4(BUtils.cachepath)
+    BUtils.deletehash('./bili/collection')
+    global page
+    page=MyUtils.Chrome('https://www.bilibili.com/video/BV1H3411v78r',mute=True, silent=True)
+    move()
+    addtorecord()
+    download(所有下载数,单次下载数)
+    move()
+    MyUtils.rmempty('./bili/collection')
+
+    MyUtils.rmempty(BUtils.cachepath)
+    BUtils.deletehash('./bili/collection')
+    addtorecord()
+
+    MyUtils.releasescreenlock()
+    MyUtils.releasecopylock()
