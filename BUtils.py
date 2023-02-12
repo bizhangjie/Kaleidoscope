@@ -46,10 +46,9 @@ def hostjson(uid, pagenum, ):
 
 
 # 获得收藏夹的response （暂时不是json - request
-@MyUtils.consume
 def collectionjson(uid, pagenum, ):
     url = (f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
-    MyUtils.delog(f'探测收藏夹{uid}视频页的第{pagenum}页')
+    MyUtils.log(f'探测收藏夹{uid}视频页的第{pagenum}页')
     res = requests.get(url, headers=MyUtils.headers)
     # 如果最后一页就退出
     if pagenum * 30 > res.json()['data']['info']['media_count'] and not pagenum == 1:
@@ -244,7 +243,6 @@ def iscacheempty():
         MyUtils.warn('cache不为空。请清空后重试。')
         MyUtils.sleep(7)
 
-@MyUtils.consume
 def download(bvid, author=None, useruid=None, overdownloaded=False):
     '''
     下载器打开情况下MyUtils下载

@@ -154,7 +154,7 @@ def consume(func):
             except:
                 pass
             if counttime(stole) > 1:
-                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
+                log(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
             return ret
 
         return inner1(func, *a, **b)
