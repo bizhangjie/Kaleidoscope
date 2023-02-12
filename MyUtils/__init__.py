@@ -5,6 +5,7 @@ import inspect
 import json
 import multiprocessing
 import os
+import zipfile
 import random
 import re
 import shutil
@@ -974,6 +975,19 @@ class pool():
 
 # 文件系统读写
 # region
+# 解压zip文件
+def unzip(zippath, targetpath=None):
+    zfile=zipfile.ZipFile(zippath)
+    if targetpath==None:
+        targetpath=zippath.replace('.zip', '')
+    if isdir(targetpath):
+        pass
+    else:
+        createpath(targetpath)
+    for f in zfile.namelist():
+        zfile.extract(f, targetpath)
+    zfile.close()
+
 def regeneratename(originalname, targetpath,regenerate=None,issame=None):
     '''
     解决文件/文件夹已存在问题的循环检查方法。线程不安全。
@@ -1233,18 +1247,18 @@ def copyfile(s1, s2):
         shutil.copy(s1, s2)
 
 
-def move(s1, s2, strict=False,silent=True):
+def move(s1, s2, overwrite=False, silent=True):
     '''
     移动文件或文件夹
     @param s1:
     @param s2:
-    @param strict: 是否强制覆盖
+    @param overwrite: 是否强制覆盖
     @param silent:
     @return:
     '''
     if isfile(s1):
         if isfile(s2):
-            if strict == False:
+            if overwrite == False:
                 Exit(f'移动的目标路径已有目标文件。 {s1} -> {s2}')
             warn(f'移动的目标路径已有目标文件。即将覆盖。{s2}')
         if isdir(s2):
@@ -1252,7 +1266,7 @@ def move(s1, s2, strict=False,silent=True):
         createpath(s2)
     if isdir(s1):
         if isdir(s2):
-            if strict:
+            if overwrite:
                 Open(s1)
                 Open(s2)
                 Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
