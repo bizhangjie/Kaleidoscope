@@ -34,6 +34,8 @@ def main():
         # 探测
         # 获取参数
         # region
+        global Host,Page
+        DouyinUtils.skipverify([Host])
         flag = DouyinUtils.IsPic([VideoElement])
         if flag:
             flagtext='图文'
