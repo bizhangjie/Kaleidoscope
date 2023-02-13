@@ -95,9 +95,10 @@ def main():
             ExceptionUser.add(useruid)
             continue
         # endregion
-        # 滑动滑块
+        # 下滚
         # region
         MyUtils.scroll([host])
+        DouyinUtils.skipverify([Host])
         # endregion
         # 获取变量
         # region
