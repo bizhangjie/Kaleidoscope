@@ -516,7 +516,7 @@ def timearr(s=nowstr()):
 # region
 def Exit(*a):
     '''
-    直接结束或者无限挂起
+    直接结束或者无限挂起，不再让程序运行
     @param a:
     @return:
     '''
@@ -530,6 +530,10 @@ def Exit(*a):
         sleep(9999)
 
 def Debug():
+    '''
+    转到调试模式
+    @return:
+    '''
     global debug
     debug = True
 
@@ -2530,21 +2534,27 @@ def checkdiskusable(s):
     Open(f'{s}:/diskInfo.txt')
 
 
-def setRootPath(dir=None,dname=None):
+def setRootPath(dir=None,dname=None,strict=True):
     '''
-    动态更改MyUtils.diskname唯一标识符
-    更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
-    @param dir:
-    @param dname:根据txt内容设置
-    @return:盘路径根名
+    动态更改操作盘
+    @param dir:False则手动输入，可以直接是字符，None则根据 activedisk 设置
+    @param dname:根据唯一标识符设置操作盘，可以列表
+    @param strict:非严格模式下，未找到磁盘则仅报错，不停止程序
+    @return:唯一标识符，失败为False
     '''
     if not dname==None:
+
+        # 多个唯一标识符查找
         if type(dname)in [list]:
             for dname in dname:
-                ret= setRootPath(dir=dir,dname=dname)
+                ret= setRootPath(dir=dir,dname=dname,strict=False)
                 if ret:
-                    return
-            Exit('未找到磁盘{}。'.format(dname))
+                    return ret
+            if strict:
+                Exit('未找到磁盘{}。'.format(dname))
+            return False
+
+        # 单个唯一标识符查找
         for root in ['d','e','f','g','h']:
             if not isfile(f'{root}:/diskInfo.txt'):
                 continue
@@ -2552,17 +2562,26 @@ def setRootPath(dir=None,dname=None):
             if dname == values(ff.get()[0])[0]:
                 setRootPath(root)
                 return root
-        return
+            if strict:
+                Exit('未找到磁盘{}。'.format(dname))
+            return False
+
+    #     单个字符查找
     if dir == None:
         # 盘未初始化
         if not os.path.exists(f'{activedisk.l[0]}:/'):
             Open(activedisk.path)
-            Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+            if strict:
+                Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+            else:
+                warn(f'{activedisk.path} ：{activedisk.l}，请检查。')
+                return False
+
         # 根据文本更改操作盘
         i=activedisk.l[0]
     else:
         if dir==False:
-            i=input(f'请输入操作盘。默认为{activedisk.l[0]}')
+            i=input(f'。默认为{activedisk.l[0]}')
             if i=='':
                 i=activedisk.l[0]
         # 默认值
@@ -3769,6 +3788,8 @@ headers = {
 user = txt(projectpath('user.txt')).l[0]
 activedisk = txt(projectpath('ActiveDisk.txt'))
 diskname=''
+if setRootPath(dname='HerMAJESTY')=='d':
+    Debug()
 setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
