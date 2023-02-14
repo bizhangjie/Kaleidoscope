@@ -3693,7 +3693,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
         # 存在以前的浏览器自动重命名'~'为'_'的文件
         if not originalpath==path:
             rename(path,originalpath)
-            return True
+            return originalpath
         if not redownload:
             if not size(path) == 0:
                 warn(f'{path}已存在，将不下载')
