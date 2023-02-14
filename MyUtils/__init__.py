@@ -3796,7 +3796,7 @@ headers = {
 user = txt(projectpath('user.txt')).l[0]
 activedisk = txt(projectpath('ActiveDisk.txt'))
 diskname=''
-if setRootPath(dname='HerMAJESTY')=='d':
+if setRootPath(dname='HerMAJESTY',strict=False)=='d':
     Debug()
 setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
