@@ -33,9 +33,10 @@ def download():
         if not len(VideoUrl) > 1:
             # 视频
             # region
-            MyUtils.delog(f'开始下载，url={VideoUrl[0]}')
             try:
-                t = MyUtils.pagedownload(url=VideoUrl[0], path=f'{path}/{VideoNum}_{title}.mp4', t=15)
+                t = MyUtils.pagedownload(url=VideoUrl[0], path=f'{path}/{VideoNum}_{title}.mp4', t=15, silent=not MyUtils.debug)
+                MyUtils.delog(f't={t}')
+                # t = MyUtils.pagedownload(url=VideoUrl[0], path=f'{path}/{VideoNum}_{title}.mp4', t=15)
             except Exception as e:
                 MyUtils.warn(e)
                 t = False

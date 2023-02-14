@@ -516,7 +516,7 @@ def timearr(s=nowstr()):
 # region
 def Exit(*a):
     '''
-    直接结束或者无限挂起
+    直接结束或者无限挂起，不再让程序运行
     @param a:
     @return:
     '''
@@ -530,6 +530,10 @@ def Exit(*a):
         sleep(9999)
 
 def Debug():
+    '''
+    转到调试模式
+    @return:
+    '''
     global debug
     debug = True
 
@@ -1684,10 +1688,10 @@ class txt():
         if not self.path.find('.') > 0:
             self.path += '.txt'
         self.l = []
-        delog('reloaded.')
         if not os.path.exists(self.path):
             createfile(self.path, encoding=encoding)
             return
+        delog(f'文件读 {self.path}')
         for i in file('r', self.path, IOList=[], encoding=encoding):
             self.l.append(str(i).strip('\n'))
 
@@ -1748,6 +1752,7 @@ class txt():
             for i in self.l[:-1]:
                 slist.append(str(i) + '\n')
             slist.append(str(self.l[-1]))
+        delog(f'文件写 {self.path}')
         file('w', self.path, slist, encoding=self.encoding)
         if not silent and not self.silent:
             warn(f'{rmtail(tail(self.path),".txt",strict=False)}({(self.mode)}) - {s}')
@@ -2530,21 +2535,27 @@ def checkdiskusable(s):
     Open(f'{s}:/diskInfo.txt')
 
 
-def setRootPath(dir=None,dname=None):
+def setRootPath(dir=None,dname=None,strict=True):
     '''
-    动态更改MyUtils.diskname唯一标识符
-    更改工作目录，如果是空参，就手动输入操作盘；如果不是，就设置操作盘。随后更改工作目录。
-    @param dir:
-    @param dname:根据txt内容设置
-    @return:盘路径根名
+    动态更改操作盘
+    @param dir:False则手动输入，可以直接是字符，None则根据 activedisk 设置
+    @param dname:根据唯一标识符设置操作盘，可以列表
+    @param strict:非严格模式下，未找到磁盘则仅报错，不停止程序
+    @return:唯一标识符，失败为False
     '''
     if not dname==None:
+
+        # 多个唯一标识符查找
         if type(dname)in [list]:
             for dname in dname:
-                ret= setRootPath(dir=dir,dname=dname)
+                ret= setRootPath(dir=dir,dname=dname,strict=False)
                 if ret:
-                    return
-            Exit('未找到磁盘{}。'.format(dname))
+                    return ret
+            if strict:
+                Exit('未找到磁盘{}。'.format(dname))
+            return False
+
+        # 单个唯一标识符查找
         for root in ['d','e','f','g','h']:
             if not isfile(f'{root}:/diskInfo.txt'):
                 continue
@@ -2552,17 +2563,26 @@ def setRootPath(dir=None,dname=None):
             if dname == values(ff.get()[0])[0]:
                 setRootPath(root)
                 return root
-        return
+        if strict:
+            Exit('未找到磁盘{}。'.format(dname))
+        return False
+
+    #     单个字符查找
     if dir == None:
         # 盘未初始化
         if not os.path.exists(f'{activedisk.l[0]}:/'):
             Open(activedisk.path)
-            Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+            if strict:
+                Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+            else:
+                warn(f'{activedisk.path} ：{activedisk.l}，请检查。')
+                return False
+
         # 根据文本更改操作盘
         i=activedisk.l[0]
     else:
         if dir==False:
-            i=input(f'请输入操作盘。默认为{activedisk.l[0]}')
+            i=input(f'。默认为{activedisk.l[0]}')
             if i=='':
                 i=activedisk.l[0]
         # 默认值
@@ -3633,7 +3653,8 @@ def setscrolltop(l):
 @consume
 def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=None):
     '''
-    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。浏览器下载会自动重命名"~"为"_"
+    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。
+    开发注意浏览器下载会自动重命名"~"为"_"，因此下载完成后要重命名
     @param url:
     @param path:
     @param t:下载和下载后浏览器自动安全检查的时间
@@ -3642,7 +3663,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     @param auto:
     @param newname: 重命名下载的文件名
     @param redownload: 覆盖下载
-    @return:
+    @return:True 下载了并且下载成功；False 下载了但是下载失败；字符串 返回检测到的以前的错误命名
     '''
     def recursive():
         sleep(t)
@@ -3654,7 +3675,6 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
                 os.remove(ii)
                 warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
                 return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto,redownload=redownload)
-        return True
 
     # 递归停止条件
     # region
@@ -3667,11 +3687,17 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     # region
     path = standarlizedPath(path, strict=True)
     createpath(path)
-    if not redownload:
-        if os.path.exists(path):
+    originalpath=path
+    path=path.replace('~','_')
+    if os.path.exists(path):
+        # 存在以前的浏览器自动重命名'~'为'_'的文件
+        if not originalpath==path:
+            rename(path,originalpath)
+            return originalpath
+        if not redownload:
             if not size(path) == 0:
                 warn(f'{path}已存在，将不下载')
-                return
+                return True
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
     options = webdriver.ChromeOptions()
@@ -3718,10 +3744,11 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     while i < 10:
         # 什么？？？竟然要尝试10次，哈哈哈真是笑死我了
         try:
-            page.execute_script(f"var a1=document.createElement('a');\
+            page.execute_script(f"const a1=document.createElement('a');\
             a1.href='{url}';\
             a1.download='{name}';\
             a1.click();")
+            delog(f'pagedownload 正在下载 {url} 到 {path}')
             break
         except Exception as e:
             warn('下载重试中...')
@@ -3769,6 +3796,8 @@ headers = {
 user = txt(projectpath('user.txt')).l[0]
 activedisk = txt(projectpath('ActiveDisk.txt'))
 diskname=''
+if setRootPath(dname='HerMAJESTY')=='d':
+    Debug()
 setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
