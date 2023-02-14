@@ -5,6 +5,10 @@ import time
 from selenium.webdriver.common.by import By
 import MyUtils
 MyUtils.setrootpath(dname=['-1','-2'])
+if MyUtils.debug:
+    maxready=3
+else:
+    maxready=99
 # 文件定义
 allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
 specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
