@@ -16,7 +16,7 @@ def deleteRecorded():
     for dkey in allpieces.d:
         count += 1
         if count % 10000 == 0:
-            MyUtils.delog(f'正在检查记录中的是否存在操作盘内{count}/{allpieces.length()}  不存在的计数：{len(deletelis)}')
+            MyUtils.delog(f'正在检查记录中的是否存在操作盘 {MyUtils.diskname} 内{count}/{allpieces.length()}  不存在的计数：{len(deletelis)}')
         for i in allpieces.d[dkey]:
             if type(i) == list:
                 MyUtils.delog(f'检测到存在多存储：{i}')
@@ -85,7 +85,7 @@ def findduplicate():
             lis.append((MyUtils.filename(user), MyUtils.filename(title)))
         for title in MyUtils.listfile(user):
             lis.append((MyUtils.filename(user), MyUtils.filename(title).strip('.mp4')))
-    MyUtils.delog('操作盘统计完毕')
+    MyUtils.delog(f'操作盘 {MyUtils.diskname} 统计完毕')
     #    再统计记录
     for i in DouyinUtils.allpieces.l:
         d = MyUtils.jsontodict(i)

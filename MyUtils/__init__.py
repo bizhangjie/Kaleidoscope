@@ -1688,10 +1688,10 @@ class txt():
         if not self.path.find('.') > 0:
             self.path += '.txt'
         self.l = []
-        delog('reloaded.')
         if not os.path.exists(self.path):
             createfile(self.path, encoding=encoding)
             return
+        delog(f'文件读 {self.path}')
         for i in file('r', self.path, IOList=[], encoding=encoding):
             self.l.append(str(i).strip('\n'))
 
@@ -1752,6 +1752,7 @@ class txt():
             for i in self.l[:-1]:
                 slist.append(str(i) + '\n')
             slist.append(str(self.l[-1]))
+        delog(f'文件写 {self.path}')
         file('w', self.path, slist, encoding=self.encoding)
         if not silent and not self.silent:
             warn(f'{rmtail(tail(self.path),".txt",strict=False)}({(self.mode)}) - {s}')
@@ -2562,9 +2563,9 @@ def setRootPath(dir=None,dname=None,strict=True):
             if dname == values(ff.get()[0])[0]:
                 setRootPath(root)
                 return root
-            if strict:
-                Exit('未找到磁盘{}。'.format(dname))
-            return False
+        if strict:
+            Exit('未找到磁盘{}。'.format(dname))
+        return False
 
     #     单个字符查找
     if dir == None:
@@ -3652,7 +3653,8 @@ def setscrolltop(l):
 @consume
 def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=None):
     '''
-    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。浏览器下载会自动重命名"~"为"_"
+    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。
+    开发注意浏览器下载会自动重命名"~"为"_"，因此下载完成后要重命名
     @param url:
     @param path:
     @param t:下载和下载后浏览器自动安全检查的时间
@@ -3661,7 +3663,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     @param auto:
     @param newname: 重命名下载的文件名
     @param redownload: 覆盖下载
-    @return:
+    @return:True 下载了并且下载成功；False 下载了但是下载失败；字符串 返回检测到的以前的错误命名
     '''
     def recursive():
         sleep(t)
@@ -3673,7 +3675,6 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
                 os.remove(ii)
                 warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
                 return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto,redownload=redownload)
-        return True
 
     # 递归停止条件
     # region
@@ -3686,11 +3687,17 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     # region
     path = standarlizedPath(path, strict=True)
     createpath(path)
-    if not redownload:
-        if os.path.exists(path):
+    originalpath=path
+    path=path.replace('~','_')
+    if os.path.exists(path):
+        # 存在以前的浏览器自动重命名'~'为'_'的文件
+        if not originalpath==path:
+            rename(path,originalpath)
+            return True
+        if not redownload:
             if not size(path) == 0:
                 warn(f'{path}已存在，将不下载')
-                return
+                return True
     root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
     options = webdriver.ChromeOptions()
@@ -3737,10 +3744,11 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None,redownload=Non
     while i < 10:
         # 什么？？？竟然要尝试10次，哈哈哈真是笑死我了
         try:
-            page.execute_script(f"var a1=document.createElement('a');\
+            page.execute_script(f"const a1=document.createElement('a');\
             a1.href='{url}';\
             a1.download='{name}';\
             a1.click();")
+            delog(f'pagedownload 正在下载 {url} 到 {path}')
             break
         except Exception as e:
             warn('下载重试中...')
