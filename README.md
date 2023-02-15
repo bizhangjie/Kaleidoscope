@@ -1,3 +1,9 @@
+## KALEIDOSCOPE
+
+[GitHub同步]([an-Underpriviliged-ZJUer/Kaleidoscope: 免费且由个人开发，并且长期维护 python selenim QQ空间 虎牙 电影 微信 微博 抖音 知乎 B站 bili Bili 百度贴吧 小红书 tiktok youtube twitter 有颜色 爬虫 (github.com)](https://github.com/an-Underpriviliged-ZJUer/Kaleidoscope))
+
+[Gitee同步]([Kaleidoscope: 《高可用免费》《面向个人用户》《长期更新》 python selenim QQ空间 虎牙 电影 微信 微博 抖音 知乎 B站 bili Bili 百度贴吧 小红书 tiktok youtube twitter 有颜色 爬虫 - Gitee.com](https://gitee.com/v000666_0/Kaleidoscope/tree/main))
+
 [使用必读使用手册](./手册/使用手册.md)
 
 
