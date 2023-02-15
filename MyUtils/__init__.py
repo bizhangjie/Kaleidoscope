@@ -2938,14 +2938,13 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     options = webdriver.ChromeOptions()
     op=''
     if not silent in [None, False]:
-        op+=('  --headless  ')
-    op+=('  --start-maxmized ')
+        options.add_argument('headless')
+    # options.add_argument('start-maximized ')
     if mute:
-        op+=('  --mute-audio  ')
+        options.add_argument('mute-audio')
     if not mine == None:
-        op+=(f" --user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data  ")
-        options.add_experimental_option("excludeSwitches", ['enable-automation'])
-    options.add_argument(op)
+        options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
+    # options.add_experimental_option("excludeSwitches", ['enable-automation'])
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(t)
     driver.set_script_timeout(t)
