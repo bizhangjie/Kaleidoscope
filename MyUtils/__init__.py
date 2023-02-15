@@ -2936,15 +2936,16 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     if not url in ['', None] and not 'http' in url:
         url = 'https://' + url
     options = webdriver.ChromeOptions()
-    options.add_argument('--start-maxmized')
-    if mute:
-        options.add_argument('--mute-audio')
-    if not mine == None:
-        sleep(3)
-        options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
-        options.add_experimental_option("excludeSwitches", ['enable-automation'])
+    op=''
     if not silent in [None, False]:
-        options.add_argument('headless')
+        op+=('  --headless  ')
+    op+=('  --start-maxmized ')
+    if mute:
+        op+=('  --mute-audio  ')
+    if not mine == None:
+        op+=(f" --user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data  ")
+        options.add_experimental_option("excludeSwitches", ['enable-automation'])
+    options.add_argument(op)
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(t)
     driver.set_script_timeout(t)
@@ -3350,10 +3351,10 @@ class Edge():
     def Element(self, *a, **b):
         return self.element(*a, **b)
 
-    # 根据多个但只有一个有效的字符串匹配元素，返回第一组
+    @listed
     def elements(self, s1, depth=9, silent=True, strict=True, root=None):
         """
-
+        根据多个但只有一个有效的字符串匹配元素，返回第一组
         @param s1:匹配字符串或是元素
         @param depth:
         @param silent:
@@ -3560,10 +3561,14 @@ class Chrome(Edge):
         #     记录当前在使用mine chrome的context
         if mine == True:
             f = txt(projectpath('browser/ischromeusing.txt'))
-            if not f.l == []:
+            if not f.l == [] and not debug:
                 Open(f.path)
+
                 Exit('Chrome 似乎已经在使用了')
-            f.l = context(4)
+            if debug:
+                f.l = context(4)
+            else:
+                f.l=['似乎没有关闭上一个带用户缓存的浏览器页面。请确保程序不在用户使用浏览器的情况下使用用户缓存，并且带用户缓存的浏览器同一时间只能存在一个。']
             f.l.append(nowstr())
             f.save()
         if not driver == None:
