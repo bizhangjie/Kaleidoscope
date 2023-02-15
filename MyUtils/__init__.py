@@ -3476,8 +3476,12 @@ class Edge():
         except Exception as e:
             warn(e)
 
-    def skip(self, s,strict=False):
-        return skip([self.driver, By.XPATH, s],strict=strict)
+    def skip(self, s,strict=False,click=False):
+        if not click:
+            return skip([self.driver, By.XPATH, s],strict=strict)
+        e=self.element(s,strict=False)
+        if not e==None:
+            self.click(e)
 
     def title(self):
         if self.url() == '':
