@@ -1,16 +1,10 @@
-import time
-
 import MyUtils
 
 # 最大操作个数
 countt = 4
 
-
 Aurl = 'https://www.zhihu.com/collection/782323705'
-# page=MyUtils.chrome('https://www.zhihu.com/collection/791721748', silent=True,mine=True)
-# page = MyUtils.Chrome('https://www.zhihu.com/collection/782323705', silent=True, mine=True)
 page = MyUtils.Chrome(Aurl, silent=True, mine=True)
-# page = MyUtils.Chrome(Aurl, silent=False, mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 MyUtils.sleep(2)
 
@@ -34,8 +28,7 @@ while True:
         # 打开第二个窗口，在这里操作回答
 
         # 展开问题描述
-        page.click('//*[@id="root"]//main//button[contains(@class,"Button QuestionRichText-more")]',strict=False)
-
+        page.click('//*[@id="root"]//main//button[contains(@class,"Button QuestionRichText-more")]', strict=False)
 
         Answer = page.element(['//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[@class="ContentItem AnswerItem"]',
                                '/html/body/div[1]/div/main/div/article',  # 文章，全屏
@@ -52,7 +45,7 @@ while True:
         #     MyUtils.txt(f'./知乎/plaintext/{title}').add(te)
 
         # 展开回答
-        page.click('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[contains(@class,"RichContent")]//button[contains(@class,"plain")]',strict=False)
+        page.click('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[contains(@class,"RichContent")]//button[contains(@class,"plain")]', strict=False)
         MyUtils.sleep(2)
 
         # 再展开一次页面
@@ -90,7 +83,7 @@ while True:
         #         MyUtils.Exit(e)
 
         # 用新方法保存
-        page.save(MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎',look=True)
+        page.save(MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎', look=True)
 
     page.close()
     page.switchto(0)
