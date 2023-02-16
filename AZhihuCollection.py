@@ -4,7 +4,7 @@ import MyUtils
 countt = 4
 
 Aurl = 'https://www.zhihu.com/collection/782323705'
-page = MyUtils.Chrome(Aurl, silent=False, mine=True)
+page = MyUtils.Chrome(silent=True,mute=True)
 # page = MyUtils.Chrome(silent=True,mine=True)
 # MyUtils.skip([page,By.XPATH,'/html/body/div[1]/div/div[4]/div[1]/div[1]/a'])
 MyUtils.sleep(2)
