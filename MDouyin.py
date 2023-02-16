@@ -12,7 +12,6 @@ missing = DouyinUtils.missing
 def deleteRecorded():
     deletelis = []
     count = 0
-    tstart=MyUtils.now()
     for dkey in allpieces.d:
         count += 1
         if count % 10000 == 0:
@@ -21,7 +20,6 @@ def deleteRecorded():
             if type(i) == list:
                 MyUtils.delog(f'检测到存在多存储：{i}')
             if not i['disk'] == MyUtils.diskname:
-                # MyUtils.warn(f'记录不属于操作盘')
                 continue
             author, title = i['author'], i['title']
             
