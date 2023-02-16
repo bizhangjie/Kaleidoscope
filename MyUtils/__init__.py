@@ -1896,7 +1896,7 @@ class RefreshTXT(txt):
 
 
 class Json(txt):
-    def __init__(self, path, encoding=None):
+    def __init__(self, path, encoding=None, silent=None):
         txt.__init__(self, path, encoding)
         self.addtodict()
 
@@ -2675,16 +2675,20 @@ def initdisk(Diskname):
     return
 
 
-# 与操作盘diskinfo交互
 def getdiskname():
+    """
+
+    @return:
+    """
     diskinfo = RefreshJson('./diskInfo.txt', silent=True)
     if not os.path.exists('./diskInfo.txt') or diskinfo.l == []:
         name = input(f'检测到当前操作盘未初始化。请输入盘符（后期沿用，慎重！）：\n\t\t\t\t（已启用的唯一名）{RefreshTXT("D:/Kaleidoscope/disknames.txt").l}')
         initdisk(name)
     else:
         global disknames
-        disknames = RefreshTXT("D:/Kaleidoscope/disknames.txt", silent=True)
-        disknames.add(diskinfo.d['name'])
+        disknames = Json("D:/Kaleidoscope/disknames.txt", silent=True)
+        disknames.add({'name':diskinfo.d['name']})
+        disknames = rtxt("D:/Kaleidoscope/disknames.txt", silent=True)
     return diskinfo.d['name'][0]
 
 

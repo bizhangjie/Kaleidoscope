@@ -21,7 +21,11 @@ def deleteRecorded():
                 MyUtils.delog(f'检测到存在多存储：{i}')
             if not i['disk'] == MyUtils.diskname:
                 continue
-            author, title = i['author'], i['title']
+            try:
+                author, title = i['author'], i['title']
+            except:
+                print(i)
+                MyUtils.Exit()
             
             if  not os.path.exists(f'./抖音/{author}/{dkey}_{title}.mp4') and [] == MyUtils.listfile(f'./抖音/{author}/{dkey}_{title}'):
                 j = ({dkey: {"disk": MyUtils.diskname, 'author': author, "title": title}})
