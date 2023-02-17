@@ -14,7 +14,7 @@ allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
 specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
 allpieces = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllPieces.txt')
 
-readytodownload = MyUtils.cache('D:/Kaleidoscope/抖音/ReadytoDownload.txt')
+readytodownload = MyUtils.cache('D:/Kaleidoscope/抖音/ReadytoDownload.txt',silent=MyUtils.debug)
 exceptuser = MyUtils.txt('D:/Kaleidoscope/抖音/FailedUsers.txt')
 failed = MyUtils.Json('D:/Kaleidoscope/抖音/FailedPieces.txt')
 missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
@@ -143,7 +143,7 @@ def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
             VideoUrl.append(https)
         #     endregion
     readytoDownload.add({"list": [VideoNum, author, title, VideoUrl, flag]})
-    MyUtils.log(f'下载队列 ({readytoDownload.length()})')
+    MyUtils.delog(f'下载队列 ({readytoDownload.length()})')
 
 
 # 详情页
