@@ -10,6 +10,10 @@ missing = DouyinUtils.missing
 
 # 删除不存在操作盘的作品记录
 def deleteRecorded():
+    # 先删除空文件夹
+    for i in MyUtils.listdir('./抖音'):
+        MyUtils.rmempty(i,silent=True)
+
     deletelis = []
     count = 0
     for dkey in allpieces.d:

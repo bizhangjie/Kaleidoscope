@@ -1104,16 +1104,17 @@ def splitext(*a, **b):
 
 
 # 移除空文件夹
-def rmempty(root, tree=False):
+def rmempty(root, tree=False,silent=False):
     dlis = []
     if tree == False:
         for i in listdir(root):
             if [] == extend(listdir(i), listfile(i)):
                 dlis.append(i)
     if not dlis == []:
-        out(dlis)
-        warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
-        c = input()
+        if not silent:
+            out(dlis)
+            warn('确认删除这些空文件夹，输入任意开始删除，否则请立即停止程序。')
+            c = input()
         deletedirandfile(dlis)
 
 
