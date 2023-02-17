@@ -13,7 +13,7 @@ if __name__ == '__main__':
             f.save()
         b = not b
         MyUtils.delog(b)
-        # push=r"git push main origin:main"
+        push=r"git push main origin:main"
         push=r"git push"
         MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "{commission}";'+push, silent=True)
         MyUtils.log('已提交并推送。')
