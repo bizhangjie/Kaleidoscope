@@ -3753,7 +3753,10 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
                 os.remove(ii)
                 warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
                 return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload)
-        return True
+            if name in ii:
+                return True
+            warn(f'{t}s后下载失败。没有检测到缓存文件  请手动尝试 {url}')
+        return False
 
     # 递归停止条件
     # region
@@ -3806,7 +3809,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
             # 需要重启pagedownload的下载报错
             warn(e)
             page.quit()
-            return pagedownload(url, path, t, silent, depth + 1)
+            return pagedownload(url, path, t=t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload)
         else:
             warn(e)
             warn(type(e))
