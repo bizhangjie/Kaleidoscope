@@ -2138,7 +2138,9 @@ class cache():
     dict
     """
 
-    def __init__(self, path,silent=False):
+    def __init__(self, path,silent=None):
+        if not silent:
+            self.silent=silent
         self.path = path
 
     def get(self,silent=False):
@@ -2165,8 +2167,8 @@ class cache():
             silent=True
         s = dicttojson(s)
         f = txt(self.path)
-        f.add(s)
-        f.save(f'cache added{s}')
+        f.add(s,silent=silent)
+        f.save(f'cache added{s}',silent=silent)
 
     def length(self):
         return txt(self.path).length()
