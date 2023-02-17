@@ -2138,10 +2138,12 @@ class cache():
     dict
     """
 
-    def __init__(self, path):
+    def __init__(self, path,silent=False):
         self.path = path
 
-    def get(self):
+    def get(self,silent=False):
+        if self.silent:
+            silent=True
         while True:
             try:
                 f = txt(self.path)
@@ -2149,7 +2151,7 @@ class cache():
                     return
                 s = jsontodict(f.l[0])
                 f.l.pop(0)
-                f.save('cache get')
+                f.save('cache get',silent=silent)
                 if s == None:
                     s = self.get()
                 return s
@@ -2158,7 +2160,9 @@ class cache():
                 warn('cache获取失败。正在重试')
                 sleep(2)
 
-    def add(self, s):
+    def add(self, s,silent=False):
+        if self.silent:
+            silent=True
         s = dicttojson(s)
         f = txt(self.path)
         f.add(s)
