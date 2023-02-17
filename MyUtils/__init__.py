@@ -3356,21 +3356,20 @@ class Edge():
         return self.element(*a, **b)
 
     @listed
-    def elements(self, s1, depth=9, silent=True, strict=True, root=None):
+    def elements(self, s, depth=9, silent=True, strict=True, root=None):
         """
         根据多个但只有一个有效的字符串匹配元素，返回第一组
-        @param s1:匹配字符串或是元素
+        @param s:匹配字符串或是元素
         @param depth:
         @param silent:
         @param strict:True表示如果没找到，直接报错
         @param root:根元素。默认是self.driver
         @return:
         """
-        s1 = s1.replace('svg', '[name()="svg"]')
-        s = s1
         if root == None:
             root = self.driver
         # 重写xpath规则
+        s = s.replace('svg', '*[name()="svg"]')
         for i in ['@href', '@src', 'text()', '.text']:
             if '//' + i in s:
                 Exit('暂不支持这种用法。在属性前使用 \"//\" ')
@@ -3379,10 +3378,10 @@ class Edge():
 
         # 获取元素列表
         if not type(s) == list:
-            ret = Elements([root, By.XPATH, s], depth=depth, silent=silent, )
+            ret = elements([root, By.XPATH, s], depth=depth, silent=silent, )
         else:
             for i in s:
-                ret = Elements([root, By.XPATH, i], depth=depth, silent=silent)
+                ret = elements([root, By.XPATH, i], depth=depth, silent=silent)
                 if not ret == []:
                     break
         if strict:
@@ -3390,7 +3389,7 @@ class Edge():
 
         # 重写xpath规则
         newret = []
-        if 'text()' in s1[-6:] or 'text' in s1[-4:] or '.text' in s1[-5:]:
+        if 'text()' in s[-6:] or 'text' in s[-4:] or '.text' in s[-5:]:
             for i in ret:
                 if not i.text == '':
                     newret.append(i.text)
@@ -3398,10 +3397,10 @@ class Edge():
                     newret.append(i.get_attribute('text'))
                 else:
                     Exit(f'获取了元素的空字符串内容')
-        elif '@href' in s1[-5:]:
+        elif '@href' in s[-5:]:
             for i in ret:
                 newret.append(i.get_attribute('href'))
-        elif '@src' in s1[-4:]:
+        elif '@src' in s[-4:]:
             for i in ret:
                 newret.append(i.get_attribute('src'))
         else:
@@ -3755,7 +3754,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
                 return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload)
             if name in ii:
                 return True
-            warn(f'{t}s后下载失败。没有检测到缓存文件  请手动尝试 {url}')
+        warn(f'{t}s后下载失败。没有检测到缓存文件  请手动尝试 {url}')
         return False
 
     # 递归停止条件
@@ -3786,6 +3785,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
     # 设置下载路径
     prefs = {'download.default_directory': f'{root}'}
     options.add_experimental_option('prefs', prefs)
+    # options.add_argument('--mute')
     if silent == True:
         options.headless = True
     page = webdriver.Chrome(chrome_options=options)

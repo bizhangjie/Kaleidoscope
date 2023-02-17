@@ -55,30 +55,16 @@ def piecetourlnum(l):
 
 
 def IsPic(l):
-    # 传入元素，返回是否是图文（真）还是视频
-    # 如果没有消除二维码页面，会冻结
-    stole = MyUtils.nowstr()
-    element = l[0]
-    elements = MyUtils.Elements([element, By.XPATH, './div/div[3]/div'], depth=9, silent=True)
-    # 第一、二、三个标签
+    """
+    传入元素，需要消除二维码页面
+    @param l: 视频元素
+    @return: 图文（真）还是视频
+    """
+    elements=MyUtils.Edge.elements(None,'./div/div[3]/div',root=l[0],strict=False)
     # 思路是找到一个图文标签即可
     # 似乎图文都是在svg里的
     for el in elements:
-        if not None == MyUtils.Element([el, By.XPATH, './/svg'], depth=9, silent=True) or el.text in ['图文']:
-            return True
-            # if MyUtils.Element([el, By.XPATH, './/span/text()'], depth=9, silent=True) in ['置顶','共创']:
-    return False
-def IsPic(l):
-    # 传入元素，返回是否是图文（真）还是视频
-    # 如果没有消除二维码页面，会冻结
-    stole = MyUtils.nowstr()
-    element = l[0]
-    elements = MyUtils.Elements([element, By.XPATH, './div/div[3]/div'], depth=9, silent=True)
-    # 第一、二、三个标签
-    # 思路是找到一个图文标签即可
-    # 似乎图文都是在svg里的
-    for el in elements:
-        if not None == MyUtils.Element([el, By.XPATH, './/svg'], depth=9, silent=True) or el.text in ['图文']:
+        if not None == el.text in ['图文'] or not None==MyUtils.Edge.element(None,'.//svg',root=el,strict=False):
             return True
             # if MyUtils.Element([el, By.XPATH, './/span/text()'], depth=9, silent=True) in ['置顶','共创']:
     return False
