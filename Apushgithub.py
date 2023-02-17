@@ -13,7 +13,8 @@ if __name__ == '__main__':
             f.save()
         b = not b
         MyUtils.delog(b)
-        MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "{commission}";git push', silent=True)
+        push=r"git push main origin:main"
+        MyUtils.CMD(f'cd d:;cd {MyUtils.projectpath()};git add .;git commit -m "{commission}";'+push, silent=True)
         MyUtils.log('已提交并推送。')
         while not MyUtils.now().time().hour in list(range(10, 24)):
             MyUtils.sleep(60 * 5)
