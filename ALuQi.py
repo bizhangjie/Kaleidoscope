@@ -1,7 +1,7 @@
 import MyUtils
 
 # 移动根目录的文件
-MyUtils.setrootpath('f')
+MyUtils.setrootpath(dname=['3'])
 todolist=[]
 # 先预报，人工检查看看对不对
 for file in MyUtils.listfile(['./', './璐琪/']):
@@ -22,5 +22,5 @@ MyUtils.out(todolist)
 for i in todolist:
     MyUtils.move(i[0],i[1])
     record=MyUtils.rjson(MyUtils.projectpath('./璐琪/record.txt'))
-    record.add({MyUtils.filename(i[0]):MyUtils.diskname()})
-    print({MyUtils.filename(i[0]):MyUtils.diskname()})
+    record.add({MyUtils.filename(i[0]):MyUtils.diskname})
+    print({MyUtils.filename(i[0]):MyUtils.diskname})
