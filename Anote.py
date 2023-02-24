@@ -1,15 +1,14 @@
-import time
-
 import pyperclip
 
 import MyUtils
 
+
 def main():
     # 初始化
-    interval=0
+    interval = 0
     root = MyUtils.projectpath('self/记录 语录 随笔 随想')
     fcount = MyUtils.txt(root + '/count.txt')
-    fcache=MyUtils.txt(root+'/cache.txt')
+    fcache = MyUtils.txt(root + '/cache.txt')
     while True:
         # 先获取总数
         count = int((fcount.l)[0])
@@ -41,5 +40,7 @@ def main():
             fcount.save()
         MyUtils.log(f'[第{count}条]{MyUtils.nowstr()} 已保存。现在你可以在{frecord.path}查看。')
     MyUtils.delog('Quitting Anote ....')
-if __name__=='__main__':
+
+
+if __name__ == '__main__':
     main()

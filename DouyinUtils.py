@@ -25,7 +25,6 @@ for i in MyUtils.listdir('./抖音/'):
     diskusers.append(MyUtils.filename(i))
 
 
-# Host
 def HostPieces(l):
     page = l[0]
     ret = []

@@ -94,11 +94,12 @@ def listed(func):
 def DebugConsume(func):
     def inner(*a, **b):
         def inner1(f, *a, **b):
-            if not debug:
-                stole = nowstr()
             ret = f(*a, **b)
-            if debug:
+            if not debug:
                 return ret
+            stole = nowstr()
+            filename1=filename(inspect.getframeinfo(inspect.currentframe().f_back.f_back)[0])
+            filename1=rmtail(filename1,'.py')
             funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
             funcname2 = None
             try:
@@ -108,7 +109,7 @@ def DebugConsume(func):
             except:
                 pass
             if counttime(stole) > 1:
-                delog(f'函数{funcname1}/{funcname2} 所消耗的时间：{int(counttime(stole))} s')
+                delog(f'函数{filename1}.{funcname1}/.{funcname2} 所消耗的时间：{int(counttime(stole))} s')
             return ret
 
         return inner1(func, *a, **b)
@@ -776,8 +777,14 @@ def hotkey(*a):
     sleep(0.2)
 
 
-# 返回bit
-def size(a, sum=0, strict=False):
+def size(a, sum=0, bit=True):
+    """
+
+    @param a:
+    @param sum:
+    @param bit:
+    @return:
+    """
     if type(a) in [str]:
         s = a
         # 磁盘
@@ -790,7 +797,7 @@ def size(a, sum=0, strict=False):
             return (free_b / gb)
         #     文件
         if isfile(s):
-            if strict:
+            if bit:
                 return os.stat(s).st_size
             return os.stat(s).st_size / 1024 / 1024
 
@@ -798,21 +805,21 @@ def size(a, sum=0, strict=False):
         if isdir(s):
             sum = 0
             for i in listfile(s):
-                sum += size(i, strict=strict)
+                sum += size(i, bit=bit)
             for i in listdir(s):
-                sum += size(i, strict=strict)
+                sum += size(i, bit=bit)
             return sum
 
     #     其它类型
 
     elif type(a) in [list, tuple]:
         for i in a:
-            sum = size(i, sum, strict=strict)
+            sum = size(i, sum, bit=bit)
         return sum
     elif type(a) in [dict]:
-        sum = size(keys(a), sum, strict=strict)
+        sum = size(keys(a), sum, bit=bit)
         for k in keys(a):
-            sum = size(a[k], sum, strict == strict)
+            sum = size(a[k], sum, bit == bit)
         return sum
     return sum + sys.getsizeof(a)
 
@@ -1013,6 +1020,10 @@ class pool():
 
 # 文件系统读写
 # region
+# 判断路径存在
+def exists(path):
+    return os.path.exists(path)
+
 # 解压zip文件
 def unzip(zippath, targetpath=None):
     zfile = zipfile.ZipFile(zippath)
@@ -1027,18 +1038,19 @@ def unzip(zippath, targetpath=None):
     zfile.close()
 
 
-def regeneratename(originalname, targetpath, regenerate=None, issame=None):
+def regeneratename(originalname, targetpath, regenerate=None, issame=None, originalpath=None):
     """
-    解决文件/文件夹已存在问题的循环检查方法。线程不安全。
-    @param originalname:
-    @param targetpath:
-    @param regenerate: 传入旧名字，返回新名字
-    @param issame: 判断内容是否相同（相同内容就不保存）。
-    @return: 是否需要保存；新的文件/文件夹名
+    要新建的文件/文件夹已存在时，新命名，并判断是否覆盖。线程不安全。
+    @param originalname:原来的名字。不确定目标路径是否存在同样的
+    @param targetpath:目标路径
+    @param regenerate: 方法。传入旧名字，返回新名字。默认下划线+数字
+    @param issame: 方法。判断内容是否相同
+    @param originalpath: 如果不为空，说明原来的文件是存在的。就可以使用比较大小作为默认比较内容方法。
+    @return: 存在同样的文件/文件夹 ；新的文件/文件夹名
     """
     newname = originalname
     if regenerate == None:
-        # 自动生成新名字
+        # 下划线+数字 自动生成新名字
         def regenerate(oldname):
             oldname, ext = extentionandname(oldname, exist=False)
             if not research(r'_\d$', oldname):
@@ -1046,22 +1058,26 @@ def regeneratename(originalname, targetpath, regenerate=None, issame=None):
             originalname, count = splittail(oldname, '_')
             return f'{originalname}_{int(count) + 1}{ext}'
 
-    # 检查名称是否被占用
-    def havename(newname, targetpath=targetpath):
+    # 检查目标位置名称是否被占用
+    def havename(newname, targetpath):
         return isfile(f'{targetpath}/{newname}') or isdir(f'{targetpath}/{newname}')
 
-    # 检查是否存在重复文件
+    # 检查是否存在同样的文件/文件夹
     def tellsame(newname, targetpath):
         if havename(newname, targetpath):
             if issame == None:
-                return True
+                # 源文件不存在，无法比较大小。默认相同
+                if originalpath==None or not exists(originalpath+'/'+originalname):
+                    return True
+            #     默认比较大小
+                return size(originalpath+'/'+originalname) == size(targetpath+'/'+newname)
             return issame(newname, targetpath)
         return False
 
-    b = not tellsame(newname, targetpath)
-    while havename(newname, targetpath) and b:
+    b = tellsame(newname, targetpath)
+    while havename(newname, targetpath):
         newname = regenerate(newname)
-        b = not tellsame(newname, targetpath)
+        b = tellsame(newname, targetpath) or b
     return b, newname
 
 
@@ -1268,14 +1284,14 @@ def rename(s1, s2, overwrite=True):
     os.rename(standarlizedPath(s1), standarlizedPath(s2))
 
 
-# 判断文件
+# 判断是否是存在文件
 def isfile(s):
     if not type(s) in [str]:
         return False
     return os.path.isfile(s)
 
 
-# 判断文件夹
+# 判断是否是存在文件夹
 def isdir(s):
     if not type(s) in [str]:
         return False
@@ -1297,53 +1313,63 @@ def copyfile(s1, s2):
         shutil.copy(s1, s2)
 
 
-def move(s1, s2, overwrite=False, silent=True):
+def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
     """
     移动文件或文件夹
     @param s1:
     @param s2:
-    @param overwrite: 是否强制覆盖
+    @param overwrite: 是否覆盖同名文件。如果aurorename，同名内容不同文件会重命名而不是覆盖。
+    @param autorename: 是否重命名同名文件。如果overwrite，同名同内容文件会直接覆盖而不是重命名。
+    @param merge: 是否合并同名文件夹。如果autorename，同名文件夹会重命名而不是合并。
     @param silent:
     @return:
     """
     if isfile(s1):
-        if isfile(s2):
-            if overwrite == False:
-                Exit(f'移动的目标路径已有目标文件。 {s1} -> {s2}')
-            warn(f'移动的目标路径已有目标文件。即将覆盖。{s2}')
         if isdir(s2):
-            Exit('把文件变成文件夹？目标文件失去了后缀名，请检查！')
+            return move(s1, f'{s2}/{filename(s1)}', overwrite, silent, autorename, merge)
+        if isfile(s2):
+            b,newname=regeneratename(filename(s1),parentpath(s2),originalpath=parentpath(s1))
+            if b and overwrite:
+                deletedirandfile(s1)
+                delog(f'移动时已有相同文件 {s2}。覆盖。')
+                return
+            if autorename:
+                if b:
+                    delog(f'移动时已有相同文件 {s2}。重命名 {newname}。')
+                else:
+                    delog(f'移动时已有不同内容文件 {s2}。重命名 {newname}。')
+            if not autorename and not overwrite:
+                Open(parentpath(s1))
+                Open(parentpath(s2))
+                Exit(f'移动时已有文件。请检查 {s1} {s2}')
+            s2=f'{parentpath(s2)}/{newname}'
         createpath(s2)
+        shutil.move(standarlizedPath(s1), standarlizedPath(s2))
+        return
+
     if isdir(s1):
         if isdir(s2):
-            if overwrite:
-                Open(s1)
-                Open(s2)
-                Exit(f'移动文件夹出错。文件夹已存在。{s1}  ->  {s2}')
+            if merge:
+                for all in listall(s2):
+                    move(all, f'{s1}/{filename(all)}', overwrite=overwrite, silent=silent, autorename=autorename, merge=merge)
             else:
-                #             merge
-                delis = []
-                for i in listall(s1):
-                    target = f'{s2}/{filename(i)}'
-                    # 不存在的直接移动
-                    if not isfile(target) and not isdir(target):
-                        move(i, target)
-                    #     已经存在的
+                # 思路是直接把文件夹当作文件来判断。因此直接copy上面的逻辑
+                b,newname=regeneratename(filename(s1),parentpath(s2),originalpath=parentpath(s1))
+                if b and overwrite:
+                    deletedirandfile(s1)
+                    delog(f'移动时已有相同文件夹 {s2}。覆盖。')
+                    return
+                if autorename:
+                    if b:
+                        delog(f'移动时已有相同文件夹 {s2}。重命名 {newname}。')
                     else:
-                        #                         如果大小相等则删除原来的，如果不相等则加后缀_copy
-                        if size(i, 0, True) == size(target, 0, True):
-                            delis.append(i)
-                        else:
-                            tai = ''
-                            if isfile(target) and '.' in target:
-                                target, tai = splittail(target, '.')
-                                target = target + '_copy.' + tai
-                            else:
-                                target = target + '_copy'
-                            move(i, target)
-                delis.append(s1)
-                deletedirandfile(delis)
-                return
+                        delog(f'移动时已有不同内容文件夹 {s2}。重命名 {newname}。')
+                if not autorename and not overwrite:
+                    Open(parentpath(s1))
+                    Open(parentpath(s2))
+                    Exit(f'移动时已有文件夹。请检查 {s1} {s2}')
+        else:
+            Exit(f'移动文件夹为文件错误。 {s1} {s2}')
 
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
     if not silent:
@@ -1518,6 +1544,12 @@ class Csv(table):
 
 
 def deletedirandfile(l, silent=None):
+    """
+    删除文件和文件夹
+    @param l: 可以是txt路径
+    @param silent:
+    @return:
+    """
     # 删除txt里的文件
     if isfile(l) and l[-4:] in '.txt':
         f = txt(l)
@@ -1753,11 +1785,16 @@ class txt():
                 self.save()
                 return
 
-    @consume
-    #         去重，去空，集合化
-    def set(self, silent=None):
-        p = list(set(self.l))
-        p.sort(key=self.l.index)
+    @DebugConsume
+    def set(self, silent=None,sort=False):
+        """
+        去重，排序，去空，集合化
+        @param silent:
+        @return:
+        """
+        p = Set(self.l)
+        if sort:
+            p.sort(key=self.l.index)
         self.l = p
         if '' in self.l:
             self.l.pop(self.l.index(''))
@@ -1842,23 +1879,27 @@ class RefreshTXT(txt):
         # endregion
 
     # 根据l并行写入
-    @consume
+    @DebugConsume
     def save(self, silent=None):
         if silent == None:
             silent = self.silent
-        extend(self.l, rtxt(self.path, silent=silent).l)
+        self.l=Set(extend([],self.l, rtxt(self.path, silent=silent).l))
         RefreshTXT.set(self, silent=silent)
         txt.save(self, 'Rtxt 合并保存', silent=silent)
 
     def get(self, silent=None):
+        """
+        滚动文本，第一行放最后一行
+        @param silent:
+        @return: 第一行
+        """
         if silent == None:
             silent = self.silent
-        self.__init__(self.path, self.encoding, silent=self.silent)
         if len(self.l) < 1:
             return None
-        self.l = extend(self.l[1:], [self.l[0]])
+        self.l = (extend(self.l[1:], [self.l[0]]))
         self.loopcount -= 1
-        self.save(silent=silent)
+        RefreshTXT.save(self,silent=silent)
         return self.l[-1]
 
     def rollback(self, silent=None):
@@ -1975,10 +2016,11 @@ class RefreshJson(Json, RefreshTXT):
             if v == value(i):
                 return key(i)
 
+    @DebugConsume
     def get(self, silent=None):
         """
-        返回列表，txt内存储的值是列表，返回列表中每个值都添加一个键
-        @return:
+        滚动文本。返回列表，txt内存储的值是列表，返回列表中每个值都添加一个键
+        @return:第一行
         """
         if silent is None:
             silent = self.silent
@@ -2139,8 +2181,7 @@ class cache():
     """
 
     def __init__(self, path,silent=None):
-        if not silent:
-            self.silent=silent
+        self.silent=silent
         self.path = path
 
     def get(self,silent=False):
@@ -2396,26 +2437,15 @@ def warn(*a):
 
 # 基础数据结构
 # region
-# 实现列表元素为字典的集合化
+# 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
-    res = []
-    l1 = []
-    l2 = []
+    res=[]
     for i in l:
-        if not type(i) in [dict]:
-            res.append(i)
-        else:
-            l1.append(i)
-    for i in l1:
-        b = True
-        for j in l2:
-            if i == j:
-                b = False
-                break
-        if b:
-            l2.append(i)
-    res.extend(l2)
+        if i in res:
+            continue
+        res.append(i)
     return res
+
 
 
 def simplinfo(num, author, title, diskname=None):
@@ -2428,17 +2458,23 @@ def mergelist(*a):
     return extend(*a)
 
 
-def extend(*a):
+def extend(*a,set=False):
     if len(a) > 2:
         for i in a[1:]:
             extend(a[0], i)
         return a[0]
-    l1, l2 = a
+    if len(a)==1:
+        l1=[]
+        l2=a[0]
+    else:
+        l1, l2  =   a
     if l1 == None:
         warn(f'l1: None  l2: {l2}')
         return l2
     for i in l2:
         l1.append(i)
+    if set:
+        return Set(l1)
     return l1
 
 
@@ -3376,7 +3412,8 @@ class Edge():
             root = self.driver
         # 重写xpath规则
         s = s.replace('svg', '*[name()="svg"]')
-        for i in ['@href', '@src', 'text()', '.text']:
+        s1=s
+        for i in ['@href', '@src', 'text()', '.text','@style']:
             if '//' + i in s:
                 Exit('暂不支持这种用法。在属性前使用 \"//\" ')
             s = Strip(s, '/' + i)
@@ -3395,7 +3432,7 @@ class Edge():
 
         # 重写xpath规则
         newret = []
-        if 'text()' in s[-6:] or 'text' in s[-4:] or '.text' in s[-5:]:
+        if 'text()' in s1[-6:] or 'text' in s1[-4:] or '.text' in s1[-5:]:
             for i in ret:
                 if not i.text == '':
                     newret.append(i.text)
@@ -3403,10 +3440,13 @@ class Edge():
                     newret.append(i.get_attribute('text'))
                 else:
                     Exit(f'获取了元素的空字符串内容')
-        elif '@href' in s[-5:]:
+        elif '@style' in s1[-5:]:
+            for i in ret:
+                newret.append(i.get_attribute('style'))
+        elif '@href' in s1[-5:]:
             for i in ret:
                 newret.append(i.get_attribute('href'))
-        elif '@src' in s[-4:]:
+        elif '@src' in s1[-4:]:
             for i in ret:
                 newret.append(i.get_attribute('src'))
         else:
@@ -3493,10 +3533,10 @@ class Edge():
         self.driver.set_window_size(*a, **b)
 
     # 会改变窗口大小位置
-    def elementshot(self, path, s, xoffset=None, yoffset=None, extend=None, redownload=True):
+    def elementshot(self, path, s, xoffset=None, yoffset=None, extend=None, overwrite=True):
         path = standarlizedPath(path)
         if isfile(path):
-            if redownload:
+            if overwrite:
                 warn(f'{path}已存在。即将覆盖下载')
             else:
                 return True
@@ -3733,32 +3773,42 @@ def setscrolltop(l):
 
 
 @consume
-def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=None):
+def pagedownload(url, path, t=15, silent=False, depth=0, auto=None, redownload=None, overwrite=False):
     """
-    必须指定下载名。可以没有后缀名。如果下载失败，再下载一次。
-    开发注意浏览器下载会自动重命名"~"为"_"，因此下载完成后要重命名
     @param url:
-    @param path:
+    @param path: 必须指定文件名，建议指定后缀名。文件名自动重命名"~"为"_"
     @param t:下载和下载后浏览器自动安全检查的时间
     @param silent:
     @param depth:
-    @param auto:
-    @param newname: 重命名下载的文件名
-    @param redownload: 覆盖下载
+    @param auto:是否是打开页面即自动下载
+    @param overwrite: 覆盖下载或是覆盖移动
+    @param redownload: 一定会重新下载。
     @return:True 下载了并且下载成功；False 下载了但是下载失败；字符串 返回检测到的以前的错误命名
     """
+
+    path=standarlizedPath(path)
+    if not redownload:
+        #     已下载
+        if exists(path) and not size(path)==0:
+            if not overwrite:
+                log(f'{path} 已存在，将不下载')
+                return True
+            else:
+                move(path,cachepath(f'trashbin/{now()}'))
 
     def recursive():
         sleep(t)
         page.quit()
         sleep(1)
-        delog(f'正在下载到{path}')
-        for ii in listfile(parentpath(path)):
+        delog(f'正在检测是否下载到了{root}')
+        for ii in listfile(root):
             if name in ii and '.crdownload' in ii:
-                os.remove(ii)
+                deletedirandfile(ii)
                 warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
-                return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload)
+                return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload, overwrite=overwrite)
             if name in ii:
+                if redownload:
+                    move(ii, path, autorename=redownload, overwrite=overwrite)
                 return True
         warn(f'{t}s后下载失败。没有检测到缓存文件  请手动尝试 {url}')
         return False
@@ -3770,22 +3820,21 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
         return False
     # endregion
 
-    # 获取变量
+    originalpath = path
+    createpath(path)
     # region
     path = standarlizedPath(path, strict=True)
-    createpath(path)
-    originalpath = path
     path = path.replace('~', '_')
-    if os.path.exists(path):
-        # 存在以前的浏览器自动重命名'~'为'_'的文件
-        if not originalpath == path:
-            rename(path, originalpath)
-            return originalpath
-        if not redownload:
-            if not size(path) == 0:
-                warn(f'{path}已存在，将不下载')
-                return True
-    root = (path[:path.rfind('\\')])
+    # if os.path.exists(path):
+    #     # 存在以前的浏览器自动重命名'~'为'_'的文件
+    #     if not originalpath == path:
+    #         rename(path, originalpath)
+    #         return originalpath
+
+    if redownload:
+        root=standarlizedPath(cachepath('pagedownload/'),strict=True)
+    else:
+        root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
     options = webdriver.ChromeOptions()
     # 设置下载路径
@@ -3815,7 +3864,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
             # 需要重启pagedownload的下载报错
             warn(e)
             page.quit()
-            return pagedownload(url, path, t=t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload)
+            return pagedownload(url, path, t=t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload, overwrite=overwrite)
         else:
             warn(e)
             warn(type(e))
@@ -3836,7 +3885,8 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
             a1.href='{url}';\
             a1.download='{name}';\
             a1.click();")
-            delog(f'pagedownload 正在下载 {url} 到 {path}')
+            # root必须存在，否则会跳出为另存为
+            delog(f'pagedownload 正在下载 {url} 到 {root}')
             break
         except Exception as e:
             warn('下载重试中...')
