@@ -3132,7 +3132,7 @@ class Edge():
         time.sleep(1)
 
     def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
-             clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1):
+             clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,overwrite=True,redownload=True):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:
@@ -3148,6 +3148,8 @@ class Edge():
         @param duplication: 可选是覆盖还是新建已保存网页的副本
         @param extrafunc: 需要进行的额外操作
         @param pause: 滚动间隔
+        @param overwrite: 是否覆盖
+        @param redownload: 是否重新下载
         @return:
         """
         # region
