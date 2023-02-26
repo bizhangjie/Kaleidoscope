@@ -10,7 +10,7 @@ def main():
     fcount = MyUtils.txt(root + '/count.txt')
     fcache = MyUtils.txt(root + '/cache.txt')
     while True:
-        # 先获取总数
+        # 先获取总数·
         count = int((fcount.l)[0])
 
         # 找到对应存储文件
