@@ -1,6 +1,7 @@
 import time
 
 from retrying import retry
+from retrying import retry
 
 import DouyinUtils
 import MyUtils
