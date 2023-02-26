@@ -1,3 +1,4 @@
+retry
 opencv-python
 pywin32
 requests
