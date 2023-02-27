@@ -2,6 +2,7 @@
 # Byte-compiled / optimized / DLL files
 /.idea/
 /.run/
+/ScreenScale.txt
 /文案
 /天顶
 /cache/

@@ -3719,7 +3719,9 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
         defaultxscale=1920
         defaultyscale=1080
         global uiscale,xsize,ysize
-        x,y=int(x/defaultxscale*xsize/defaultuiscale*uiscale),int(y/defaultyscale*ysize/defaultuiscale*uiscale)
+        X,Y=x-defaultxscale/2,y-defaultyscale/2
+        X,Y=int(X/defaultxscale*xsize/defaultuiscale*uiscale),int(Y/defaultyscale*ysize/defaultuiscale*uiscale)
+        x,y=X+xsize/2,Y+ysize/2
         pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:
