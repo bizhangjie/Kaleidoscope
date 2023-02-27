@@ -3686,6 +3686,8 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
     @param strict: 是否严格模式，严格模式下，如果定位不存在，则会返回
     @return:是否成功
     """
+
+    # 点击图片
     if type(x) in [str]:
         if not '.png' in x:
             x += '.png'
@@ -3708,7 +3710,16 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
             Exit(path)
         else:
             return False
+
+    # 点击坐标
     try:
+        # 默认xy坐标是在windows UI缩放比例为125%下的，在screenscale.txt中修改当前的缩放比例
+        defaultmode = 'center'
+        defaultuiscale=125
+        defaultxscale=1920
+        defaultyscale=1080
+        global uiscale,xsize,ysize
+        x,y=int(x/defaultxscale*xsize/defaultuiscale*uiscale),int(y/defaultyscale*ysize/defaultuiscale*uiscale)
         pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:
@@ -3940,7 +3951,15 @@ if setRootPath(dname='HerMAJESTY', strict=False) == 'd':
 setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
-
+try:
+    uiscale=int(txt(projectpath('ScreenScale.txt')).l[0])
+    xsize=int(txt(projectpath('ScreenScale.txt')).l[1])
+    ysize=int(txt(projectpath('ScreenScale.txt')).l[2])
+except:
+    warn('using pre-set params.')
+    uiscale=125
+    xsize=1920
+    ysize=1080
 
 def RuntimeRoot():
     ret = standarlizedPath(__file__)

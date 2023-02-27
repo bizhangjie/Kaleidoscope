@@ -1,6 +1,5 @@
 import MyUtils
-import pyautogui
 
 # pyautogui
 MyUtils.releasescreenlock()
-MyUtils.click(100, 90)
+MyUtils.click(1449, 214)
