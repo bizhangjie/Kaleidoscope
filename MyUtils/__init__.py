@@ -1368,7 +1368,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
                     Open(parentpath(s1))
                     Open(parentpath(s2))
                     Exit(f'移动时已有文件夹。请检查 {s1} {s2}')
-        else:
+        if isfile(dir):
             Exit(f'移动文件夹为文件错误。 {s1} {s2}')
 
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
