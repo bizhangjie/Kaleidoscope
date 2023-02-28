@@ -5,7 +5,6 @@ import BUtils
 所有下载数=200
 单次下载数=4
 
-# MyUtils.hotkey('alt','tab')
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l
 
