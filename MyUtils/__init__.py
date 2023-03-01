@@ -2671,7 +2671,11 @@ def setRootPath(dir=None, dname=None, strict=True):
     #     单个字符查找
     if dir == None:
         # 盘未初始化
-        if not os.path.exists(f'{activedisk.l[0]}:/'):
+        for ddisk in activedisk.l:
+            if os.path.exists(f'{ddisk}:/'):
+                bbb=True
+                break
+        if bbb==None:
             Open(activedisk.path)
             if strict:
                 Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
@@ -2680,7 +2684,7 @@ def setRootPath(dir=None, dname=None, strict=True):
                 return False
 
         # 根据文本更改操作盘
-        i = activedisk.l[0]
+        i = ddisk
     else:
         if dir == False:
             i = input(f'。默认为{activedisk.l[0]}')
@@ -3958,7 +3962,7 @@ try:
     xsize=int(txt(projectpath('ScreenScale.txt')).l[1])
     ysize=int(txt(projectpath('ScreenScale.txt')).l[2])
 except:
-    warn('using pre-set params.')
+    warn('ScreenScale未配置，使用默认参数。')
     uiscale=125
     xsize=1920
     ysize=1080
