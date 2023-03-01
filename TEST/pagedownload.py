@@ -1,8 +1,9 @@
 import MyUtils
 
-url ='https://www.baidu.com/img/PCfb_5bf082d29588c07f842ccde3f97243ea.png'
+url ='https://user-images.githubusercontent.com/3739368/103435721-e601c300-4c4d-11eb-800e-b420a55f0680.JPG'
 path = MyUtils.cachepath('pagedownload/test/1.png')
 # MyUtils.pagedownload(url, path,t=7,silent=False)
 # MyUtils.pagedownload(url, path,t=7,silent=False,overwrite=True)
 # MyUtils.pagedownload(url, path,t=7,silent=False,redownload=True)
-MyUtils.pagedownload(url, path,t=7,silent=True,redownload=True,overwrite=True)
+MyUtils.pagedownload(url, path,t=7,silent=False,redownload=True,overwrite=True)
+

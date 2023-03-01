@@ -2180,9 +2180,10 @@ class cache():
     dict
     """
 
-    def __init__(self, path,silent=None):
+    def __init__(self, path,silent=None,json=True):
         self.silent=silent
         self.path = path
+        self.json=json
 
     def get(self,silent=False):
         if self.silent:
@@ -2192,7 +2193,10 @@ class cache():
                 f = txt(self.path)
                 if f.l == []:
                     return
-                s = jsontodict(f.l[0])
+                if self.json:
+                    s = jsontodict(f.l[0])
+                else:
+                    s = f.l[0]
                 f.l.pop(0)
                 f.save('cache get',silent=silent)
                 if s == None:
@@ -2206,7 +2210,8 @@ class cache():
     def add(self, s,silent=False):
         if self.silent:
             silent=True
-        s = dicttojson(s)
+        if self.json:
+            s = dicttojson(s)
         f = txt(self.path)
         f.add(s,silent=silent)
         f.save(f'cache added{s}',silent=silent)

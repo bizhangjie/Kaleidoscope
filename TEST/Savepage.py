@@ -9,7 +9,12 @@ def provisional(page):
 
 if __name__ == '__main__':
     # url='https://pc.yiyouliao.com/msn/article.html?recId=667e103c535b423e8e0c7d96841804fb_s&infoId=II00AMQR1FKBY0J'
-    for url in ['https://mp.weixin.qq.com/s?__biz=MjM5ODE5NzY0Nw==&mid=2651042284&idx=1&sn=9a66a7e44343b46d06352b420bc479f6&chksm=bd39710c8a4ef81aa6c69549167aa3b3019089d02c38ad05bd6674bdfae9968f9f3f289b13d4&scene=27']:
+    while True:
+        url=None
+        while url==None:
+            url=MyUtils.cache(MyUtils.cachepath('savepage/savepage.txt'),json=False).get()
+            MyUtils.sleep(20)
+        MyUtils.log(f'处理中……：\t {url}')
     # for url in ['http://www.studyofnet.com/588830253.html']:
         page = MyUtils.Edge(url, silent=True)
 
