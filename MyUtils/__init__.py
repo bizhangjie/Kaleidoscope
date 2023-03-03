@@ -1893,6 +1893,8 @@ class RefreshTXT(txt):
         @param silent:
         @return: 第一行
         """
+        # 要实现并发，需要每次get都从本地中读取
+        RefreshTXT.__init__(self, self.path, self.encoding, silent=self.silent)
         if silent == None:
             silent = self.silent
         if len(self.l) < 1:
