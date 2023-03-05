@@ -1,6 +1,3 @@
-import MyUtils
-
-
 def fun():
     pass
 

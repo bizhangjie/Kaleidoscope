@@ -2605,7 +2605,7 @@ def splittail(s, mark):
 
 
 def removetail(l, mark='.', strict=False):
-    return cuttail(l, mark)[0]
+    return cuttail(l, mark,strict=strict)[0]
 
 
 def rmtail(*a, **b):
@@ -2622,10 +2622,20 @@ def tail(s, mark='/', strict=True):
 
 
 def gettail(s, mark='/', strict=True):
+    """
+    找到最右侧匹配，返回后面的不包括匹配的内容
+    @param s:
+    @param mark:
+    @param strict:
+    @return:
+    """
     s, mark = str(s), str(mark)
-    if not mark in s and strict:
-        warn(stepback(2))
-        Exit(f'tail失败。字符串 {s} 中没有预计存在的子串：  {mark}。', (s, mark))
+    if not mark in s:
+        if strict:
+            warn(stepback(2))
+            Exit(f'tail失败。字符串 {s} 中没有预计存在的子串：  {mark}。', (s, mark))
+        else:
+            return s
     return s[s.rfind(mark) + len(mark):]
 
 
@@ -2996,7 +3006,7 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     options = webdriver.ChromeOptions()
     op=''
     if not silent in [None, False]:
-        options.add_argument('headless')
+        options.add_argument("--headless=new")
     # options.add_argument('start-maximized ')
     if mute:
         options.add_argument('mute-audio')
@@ -3120,7 +3130,7 @@ class Edge():
             path += '/basic.png'
         path = standarlizedPath(path)
         createpath(path)
-        log(f'将把 {self.url()} 的全屏保存到  {path}')
+        delog(f'将把 {self.url()} 的全屏保存到  {path}')
         if autodown:
             self.down(ite=autodown)
             if type(autodown) in [int]:
@@ -3143,7 +3153,8 @@ class Edge():
         time.sleep(1)
 
     def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
-             clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,overwrite=True,redownload=True):
+             clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
+             overwrite=True,redownload=True,savevideo=False):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:
@@ -3225,7 +3236,8 @@ class Edge():
         self.savepics(path, 7, minsize=minsize)
 
         # 保存页面视频
-        self.savevideos(path, 20)
+        if savevideo:
+            self.savevideos(path, 20)
 
         # 留下url记录
         f = txt(f'{path}/url.txt').add(self.url())
@@ -3257,10 +3269,13 @@ class Edge():
                 url = i.get_attribute('href')
             if url == None:
                 Exit(self.url(), '获取图片地址失败')
+            url=gettail(url,'blob:',strict=False)
+            url=gettail(url,'data:',strict=False)
+            delog(f'图片地址：{url}')
 
             # 有些图片懒加载
-            if 'data:' in url:
-                continue
+            # if 'data:' in url:
+            #     continue
 
             fname = gettail(url, '/')
 
@@ -3799,7 +3814,7 @@ def setscrolltop(l):
 
 
 @consume
-def pagedownload(url, path, t=15, silent=False, depth=0, auto=None, redownload=None, overwrite=False):
+def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=None, overwrite=False):
     """
     @param url:
     @param path: 必须指定文件名，建议指定后缀名。文件名自动重命名"~"为"_"
@@ -3868,7 +3883,7 @@ def pagedownload(url, path, t=15, silent=False, depth=0, auto=None, redownload=N
     options.add_experimental_option('prefs', prefs)
     # options.add_argument('--mute')
     if silent == True:
-        options.headless = True
+        options.add_argument('--headless=new')
     page = webdriver.Chrome(chrome_options=options)
     # endregion
 

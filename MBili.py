@@ -1,5 +1,4 @@
 import BUtils
-import Maintainace
 import MyUtils
 
 # 压力测试
@@ -112,9 +111,7 @@ def countrecord():
 
 
 def count():
-    # 15024
     countrecord()
-    # 1224
     countdownloaded()
 
 
@@ -147,13 +144,11 @@ def mistake():
 
 
 if __name__ == '__main__':
-    MyUtils.setrootpath('e')
-    BUtils.deletehash('./bili/collection')
     count()
     # adduser()
     # checkweb()
     # delete()
-    # checkisindisk()
+    checkisindisk()
     # mistake()
-    # makerecord()
+    makerecord()
     pass
