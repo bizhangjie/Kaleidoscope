@@ -837,6 +837,54 @@ def Input(x, y, s):
 
 # 音视频、图片
 # region
+
+#     拼接图片
+def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical',reverse=None,filelist=None,
+                  bottom=0, top=0, left=0, right=0):
+    """
+
+    @param inputpath:
+    @param outputpath:
+    @param outputname:
+    @param mode:
+    @param reverse:
+    @param filelist:
+    @param bottom:
+    @param top:
+    @param left:
+    @param right:
+    @return:
+    """
+
+    if outputpath == None:
+        if outputname == None:
+            outputpath = parentpath(inputpath) + 'combined.jpg'
+        else:
+            outputpath = parentpath(inputpath) + outputname
+
+    if filelist == None:
+        images = [PIL.Image.open(x) for x in listfile(inputpath)]
+    else:
+        images=[PIL.Image.open(x) for x in filelist]
+    if reverse:
+        images.reverse()
+    widths, heights = zip(*(i.size for i in images))
+    widths = [w - left - right for w in widths]
+    heights = [h - top - bottom for h in heights]
+    if mode == 'vertical':
+        new_im = PIL.Image.new('RGB', (max(widths), sum(heights)))
+        y_offset = 0
+        for im in images:
+            im = im.crop((left, top, im.size[0]-right, im.size[1]-bottom))
+            new_im.paste(im, (0, y_offset))
+            y_offset += im.size[1]
+    # elif mode == 'horizontal':
+    #     total_width = sum(widths-left-right)
+    #     max_height = max(heights-left-right)
+    #     new_im = PIL.Image.new('RGB', (total_width, max_height))
+
+    new_im.save(outputpath)
+
 class pic():
     def __init__(self, path):
         path = standarlizedPath(path)
@@ -1095,7 +1143,7 @@ def extention(fname, silent=False):
     return fname[fname.rfind('.') + 1:]
 
 
-# 分割文件名和其扩展名
+# 分割带路径的文件名和其.+扩展名
 def extentionandname(fname, silent=True, exist=True):
     if not isfile(fname):
         if not silent:
@@ -2360,7 +2408,8 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
 
 def Log(s, front=242, font=1, background=238):
     global Logcount
-    m = 500
+    # 最大的每行字符长度
+    m =250
     try:
         s = str(s)
         s.replace(u'\xa0', u'<?>')
@@ -2444,6 +2493,12 @@ def warn(*a):
 
 # 基础数据结构
 # region
+# 实现包括None在内的int转换
+def Int(s):
+    if s in [None,False]:
+        return 0
+    return int(s)
+
 # 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
     res=[]
@@ -2761,12 +2816,12 @@ def getdiskname():
 # 爬虫
 # region
 #  爬取论坛的每一页
-def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150), t=3, scale=200, saveuid=True, look=True):
+def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150), t=3, scale=200, saveuid=True, look=True, mine=True, silent=False):
     if firsturl == '':
         return
     # uid是否文件夹注入帖子uid前缀
     #     先打开第一页，获取标题，每页数
-    page = Chrome(mine=True, silent=True)
+    page = Chrome(mine=mine, silent=silent)
     page.get(firsturl)
     sleep(t)
     title = page.title()
@@ -3006,11 +3061,14 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     options = webdriver.ChromeOptions()
     op=''
     if not silent in [None, False]:
-        options.add_argument("--headless=new")
-    # options.add_argument('start-maximized ')
+        if mine:
+           # options.add_argument('--headless=new')
+           options.add_argument('--headless')
+        else:
+            options.add_argument("--headless")
     if mute:
         options.add_argument('mute-audio')
-    if not mine == None:
+    if mine:
         options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
     # options.add_experimental_option("excludeSwitches", ['enable-automation'])
     driver = webdriver.Chrome(options=options)
@@ -3120,10 +3178,19 @@ class Edge():
     def Width(self):
         return scrollwidth([self.driver])
 
-    # 向上滚动后获取全屏
-    def fullscreen(self, path=None, scale=100, autodown=True, pause=1):
-        if not self.silent == True:
-            Exit()
+    def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False,clipinterval=0.6,
+                    top=0, bottom=0, left=0, right=0):
+        """
+        获取全屏。固定保存在basic_.png。
+        @param path:路径名而不是文件名
+        @param scale:
+        @param autodown:是持续滚动还是一次性滚动。
+        @param pause:
+        @param clip: 是一张还是分部。如果clip，现在/clipped文件夹下
+        @param top: 顶部固定浮动元素高度
+        @param clipinterval: 每次更改页面高度的等待时间
+        @return:
+        """
         if path == None:
             path = collectionpath(f'其它/{self.title()}/basic.png')
         if not '/basic.png' in path:
@@ -3131,6 +3198,8 @@ class Edge():
         path = standarlizedPath(path)
         createpath(path)
         delog(f'将把 {self.url()} 的全屏保存到  {path}')
+
+
         if autodown:
             self.down(ite=autodown)
             if type(autodown) in [int]:
@@ -3139,11 +3208,34 @@ class Edge():
                 autodown = False
         else:
             self.setscrolltop(self.Height())
-        self.up(scale=scale, pause=pause)
-        x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
-        self.set_window_size(x, y)
-        # self.elementshot(path, e)
-        self.driver.get_screenshot_as_file(path)
+
+
+        if clip:
+            clipsize=self.getscrollheight()-self.getscrolltop()-Int(top)-Int(bottom)
+            clipcount=0
+            while self.getscrolltop()>0:
+                self.scroll(self.getscrollheight()-clipsize*clipcount)
+                # 50是一般认为clipsize不会小于的值
+                dpath=f'{parentpath(path)}/clipped/{extentionandname(path,exist=False)[0]}{clipcount}{extentionandname(path,exist=False)[1]}'
+                createpath(dpath)
+                self.driver.get_screenshot_as_file(dpath)
+                delog(f'已保存部分截图到{dpath}')
+                clipcount+=1
+                sleep(clipinterval)
+            combineimages(parentpath(dpath),outputname='basic.png',mode='vertical',reverse=True,
+                          filelist = [f"{parentpath(dpath)}/basic{i}.png" for i in range(clipcount)],
+                          left=left,right=right,top=top,bottom=bottom+17)
+            deletedirandfile(parentpath(dpath),silent=True)
+        else:
+        #     向上滚动，一次获取
+            self.up(scale=scale, pause=pause)
+            x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
+            self.set_window_size(x, y)
+            # self.elementshot(path, e)
+            self.driver.get_screenshot_as_file(path)
+
+        if delog:
+            look(path)
 
     # 避开不安全网页警告
     def skipsystemwarn(self):
@@ -3154,7 +3246,8 @@ class Edge():
 
     def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
              clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
-             overwrite=True,redownload=True,savevideo=False):
+             overwrite=True,redownload=True,savevideo=False,
+             top=0, bottom=0, left=0, right=0):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:
@@ -3230,7 +3323,8 @@ class Edge():
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause)
+            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=True,
+                            top=top,bottom=bottom,left=left,right=right)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -3243,10 +3337,9 @@ class Edge():
         f = txt(f'{path}/url.txt').add(self.url())
 
         log(f'页面已保存到{path}')
-        if look:
+        if look or debug:
             try:
                 Open(path + '/img')
-                Open(path + '/basic.png')
             except:
                 pass
         return path
@@ -3269,8 +3362,11 @@ class Edge():
                 url = i.get_attribute('href')
             if url == None:
                 Exit(self.url(), '获取图片地址失败')
+            #     特殊地址处理
             url=gettail(url,'blob:',strict=False)
             url=gettail(url,'data:',strict=False)
+            if '<svg'in url:
+                continue
             delog(f'图片地址：{url}')
 
             # 有些图片懒加载
@@ -3292,7 +3388,10 @@ class Edge():
             dpath = (f'{path}/img/_{count}_{fname}')
             log(f'saving {self.url()}的 {url} 到 {dpath}')
             delog(path)
-            pagedownload(url, dpath, t=t)
+            try:
+                pagedownload(url, dpath, t=t)
+            except Exception as e:
+                warn(f'保存页面上的图片失败，\n{e}')
             p = pic(dpath)
 
     # 保存页面上的所有视频
@@ -3347,7 +3446,7 @@ class Edge():
     # 到上层显示窗口
     def top(self):
         if self.silent == True:
-            Exit()
+            Exit('静默模式下不显示到上层')
         hotkey('win', 'd')
         self.switchto()
 
@@ -3636,18 +3735,18 @@ class Chrome(Edge):
     def __init__(self, url=None, mine=None, silent=None, t=100, driver=None, mute=True):
         self.mine = mine
         #     记录当前在使用mine chrome的context
-        if mine == True:
-            f = txt(projectpath('browser/ischromeusing.txt'))
-            if not f.l == [] and not debug:
-                Open(f.path)
-
-                Exit('Chrome 似乎已经在使用了')
-            if debug:
-                f.l = context(4)
-            else:
-                f.l=['似乎没有关闭上一个带用户缓存的浏览器页面。请确保程序不在用户使用浏览器的情况下使用用户缓存，并且带用户缓存的浏览器同一时间只能存在一个。']
-            f.l.append(nowstr())
-            f.save()
+        # if mine == True:
+        #     f = txt(projectpath('browser/ischromeusing.txt'))
+        #     if not f.l == [] and not debug:
+        #         Open(f.path)
+        #
+        #         Exit('Chrome 似乎已经在使用了')
+        #     if debug:
+        #         f.l = context(4)
+        #     else:
+        #         f.l=['似乎没有关闭上一个带用户缓存的浏览器页面。请确保程序不在用户使用浏览器的情况下使用用户缓存，并且带用户缓存的浏览器同一时间只能存在一个。']
+        #     f.l.append(nowstr())
+        #     f.save()
         if not driver == None:
             self.driver = driver[0]
             return

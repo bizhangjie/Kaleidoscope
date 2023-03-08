@@ -45,11 +45,11 @@ if __name__ == '__main__':
 
         for url1 in f.l:
             url = url1[:34]
-            MyUtils.forum(url, '- CC98论坛', 'cc98', func1, func2, func3, t=6, scale=600, saveuid=False, look=False)
+            MyUtils.forum(url, '- CC98论坛', 'cc98', func1, func2, func3, t=6, scale=600, saveuid=False, look=False, silent=False)
             f.delete(url1)
         f.clear()
 
 
-    get1(20)
+    # get1(20)
     # get2()
-    # get3()
+    get3()
