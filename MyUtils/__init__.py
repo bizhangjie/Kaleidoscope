@@ -33,12 +33,31 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
-
-# sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
-
-
+# 初始化1
 # region
+# sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
+Logcount = 0
+debug = sys.gettrace()
+MyError = selenium.common.exceptions.TimeoutException
+retrylist = [selenium.common.exceptions.WebDriverException,
+             MyError, selenium.common.exceptions.ElementClickInterceptedException,
+             Exception, ConnectionRefusedError,
+             urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError,
+             selenium.common.exceptions.TimeoutException,
+             selenium.common.exceptions.NoSuchWindowException, pyautogui.FailSafeException,
+             ]
+headers = {
+    # 'user-agent': txt(projectpath('user-agent.txt')).l[0],
+    'user-agent': '',
+    'cookie': ''
+}
+
+
+# endregion
+
+
 # 参考代码
+# region
 # 列表传参法是可行的，只不过最好不要传不是自定义的类
 # 如果传参已经是列表就不要再列表传参。直接在函数内使用index。不要在函数内声明，这样会直接创建新的局部变量
 # 不建议传递列表进行写。列表本身的大小不能在函数内再改变。字典应该也是同理。
@@ -46,6 +65,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 # './div[starts-with(@style,"transform:")]'
 #
 # endregion
+
 # 注解
 # region
 # 多名函数
@@ -98,8 +118,8 @@ def DebugConsume(func):
             if not debug:
                 return ret
             stole = nowstr()
-            filename1=filename(inspect.getframeinfo(inspect.currentframe().f_back.f_back)[0])
-            filename1=rmtail(filename1,'.py')
+            filename1 = filename(inspect.getframeinfo(inspect.currentframe().f_back.f_back)[0])
+            filename1 = rmtail(filename1, '.py')
             funcname1 = inspect.getframeinfo(inspect.currentframe().f_back.f_back)[2]
             funcname2 = None
             try:
@@ -839,7 +859,7 @@ def Input(x, y, s):
 # region
 
 #     拼接图片
-def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical',reverse=None,filelist=None,
+def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical', reverse=None, filelist=None,
                   bottom=0, top=0, left=0, right=0):
     """
 
@@ -865,7 +885,7 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
     if filelist == None:
         images = [PIL.Image.open(x) for x in listfile(inputpath)]
     else:
-        images=[PIL.Image.open(x) for x in filelist]
+        images = [PIL.Image.open(x) for x in filelist]
     if reverse:
         images.reverse()
     widths, heights = zip(*(i.size for i in images))
@@ -875,7 +895,7 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
         new_im = PIL.Image.new('RGB', (max(widths), sum(heights)))
         y_offset = 0
         for im in images:
-            im = im.crop((left, top, im.size[0]-right, im.size[1]-bottom))
+            im = im.crop((left, top, im.size[0] - right, im.size[1] - bottom))
             new_im.paste(im, (0, y_offset))
             y_offset += im.size[1]
     # elif mode == 'horizontal':
@@ -884,6 +904,7 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
     #     new_im = PIL.Image.new('RGB', (total_width, max_height))
 
     new_im.save(outputpath)
+
 
 class pic():
     def __init__(self, path):
@@ -1072,6 +1093,7 @@ class pool():
 def exists(path):
     return os.path.exists(path)
 
+
 # 解压zip文件
 def unzip(zippath, targetpath=None):
     zfile = zipfile.ZipFile(zippath)
@@ -1115,10 +1137,10 @@ def regeneratename(originalname, targetpath, regenerate=None, issame=None, origi
         if havename(newname, targetpath):
             if issame == None:
                 # 源文件不存在，无法比较大小。默认相同
-                if originalpath==None or not exists(originalpath+'/'+originalname):
+                if originalpath == None or not exists(originalpath + '/' + originalname):
                     return True
-            #     默认比较大小
-                return size(originalpath+'/'+originalname) == size(targetpath+'/'+newname)
+                #     默认比较大小
+                return size(originalpath + '/' + originalname) == size(targetpath + '/' + newname)
             return issame(newname, targetpath)
         return False
 
@@ -1168,7 +1190,7 @@ def splitext(*a, **b):
 
 
 # 移除空文件夹
-def rmempty(root, tree=False,silent=False):
+def rmempty(root, tree=False, silent=False):
     dlis = []
     if tree == False:
         for i in listdir(root):
@@ -1376,7 +1398,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
         if isdir(s2):
             return move(s1, f'{s2}/{filename(s1)}', overwrite, silent, autorename, merge)
         if isfile(s2):
-            b,newname=regeneratename(filename(s1),parentpath(s2),originalpath=parentpath(s1))
+            b, newname = regeneratename(filename(s1), parentpath(s2), originalpath=parentpath(s1))
             if b and overwrite:
                 deletedirandfile(s1)
                 delog(f'移动时已有相同文件 {s2}。覆盖。')
@@ -1390,7 +1412,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
                 Open(parentpath(s1))
                 Open(parentpath(s2))
                 Exit(f'移动时已有文件。请检查 {s1} {s2}')
-            s2=f'{parentpath(s2)}/{newname}'
+            s2 = f'{parentpath(s2)}/{newname}'
         createpath(s2)
         shutil.move(standarlizedPath(s1), standarlizedPath(s2))
         return
@@ -1402,7 +1424,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
                     move(all, f'{s1}/{filename(all)}', overwrite=overwrite, silent=silent, autorename=autorename, merge=merge)
             else:
                 # 思路是直接把文件夹当作文件来判断。因此直接copy上面的逻辑
-                b,newname=regeneratename(filename(s1),parentpath(s2),originalpath=parentpath(s1))
+                b, newname = regeneratename(filename(s1), parentpath(s2), originalpath=parentpath(s1))
                 if b and overwrite:
                     deletedirandfile(s1)
                     delog(f'移动时已有相同文件夹 {s2}。覆盖。')
@@ -1834,7 +1856,7 @@ class txt():
                 return
 
     @DebugConsume
-    def set(self, silent=None,sort=False):
+    def set(self, silent=None, sort=False):
         """
         去重，排序，去空，集合化
         @param silent:
@@ -1931,7 +1953,7 @@ class RefreshTXT(txt):
     def save(self, silent=None):
         if silent == None:
             silent = self.silent
-        self.l=Set(extend([],self.l, rtxt(self.path, silent=silent).l))
+        self.l = Set(extend([], self.l, rtxt(self.path, silent=silent).l))
         RefreshTXT.set(self, silent=silent)
         txt.save(self, 'Rtxt 合并保存', silent=silent)
 
@@ -1949,7 +1971,7 @@ class RefreshTXT(txt):
             return None
         self.l = (extend(self.l[1:], [self.l[0]]))
         self.loopcount -= 1
-        RefreshTXT.save(self,silent=silent)
+        RefreshTXT.save(self, silent=silent)
         return self.l[-1]
 
     def rollback(self, silent=None):
@@ -2069,8 +2091,9 @@ class RefreshJson(Json, RefreshTXT):
     @DebugConsume
     def get(self, silent=None):
         """
-        滚动文本。返回列表，txt内存储的值是列表，返回列表中每个值都添加一个键
-        @return:第一行
+        本地存储值是列表，返回所有键值对（拆开成列表）
+        @return: 第一行放最后一行，并返回这一行
+
         """
         if silent is None:
             silent = self.silent
@@ -2230,14 +2253,14 @@ class cache():
     dict
     """
 
-    def __init__(self, path,silent=None,json=True):
-        self.silent=silent
+    def __init__(self, path, silent=None, json=True):
+        self.silent = silent
         self.path = path
-        self.json=json
+        self.json = json
 
-    def get(self,silent=False):
+    def get(self, silent=False):
         if self.silent:
-            silent=True
+            silent = True
         while True:
             try:
                 f = txt(self.path)
@@ -2248,7 +2271,7 @@ class cache():
                 else:
                     s = f.l[0]
                 f.l.pop(0)
-                f.save('cache get',silent=silent)
+                f.save('cache get', silent=silent)
                 if s == None:
                     s = self.get()
                 return s
@@ -2257,14 +2280,14 @@ class cache():
                 warn('cache获取失败。正在重试')
                 sleep(2)
 
-    def add(self, s,silent=False):
+    def add(self, s, silent=False):
         if self.silent:
-            silent=True
+            silent = True
         if self.json:
             s = dicttojson(s)
         f = txt(self.path)
-        f.add(s,silent=silent)
-        f.save(f'cache added{s}',silent=silent)
+        f.add(s, silent=silent)
+        f.save(f'cache added{s}', silent=silent)
 
     def length(self):
         return txt(self.path).length()
@@ -2409,7 +2432,7 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
 def Log(s, front=242, font=1, background=238):
     global Logcount
     # 最大的每行字符长度
-    m =250
+    m = 250
     try:
         s = str(s)
         s.replace(u'\xa0', u'<?>')
@@ -2495,19 +2518,19 @@ def warn(*a):
 # region
 # 实现包括None在内的int转换
 def Int(s):
-    if s in [None,False]:
+    if s in [None, False]:
         return 0
     return int(s)
 
+
 # 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
-    res=[]
+    res = []
     for i in l:
         if i in res:
             continue
         res.append(i)
     return res
-
 
 
 def simplinfo(num, author, title, diskname=None):
@@ -2520,16 +2543,16 @@ def mergelist(*a):
     return extend(*a)
 
 
-def extend(*a,set=False):
+def extend(*a, set=False):
     if len(a) > 2:
         for i in a[1:]:
             extend(a[0], i)
         return a[0]
-    if len(a)==1:
-        l1=[]
-        l2=a[0]
+    if len(a) == 1:
+        l1 = []
+        l2 = a[0]
     else:
-        l1, l2  =   a
+        l1, l2 = a
     if l1 == None:
         warn(f'l1: None  l2: {l2}')
         return l2
@@ -2629,8 +2652,9 @@ def tellstringsame(s1, s2):
 
 # 去除字符串末尾
 def Strip(s, tail, strict=False):
-    # if not type(s) in [str] and type(tail) in [str]:
-    #     Exit(s, tail)
+    if not type(s) in [str] and type(tail) in [str]:
+        warn(f's tail中有不为字符')
+        Exit(s, tail)
     if s[-len(tail):] == tail:
         return s[:-len(tail)]
     else:
@@ -2660,7 +2684,7 @@ def splittail(s, mark):
 
 
 def removetail(l, mark='.', strict=False):
-    return cuttail(l, mark,strict=strict)[0]
+    return cuttail(l, mark, strict=strict)[0]
 
 
 def rmtail(*a, **b):
@@ -2745,9 +2769,9 @@ def setRootPath(dir=None, dname=None, strict=True):
         # 盘未初始化
         for ddisk in activedisk.l:
             if os.path.exists(f'{ddisk}:/'):
-                bbb=True
+                bbb = True
                 break
-        if bbb==None:
+        if bbb == None:
             Open(activedisk.path)
             if strict:
                 Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
@@ -2806,7 +2830,7 @@ def getdiskname():
     else:
         global disknames
         disknames = Json("D:/Kaleidoscope/disknames.txt", silent=True)
-        disknames.add({'name':diskinfo.d['name']})
+        disknames.add({'name': diskinfo.d['name']})
         disknames = rtxt("D:/Kaleidoscope/disknames.txt", silent=True)
     return diskinfo.d['name'][0]
 
@@ -2910,7 +2934,7 @@ def alertpage(l):
     page.switch_to.window(page.window_handles[0])
 
 
-def Element(l, depth=5, silent=None):
+def Element(l, depth=5, silent=debug):
     res = elements(l, depth, silent)
     if res == []:
         return None
@@ -2996,9 +3020,19 @@ def scrollheight(l):
     return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
 
 
-# 移动到元素、下滚
 @consume
 def scroll(l, silent=None, x=None, y=None, ratio=1, t=1, ite=None):
+    """
+    移动到元素、下滚
+    @param l:
+    @param silent:
+    @param x:
+    @param y:
+    @param ratio:
+    @param t:
+    @param ite:
+    @return:
+    """
     if not type(l) in [list]:
         if not x == None:
             pyautogui.moveTo(x, y)
@@ -3059,11 +3093,11 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     if not url in ['', None] and not 'http' in url:
         url = 'https://' + url
     options = webdriver.ChromeOptions()
-    op=''
+    op = ''
     if not silent in [None, False]:
         if mine:
-           # options.add_argument('--headless=new')
-           options.add_argument('--headless')
+            # options.add_argument('--headless=new')
+            options.add_argument('--headless')
         else:
             options.add_argument("--headless")
     if mute:
@@ -3099,6 +3133,33 @@ class Edge():
         self.mine = mine
         self.type = 'edge'
         self.set_window_size(900, 1000)
+
+    def nearend(self):
+        """
+        判断是否接近底部
+
+        @return:
+        """
+        return self.getscrolltop()+self.get_window_size()[1]-self.getscrollheight()>130
+
+    def Down(self,*a,start=0, end=None,scale=100, func=None,pause=1,**b):
+        """
+        边下滚边执行函数
+        @param start:
+        @param end:
+        @param scale:
+        @param func:第一次首参为None，二参为self的迭代函数
+        @param pause:
+        @return:
+        """
+        self.scroll(start)
+        ret=None
+        while not self.nearend() or (not end==None and self.getscrolltop()<end):
+            if not func == None:
+                ret=func(ret,[self],*a,**b)
+            self.scroll(scale+self.getscrolltop())
+            sleep(pause)
+        return ret
 
     # 历史后退
     def backward(self):
@@ -3178,8 +3239,8 @@ class Edge():
     def Width(self):
         return scrollwidth([self.driver])
 
-    def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False,clipinterval=0.6,
-                    top=0, bottom=0, left=0, right=0):
+    def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False, clipinterval=0.6,
+                   top=0, bottom=0, left=0, right=0, adjust=17):
         """
         获取全屏。固定保存在basic_.png。
         @param path:路径名而不是文件名
@@ -3199,7 +3260,6 @@ class Edge():
         createpath(path)
         delog(f'将把 {self.url()} 的全屏保存到  {path}')
 
-
         if autodown:
             self.down(ite=autodown)
             if type(autodown) in [int]:
@@ -3209,25 +3269,24 @@ class Edge():
         else:
             self.setscrolltop(self.Height())
 
-
         if clip:
-            clipsize=self.getscrollheight()-self.getscrolltop()-Int(top)-Int(bottom)
-            clipcount=0
-            while self.getscrolltop()>0:
-                self.scroll(self.getscrollheight()-clipsize*clipcount)
+            clipsize = self.getscrollheight() - self.getscrolltop() - Int(top) - Int(bottom)
+            clipcount = 0
+            while self.getscrolltop() > 0:
+                self.scroll(int(self.getscrollheight() - clipsize * clipcount))
                 # 50是一般认为clipsize不会小于的值
-                dpath=f'{parentpath(path)}/clipped/{extentionandname(path,exist=False)[0]}{clipcount}{extentionandname(path,exist=False)[1]}'
+                dpath = f'{parentpath(path)}/clipped/{extentionandname(path, exist=False)[0]}{clipcount}{extentionandname(path, exist=False)[1]}'
                 createpath(dpath)
                 self.driver.get_screenshot_as_file(dpath)
                 delog(f'已保存部分截图到{dpath}')
-                clipcount+=1
+                clipcount += 1
                 sleep(clipinterval)
-            combineimages(parentpath(dpath),outputname='basic.png',mode='vertical',reverse=True,
-                          filelist = [f"{parentpath(dpath)}/basic{i}.png" for i in range(clipcount)],
-                          left=left,right=right,top=top,bottom=bottom+17)
-            deletedirandfile(parentpath(dpath),silent=True)
+            combineimages(parentpath(dpath), outputname='basic.png', mode='vertical', reverse=True,
+                          filelist=[f"{parentpath(dpath)}/basic{i}.png" for i in range(clipcount)],
+                          left=left, right=right, top=top, bottom=bottom + adjust)
+            deletedirandfile(parentpath(dpath), silent=True)
         else:
-        #     向上滚动，一次获取
+            #     向上滚动，一次获取
             self.up(scale=scale, pause=pause)
             x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
             self.set_window_size(x, y)
@@ -3244,10 +3303,10 @@ class Edge():
             self.click('//*[@id="overrideLink"]')
         time.sleep(1)
 
-    def save(self, path=None, video=True, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
+    def save(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
              clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
-             overwrite=True,redownload=True,savevideo=False,
-             top=0, bottom=0, left=0, right=0):
+             overwrite=True, redownload=True, savevideo=False,
+             top=0, bottom=0, left=0, right=0, adjust=17):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:
@@ -3324,7 +3383,7 @@ class Edge():
             self.ctrlshifts(path, t)
         else:
             self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=True,
-                            top=top,bottom=bottom,left=left,right=right)
+                            top=top, bottom=bottom, left=left, right=right, adjust=adjust)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -3363,9 +3422,9 @@ class Edge():
             if url == None:
                 Exit(self.url(), '获取图片地址失败')
             #     特殊地址处理
-            url=gettail(url,'blob:',strict=False)
-            url=gettail(url,'data:',strict=False)
-            if '<svg'in url:
+            url = gettail(url, 'blob:', strict=False)
+            url = gettail(url, 'data:', strict=False)
+            if '<svg' in url:
                 continue
             delog(f'图片地址：{url}')
 
@@ -3483,7 +3542,7 @@ class Edge():
         if s == None:
             return
         if type(s) in [str]:
-            return Edge.click(self, Edge.element(self, s, strict=strict))
+            return Edge.click(self, self.element(s, strict=strict))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -3539,8 +3598,8 @@ class Edge():
             root = self.driver
         # 重写xpath规则
         s = s.replace('svg', '*[name()="svg"]')
-        s1=s
-        for i in ['@href', '@src', 'text()', '.text','@style']:
+        s1 = s
+        for i in ['@href', '@src', 'text()', '.text', '@style']:
             if '//' + i in s:
                 Exit('暂不支持这种用法。在属性前使用 \"//\" ')
             s = Strip(s, '/' + i)
@@ -3584,7 +3643,7 @@ class Edge():
         return self.elements(*a, **b)
 
     def scroll(self, a=-1, ite=None):
-        if type(a) in [int]:
+        if type(a) in [int, float]:
             if a == -1:
                 scroll([(self.driver)], ite=None)
             else:
@@ -3614,6 +3673,12 @@ class Edge():
         return setscrolltop([self.driver, h])
 
     def up(self, scale=100, pause=1):
+        """
+        向上滚动
+        @param scale:上滚距离
+        @param pause: 上滚间隔
+        @return:
+        """
         h = self.getscrolltop()
         while h > 10:
             if h > scale:
@@ -3770,6 +3835,7 @@ class Chrome(Edge):
         self.driver.maximize_window()
 
 
+
 def edge(url='', silent=None, mine=False, mute=True):
     options = webdriver.EdgeOptions()
     if not silent == None:
@@ -3840,13 +3906,13 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
     try:
         # 默认xy坐标是在windows UI缩放比例为125%下的，在screenscale.txt中修改当前的缩放比例
         defaultmode = 'center'
-        defaultuiscale=125
-        defaultxscale=1920
-        defaultyscale=1080
-        global uiscale,xsize,ysize
-        X,Y=x-defaultxscale/2,y-defaultyscale/2
-        X,Y=int(X/defaultxscale*xsize/defaultuiscale*uiscale),int(Y/defaultyscale*ysize/defaultuiscale*uiscale)
-        x,y=X+xsize/2,Y+ysize/2
+        defaultuiscale = 125
+        defaultxscale = 1920
+        defaultyscale = 1080
+        global uiscale, xsize, ysize
+        X, Y = x - defaultxscale / 2, y - defaultyscale / 2
+        X, Y = int(X / defaultxscale * xsize / defaultuiscale * uiscale), int(Y / defaultyscale * ysize / defaultuiscale * uiscale)
+        x, y = X + xsize / 2, Y + ysize / 2
         pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:
@@ -3926,15 +3992,15 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
     @return:True 下载了并且下载成功；False 下载了但是下载失败；字符串 返回检测到的以前的错误命名
     """
 
-    path=standarlizedPath(path)
+    path = standarlizedPath(path)
     if not redownload:
         #     已下载
-        if exists(path) and not size(path)==0:
+        if exists(path) and not size(path) == 0:
             if not overwrite:
                 log(f'{path} 已存在，将不下载')
                 return True
             else:
-                move(path,cachepath(f'trashbin/{now()}'))
+                move(path, cachepath(f'trashbin/{now()}'))
 
     def recursive():
         sleep(t)
@@ -3972,7 +4038,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
     #         return originalpath
 
     if redownload:
-        root=standarlizedPath(cachepath('pagedownload/'),strict=True)
+        root = standarlizedPath(cachepath('pagedownload/'), strict=True)
     else:
         root = (path[:path.rfind('\\')])
     name = path[path.rfind('\\') + 1:]
@@ -4050,26 +4116,8 @@ def scrshot(l):
 # endregion
 
 
-# 写死变量
+# 初始化2
 # region
-Logcount = 0
-debug = sys.gettrace()
-
-retrylist = [selenium.common.exceptions.WebDriverException,
-             MyError, selenium.common.exceptions.ElementClickInterceptedException,
-             Exception, ConnectionRefusedError,
-             urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError,
-             selenium.common.exceptions.TimeoutException,
-             selenium.common.exceptions.NoSuchWindowException, pyautogui.FailSafeException,
-             ]
-headers = {
-    # 'user-agent': txt(projectpath('user-agent.txt')).l[0],
-    'user-agent': '',
-    'cookie': ''
-}
-# endregion
-
-# 初始化
 user = txt(projectpath('user.txt')).l[0]
 activedisk = txt(projectpath('ActiveDisk.txt'))
 diskname = ''
@@ -4079,14 +4127,15 @@ setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
 try:
-    uiscale=int(txt(projectpath('ScreenScale.txt')).l[0])
-    xsize=int(txt(projectpath('ScreenScale.txt')).l[1])
-    ysize=int(txt(projectpath('ScreenScale.txt')).l[2])
+    uiscale = int(txt(projectpath('ScreenScale.txt')).l[0])
+    xsize = int(txt(projectpath('ScreenScale.txt')).l[1])
+    ysize = int(txt(projectpath('ScreenScale.txt')).l[2])
 except:
     warn('ScreenScale未配置，使用默认参数。')
-    uiscale=125
-    xsize=1920
-    ysize=1080
+    uiscale = 125
+    xsize = 1920
+    ysize = 1080
+
 
 def RuntimeRoot():
     ret = standarlizedPath(__file__)
@@ -4095,3 +4144,4 @@ def RuntimeRoot():
 
 
 tip('MyUtils already loaded')
+# endregion

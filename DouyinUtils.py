@@ -19,31 +19,34 @@ exceptuser = MyUtils.txt('D:/Kaleidoscope/抖音/FailedUsers.txt')
 failed = MyUtils.Json('D:/Kaleidoscope/抖音/FailedPieces.txt')
 missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
 expirepiecex=MyUtils.rjson(MyUtils.projectpath('./抖音/ExpiredPieces.txt'))
-
-diskusers = []
-for i in MyUtils.listdir('./抖音/'):
-    diskusers.append(MyUtils.filename(i))
-
+history=MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
 
 def HostPieces(l):
-    page = l[0]
-    ret = []
-    time.sleep(5)
-    l2 = MyUtils.Elements([page, By.XPATH, '//a[starts-with(@href,"//www.douyin.com/note/")]'], depth=10, silent=True)
-    l3 = MyUtils.Elements([page, By.XPATH, '//a[starts-with(@href,"//www.douyin.com/video/")]'], depth=10, silent=True)
-    l1 = MyUtils.Elements([page, By.XPATH, '//a[starts-with(@href,"/video/")]'], depth=10, silent=True)
-    ret = MyUtils.extend(ret, l1)
-    ret = MyUtils.extend(ret, l2)
-    ret = MyUtils.extend(ret, l3)
+    """
 
-    if ret == []:
-        MyUtils.Exit(f'获取视频元素列表错误。{l1, l2, l3}')
-    MyUtils.delog(f'准备操作的作品列表长度：{len(ret)}')
+    @param l:页面数组
+    @return: 所有作品元素
+    """
+    page = l[0]
+    Page=MyUtils.Chrome(driver=[page])
+    psn=int(Page.element('//*[@id="douyin-right-container"]//h2/span[@data-e2e]/text()'))
+    def func(ret,l):
+        if ret is None:
+            ret=[]
+        return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-right-container"]//div[contains(@data-e2e,"user-post-list")]//li//a/@href'), set=True)
+    ret=Page.Down(start=0,scale=400,pause=2,func=func)
+    if not len(ret)==psn:
+        MyUtils.warn(f'作品数量不匹配 {ret}/{psn}')
     return ret
 
 
 @MyUtils.consume
 def piecetourlnum(l):
+    """
+
+    @param l:作品元素
+    @return: 作品url,uid
+    """
     VideolElement = l[0]
     elementurl = VideolElement.get_attribute('href')
     if elementurl.find('?') > 0:
@@ -63,9 +66,11 @@ def IsPic(l):
     # 思路是找到一个图文标签即可
     # 似乎图文都是在svg里的
     for el in elements:
-        if not None == el.text in ['图文'] or not None==MyUtils.Edge.element(None,'.//svg',root=el,strict=False):
+        if el.text in ['图文'] or not None==MyUtils.Element([el,By.XPATH,'.//svg'],depth=9,silent=True):
+            MyUtils.delog('图文')
             return True
             # if MyUtils.Element([el, By.XPATH, './/span/text()'], depth=9, silent=True) in ['置顶','共创']:
+    MyUtils.delog('视频')
     return False
 
 
@@ -211,10 +216,45 @@ def skipdownloaded(flag, record, VideoNum, title, author,num=None):
     return False
 
 def skipverify(l):
+    """
+
+    @param l:页面
+    @return:
+    """
     page=l[0]
     MyUtils.sleep(1)
     page.skip('//*[@id="captcha-verify-image"]',strict=False)
     page.click('//div[@class="dy-account-close"]',strict=False)
     page.click('//*[@id="login-pannel"]/div[@class="dy-account-close"]',strict=False)
+    while '验证码中间'in page.title():
+        MyUtils.sleep(3)
+        MyUtils.log('等待页面跳转中...')
 
 MyUtils.tip('DouyinUtils loaded.')
+
+
+def hostdata(l):
+    """
+
+    @param l:主页
+    @return: 作品数，author，作品元素列表
+
+    """
+    Host=l[0]
+    skipverify([Host])
+    author = MyUtils.Element([Host.driver, By.XPATH, '/html/head/title']).get_attribute('text')
+    author = author[0:author.rfind('的主页')]
+    ps=HostPieces([Host.driver])
+    return len(ps),author,ps
+
+def piecepagedata(l):
+    """
+
+    @param l:作品页
+    @return: 作品标题，ispic
+
+    """
+    Page=l[0]
+    title=MyUtils.rmtail(Page.title(),' - 抖音')
+    ispic='note'in Page.url()
+    return title,ispic

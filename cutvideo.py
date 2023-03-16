@@ -1,3 +1,5 @@
 import MyUtils
 
-MyUtils.cutvideo(r'F:\璐琪\2022-11-20\SVID_20221120_230413_2.mp4','00:00:00','00:00:20')
+source=r'E:\璐琪\2023-01-31\SVID_20230131_223341_1.mp4'
+
+MyUtils.cutvideo(source,'00:12:46','00:13:44',outputpath=MyUtils.desktoppath(f'KaleiVideoCut.mp4'))

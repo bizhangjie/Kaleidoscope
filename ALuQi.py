@@ -1,10 +1,11 @@
 import MyUtils
 
 # 移动根目录的文件
+sourcepath = 'd:/璐琪'
 MyUtils.setrootpath(dname=['3'])
 todolist=[]
 # 先预报，人工检查看看对不对
-for file in MyUtils.listfile(['./', './璐琪/']):
+for file in MyUtils.listfile(sourcepath):
     if 'Scree' in file or 'SVID' in file:
         filename = MyUtils.filename(file)
         if 'SVID' in filename:

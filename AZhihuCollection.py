@@ -70,7 +70,7 @@ while True:
 
         # 用新方法保存
         page.save(MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎', look=True,scale=350,
-                  top=52,bottom=62,minsize=(200,200))
+                  top=52,bottom=62,minsize=(200,200),adjust=17)
 
     page.close()
     page.switchto(0)

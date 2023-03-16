@@ -49,7 +49,7 @@ def download():
                 i += 1
                 MyUtils.delog(f'开始下载，url={url}')
                 try:
-                    t = MyUtils.pagedownload(url=url, path=f'{path}/{VideoNum}_{title}/{i}.png', t=2, silent=False) and t
+                    t = MyUtils.pagedownload(url=url, path=f'{path}/{VideoNum}_{title}/{i}.png', t=2) and t
                 except Exception as e:
                     MyUtils.warn(e)
                     t = False

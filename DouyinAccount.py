@@ -7,9 +7,9 @@ import DouyinUtils
 import MyUtils
 # 运行程序前请先在Browser登录
 # 小号
-Account='MS4wLjABAAAAlHut0BHZMJOe2xxGFCq9IDcV-MuLNL_XIxRTZiO8nThhJMYmWRhbFlzfrIo5MqCH'
+# Account='MS4wLjABAAAAlHut0BHZMJOe2xxGFCq9IDcV-MuLNL_XIxRTZiO8nThhJMYmWRhbFlzfrIo5MqCH'
 # 大号
-# Account='MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q'
+Account='MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q'
 users = DouyinUtils.allusers
 readytodownload = DouyinUtils.readytodownload
 
