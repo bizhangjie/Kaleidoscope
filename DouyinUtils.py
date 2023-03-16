@@ -29,7 +29,12 @@ def HostPieces(l):
     """
     page = l[0]
     Page=MyUtils.Chrome(driver=[page])
-    psn=int(Page.element('//*[@id="douyin-right-container"]//h2/span[@data-e2e]/text()'))
+    try:
+        psn=int(Page.element('//*[@id="douyin-right-container"]//h2/span[@data-e2e]/text()',strict=False))
+    except:
+        MyUtils.warn(f'发现用户异常。{Page.url()}')
+        exceptuser.add(MyUtils.gettail(Page.url(),'/'))
+        return []
     def func(ret,l):
         if ret is None:
             ret=[]

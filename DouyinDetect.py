@@ -40,6 +40,8 @@ def main():
         # 用户主页
         Host.get('https://www.douyin.com/user/' + useruid)
         PiecesNum,author,ps=DouyinUtils.hostdata([Host])
+        if PiecesNum==0:
+            continue
         MyUtils.delog(f'  ------转到{author}的主页-----',useruid)
         DouyinUtils.addauthor(useruid, author, allusers)
         Host.scroll()
