@@ -1,7 +1,6 @@
 import MyUtils
-
-def main():
-    page = MyUtils.Chrome('https://www.zhihu.com/hot', silent=False,mine=True)
+url='www.bilibili.com'
 
 if __name__ == '__main__':
-    main()
+    page = MyUtils.Chrome(url, silent=False,mine=False, mute=True)
+    MyUtils.sleep(10)

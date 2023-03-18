@@ -1862,12 +1862,14 @@ class txt():
         @param silent:
         @return:
         """
+        if '' in self.l:
+            self.l.pop(self.l.index(''))
+        if len(self.l)>20000:
+            return
         p = Set(self.l)
         if sort:
             p.sort(key=self.l.index)
         self.l = p
-        if '' in self.l:
-            self.l.pop(self.l.index(''))
         if not silent == None:
             txt.save(self, 'Rtxt set', silent=silent)
         else:
@@ -1929,8 +1931,7 @@ class RefreshTXT(txt):
         self.mode = 'Rtxt'
         # self.rollback()
         RefreshTXT.backup(self)
-        if self.length() < 2000:
-            RefreshTXT.set(self, silent=silent)
+        RefreshTXT.set(self, silent=silent)
 
     def backup(self, strict=False):
         # region
@@ -2047,8 +2048,7 @@ class RefreshJson(Json, RefreshTXT):
         RefreshTXT.__init__(self, path, encoding=encoding, silent=silent)
         RefreshJson.depart(self)
         Json.addtodict(self)
-        if self.length() < 20000:
-            RefreshJson.set(self, silent=silent)
+        RefreshJson.set(self, silent=silent)
         self.mode = 'Rjson'
 
         #     非列表的安全检查
@@ -3017,7 +3017,7 @@ def scrollwidth(l):
 # 获取页面最大高度（通过滚动条
 def scrollheight(l):
     page = l[0]
-    return page.execute_script('var q=document.documentElement.scrollHeight;return(q)')
+    return float(page.execute_script('var q=document.documentElement.scrollHeight;return(q)'))
 
 
 @consume
@@ -3096,12 +3096,12 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
     op = ''
     if not silent in [None, False]:
         if mine:
-            # options.add_argument('--headless=new')
-            options.add_argument('--headless')
+            options.add_argument('--headless=new')
         else:
             options.add_argument("--headless")
     if mute:
         options.add_argument('mute-audio')
+        delog('浏览器打开静音')
     if mine:
         options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
     # options.add_experimental_option("excludeSwitches", ['enable-automation'])
@@ -3133,6 +3133,14 @@ class Edge():
         self.mine = mine
         self.type = 'edge'
         self.set_window_size(900, 1000)
+
+    def extendtofull(self,x=None):
+        if not self.silent:
+            Exit('不支持非静默模式调用')
+        self.down()
+        if x is None:
+            x=self.get_window_size()[0]
+        self.set_window_size(x, self.getscrollheight())
 
     def nearend(self):
         """
@@ -3242,14 +3250,14 @@ class Edge():
     def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False, clipinterval=0.6,
                    top=0, bottom=0, left=0, right=0, adjust=17):
         """
-        获取全屏。固定保存在basic_.png。
+        往上获取全屏。固定保存在basic_.png。
         @param path:路径名而不是文件名
-        @param scale:
-        @param autodown:是持续滚动还是一次性滚动。
-        @param pause:
-        @param clip: 是一张还是分部。如果clip，现在/clipped文件夹下
+        @param scale: 下滚距离
+        @param autodown:是否下滚
+        @param pause:不切片上滚时间间隔
+        @param clip: 是否切片
         @param top: 顶部固定浮动元素高度
-        @param clipinterval: 每次更改页面高度的等待时间
+        @param clipinterval: 切片时间间隔
         @return:
         """
         if path == None:
@@ -3261,36 +3269,30 @@ class Edge():
         delog(f'将把 {self.url()} 的全屏保存到  {path}')
 
         if autodown:
-            self.down(ite=autodown)
-            if type(autodown) in [int]:
-                autodown -= 1
-            if autodown == 0:
-                autodown = False
-        else:
-            self.setscrolltop(self.Height())
+            self.down()
 
         if clip:
             clipsize = self.getscrollheight() - self.getscrolltop() - Int(top) - Int(bottom)
             clipcount = 0
-            while self.getscrolltop() > 0:
-                self.scroll(int(self.getscrollheight() - clipsize * clipcount))
+            while True:
+                self.scroll(int(self.getscrollheight() - clipsize * clipcount-self.get_window_size()[1]+130))
                 # 50是一般认为clipsize不会小于的值
-                dpath = f'{parentpath(path)}/clipped/{extentionandname(path, exist=False)[0]}{clipcount}{extentionandname(path, exist=False)[1]}'
-                createpath(dpath)
-                self.driver.get_screenshot_as_file(dpath)
-                delog(f'已保存部分截图到{dpath}')
+                clippath = f'{parentpath(path)}/clipped/{extentionandname(path, exist=False)[0]}{clipcount}{extentionandname(path, exist=False)[1]}'
+                createpath(clippath)
+                self.driver.get_screenshot_as_file(clippath)
+                delog(f'已保存部分截图到{clippath}')
                 clipcount += 1
                 sleep(clipinterval)
-            combineimages(parentpath(dpath), outputname='basic.png', mode='vertical', reverse=True,
-                          filelist=[f"{parentpath(dpath)}/basic{i}.png" for i in range(clipcount)],
+                if self.getscrolltop() == 0:
+                    break
+            combineimages(parentpath(clippath), outputname='basic.png', mode='vertical', reverse=True,
+                          filelist=[f"{parentpath(clippath)}/basic{i}.png" for i in range(clipcount)],
                           left=left, right=right, top=top, bottom=bottom + adjust)
-            deletedirandfile(parentpath(dpath), silent=True)
+            deletedirandfile(parentpath(clippath), silent=True)
         else:
-            #     向上滚动，一次获取
             self.up(scale=scale, pause=pause)
             x, y = max(1080, scrollwidth([self.driver]) + 100), scrollheight([self.driver])
             self.set_window_size(x, y)
-            # self.elementshot(path, e)
             self.driver.get_screenshot_as_file(path)
 
         if delog:

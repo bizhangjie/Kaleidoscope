@@ -31,6 +31,9 @@ def HostPieces(l):
     Page=MyUtils.Chrome(driver=[page])
     try:
         psn=int(Page.element('//*[@id="douyin-right-container"]//h2/span[@data-e2e]/text()',strict=False))
+        if psn==0:
+            MyUtils.warn(f'用户无作品。{Page.url()}')
+            return []
     except:
         MyUtils.warn(f'发现用户异常。{Page.url()}')
         exceptuser.add(MyUtils.gettail(Page.url(),'/'))
@@ -41,7 +44,7 @@ def HostPieces(l):
         return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-right-container"]//div[contains(@data-e2e,"user-post-list")]//li//a/@href'), set=True)
     ret=Page.Down(start=0,scale=400,pause=2,func=func)
     if not len(ret)==psn:
-        MyUtils.warn(f'作品数量不匹配 {ret}/{psn}')
+        MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
     return ret
 
 
