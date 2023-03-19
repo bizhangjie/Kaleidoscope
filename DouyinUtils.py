@@ -4,7 +4,7 @@ import time
 
 from selenium.webdriver.common.by import By
 import MyUtils
-MyUtils.setrootpath(dname=['-2'])
+MyUtils.setrootpath(MyUtils.getsettings('douyin'))
 if MyUtils.debug:
     maxready=3
 else:
@@ -128,7 +128,7 @@ def addauthor(useruid, author, users=allusers):
 
 
 def simplinfo(num, author, title):
-    return json.dumps({str(num): {'disk': MyUtils.diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+    return json.dumps({str(num): {'disk': MyUtils.diskpath, 'author': author, 'title': title}}, ensure_ascii=False)
     # return json.dumps({str(num):{'disk':MyUtils.hashcode,'author':author,'title':title}},ensure_ascii=True)
 
 

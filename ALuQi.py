@@ -23,5 +23,5 @@ MyUtils.out(todolist)
 for i in todolist:
     MyUtils.move(i[0],i[1])
     record=MyUtils.rjson(MyUtils.projectpath('./璐琪/record.txt'))
-    record.add({MyUtils.filename(i[0]):MyUtils.diskname})
-    print({MyUtils.filename(i[0]):MyUtils.diskname})
+    record.add({MyUtils.filename(i[0]):MyUtils.diskpath})
+    print({MyUtils.filename(i[0]):MyUtils.diskpath})

@@ -1265,6 +1265,15 @@ def cachepath(s=''):
         s = '/' + s
     return standarlizedPath(f'{projectpath("cache" + s)}')
 
+# 用户配置文件目录
+def settingspath(s=''):
+    if 'Kaleidoscope/settings' in s:
+        return
+    if './' in s:
+        s = s[2:]
+    if not s == '':
+        s = '/' + s
+    return standarlizedPath(f'{projectpath("settings" + s)}')
 
 # 下属的文件夹和文件
 def listall(path):
@@ -2011,6 +2020,9 @@ class RefreshTXT(txt):
 
 
 class Json(txt):
+    """
+    txt转json，一行一个json
+    """
     def __init__(self, path, encoding=None, silent=None):
         txt.__init__(self, path, encoding)
         self.addtodict()
@@ -2726,76 +2738,60 @@ def strre(s, pattern):
 
 # 分布式
 # region
+# 获取用户个性化设置
+def getsettings(k=None):
+    if not type(k)in [str]:
+        Exit(f'键错误。{info(k)}')
+    f=Json(settingspath('all.txt'))
+    return f.d[k]
+
 # 检查磁盘是否可用（待机）
 def checkdiskusable(s):
     s = s[0]
     Open(f'{s}:/diskInfo.txt')
 
 
-def setRootPath(dir=None, dname=None, strict=True):
+def setRootPath(dname=None, d=None,strict=True):
     """
     动态更改操作盘
-    @param dir:False则手动输入，可以直接是字符，None则根据 activedisk 设置
-    @param dname:根据唯一标识符设置操作盘，可以列表
-    @param strict:非严格模式下，未找到磁盘则仅报错，不停止程序
+    @param d:盘符
+    @param dname:False则自动分配；字符串表示操作盘唯一标识符，可以列表
+    @param strict:非严格模式下，找不到唯一标识符则开始创建
     @return:唯一标识符，失败为False
     """
-    if not dname == None:
-
-        # 多个唯一标识符查找
+    global diskpath,diskname,disknames
+    disknames=rjson(projectpath('disknames.txt'),silent=True)
+    if d:
+        return initdisk(d,strict=strict)
+    else:
+        # 自动分配
+        if dname == False:
+            return initdisk('d')
+        # 空参
+        if dname in [None,[]]:
+            if strict:
+                Exit('传空参，未指定磁盘。')
+            else:
+                ret=initdisk()
         if type(dname) in [list]:
             for dname in dname:
-                ret = setRootPath(dir=dir, dname=dname, strict=False)
+                ret=setRootPath(dname=dname)
                 if ret:
                     return ret
             if strict:
-                Exit('未找到磁盘{}。'.format(dname))
+                Exit(f'未找到磁盘{dname}。')
             return False
-
-        # 单个唯一标识符查找
-        for root in ['d', 'e', 'f', 'g', 'h']:
-            if not isfile(f'{root}:/diskInfo.txt'):
-                continue
-            ff = rjson(f'{root}:/diskInfo.txt', silent=True)
-            if dname == values(ff.get()[0])[0]:
-                setRootPath(root)
-                return root
-        if strict:
-            Exit('未找到磁盘{}。'.format(dname))
-        return False
-
-    #     单个字符查找
-    if dir == None:
-        # 盘未初始化
-        for ddisk in activedisk.l:
-            if os.path.exists(f'{ddisk}:/'):
-                bbb = True
-                break
-        if bbb == None:
-            Open(activedisk.path)
+        if type(dname) in [str,int]:
+            for i in ['c','d','e','g','f','h']:
+                if isfile(f'{i}:/diskInfo.txt'):
+                    f=rjson(f'{i}:/diskInfo.txt')
+                    if f.d['name'][0]==dname:
+                        return initdisk(i)
             if strict:
-                Exit(f'{activedisk.path} ：{activedisk.l}，请检查。')
+                Exit(f'未找到磁盘{dname}')
             else:
-                warn(f'{activedisk.path} ：{activedisk.l}，请检查。')
                 return False
-
-        # 根据文本更改操作盘
-        i = ddisk
-    else:
-        if dir == False:
-            i = input(f'。默认为{activedisk.l[0]}')
-            if i == '':
-                i = activedisk.l[0]
-        # 默认值
-        else:
-            i = dir
-    os.chdir(i + ':/')
-    log(f'operating DISK {str.title(i)}')
-    global diskname
-    diskname = getdiskname()
-    return diskname
-
-
+    return False
 def confirmRootPath(name):
     return getdiskname() == name
 
@@ -2804,35 +2800,51 @@ def setrootpath(*a, **b):
     setRootPath(*a, **b)
 
 
-#     初始化一个分布式盘
-def initdisk(Diskname):
-    diskinfo = RefreshJson('./diskInfo.txt')
-    if not diskinfo.l == []:
-        warn(f'初始化分布盘失败。当前盘{standarlizedPath("./")}已存在diskInfo.txt。请检查。')
-        return False
-    if Diskname in disknames.l:
-        warn(f'该名字已存在。请更换。')
-        return getdiskname()
-    diskinfo.add({"name": str(Diskname)})
-    disknames.add(Diskname)
-    return
-
+def initdisk(d=None,strict=False):
+    """
+    重设工作根目录
+    @param d: 为空则自动顺序查找
+    @param strict:严格模式退出。非严格模式返回diskname
+    @return:不存在路径返回False
+    """
+    global diskname,diskpath,disknames
+    # 为空
+    if d==None:
+        for d in getsettings('defaultDisk'):
+            if not isdir(f'{d}:/'):
+                continue
+            else:
+                return initdisk(d)
+            return False
+    else:
+        if isdir(f'{d}:/'):
+            diskpath=d
+            os.chdir(f'{d}:/')
+            if isfile(f'./diskInfo.txt'):
+                diskname=getdiskname()
+            else:
+                c=input(f'准备{d.upper()}盘。请输入为磁盘起名（需唯一）')
+                while c in disknames.d['name']:
+                    c=input(f'已有命名。请重新输入。')
+                disknames.add({'name':c})
+                disknames.save()
+                diskinfo=rjson(f'./diskInfo.txt')
+                diskinfo.add({'name':c})
+                diskinfo.save()
+                diskname=c
+            log(f'operating disk {diskpath.upper()}（{diskname}）')
+            return diskname
 
 def getdiskname():
     """
-
-    @return:
+    获取当前操作盘的唯一标识符
+    @return:解析失败则返回False
     """
     diskinfo = RefreshJson('./diskInfo.txt', silent=True)
-    if not os.path.exists('./diskInfo.txt') or diskinfo.l == []:
-        name = input(f'检测到当前操作盘未初始化。请输入盘符（后期沿用，慎重！）：\n\t\t\t\t（已启用的唯一名）{RefreshTXT("D:/Kaleidoscope/disknames.txt").l}')
-        initdisk(name)
-    else:
-        global disknames
-        disknames = Json("D:/Kaleidoscope/disknames.txt", silent=True)
-        disknames.add({'name': diskinfo.d['name']})
-        disknames = rtxt("D:/Kaleidoscope/disknames.txt", silent=True)
-    return diskinfo.d['name'][0]
+    global disknames,diskname
+    diskname=diskinfo.d['name'][0]
+    disknames.add({'name': diskname})
+    return diskname
 
 
 # endregion
@@ -4120,12 +4132,9 @@ def scrshot(l):
 
 # 初始化2
 # region
-user = txt(projectpath('user.txt')).l[0]
-activedisk = txt(projectpath('ActiveDisk.txt'))
-diskname = ''
-if setRootPath(dname='HerMAJESTY', strict=False) == 'd':
+user = getsettings('userName')
+if setRootPath(d='d')=='HerMAJESTY':
     Debug()
-setRootPath()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
 consolerunning = txt(projectpath('ConsoleShow.txt'))
 try:

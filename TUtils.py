@@ -134,7 +134,7 @@ def skiprecorded(VideoNum):
 
 
 def simplinfo(num, author, title):
-    return json.dumps({str(num): {'disk': MyUtils.diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+    return json.dumps({str(num): {'disk': MyUtils.diskpath, 'author': author, 'title': title}}, ensure_ascii=False)
     # return json.dumps({str(num):{'disk':MyUtils.hashcode,'author':author,'title':title}},ensure_ascii=True)
 
 

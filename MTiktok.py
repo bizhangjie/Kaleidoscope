@@ -12,11 +12,11 @@ missing = TUtils.missing
 def deleteRecorded():
     deletelis = []
     for d in allpieces.d:
-        if not allpieces.d[d]['disk'] == MyUtils.diskname:
+        if not allpieces.d[d]['disk'] == MyUtils.diskpath:
             continue
         author, title = allpieces.d[d]['author'], allpieces.d[d]['title']
         if not os.path.exists(f'./抖音/{author}/{title}') and not os.path.exists(f'./抖音/{author}/{title}.mp4'):
-            j = ({d: {"disk": MyUtils.diskname, 'author': author, "title": title}})
+            j = ({d: {"disk": MyUtils.diskpath, 'author': author, "title": title}})
             deletelis.append(j)
             missing.add(j)
     for i in deletelis:
@@ -71,7 +71,7 @@ def findduplicate():
     for i in DouyinUtils.allpieces.l:
         d = MyUtils.jsontodict(i)
         d = d[MyUtils.keys(d)[0]]
-        if d['disk'] == MyUtils.diskname:
+        if d['disk'] == MyUtils.diskpath:
             continue
         p = (d['author'], d['title'])
         if p in lis:

@@ -19,11 +19,11 @@ def deleteRecorded():
     for dkey in allpieces.d:
         count += 1
         if count % 10000 == 0:
-            MyUtils.delog(f'正在检查记录中的是否存在操作盘 {MyUtils.diskname} 内{count}/{allpieces.length()}  不存在的计数：{len(deletelis)}')
+            MyUtils.delog(f'正在检查记录中的是否存在操作盘 {MyUtils.diskpath} 内{count}/{allpieces.length()}  不存在的计数：{len(deletelis)}')
         for i in allpieces.d[dkey]:
             if type(i) == list:
                 MyUtils.delog(f'检测到存在多存储：{i}')
-            if not i['disk'] == MyUtils.diskname:
+            if not i['disk'] == MyUtils.diskpath:
                 continue
             try:
                 author, title = i['author'], i['title']
@@ -32,7 +32,7 @@ def deleteRecorded():
                 MyUtils.Exit()
             
             if  not os.path.exists(f'./抖音/{author}/{dkey}_{title}.mp4') and [] == MyUtils.listfile(f'./抖音/{author}/{dkey}_{title}'):
-                j = ({dkey: {"disk": MyUtils.diskname, 'author': author, "title": title}})
+                j = ({dkey: {"disk": MyUtils.diskpath, 'author': author, "title": title}})
                 deletelis.append(j)
                 missing.add(j,silent=True)
     MyUtils.out(MyUtils.extend([f'将删除以下{len(deletelis)} 个记录在 {allpieces.path} 中'],deletelis))
@@ -91,12 +91,12 @@ def findduplicate():
             lis.append((MyUtils.filename(user), MyUtils.filename(title)))
         for title in MyUtils.listfile(user):
             lis.append((MyUtils.filename(user), MyUtils.filename(title).strip('.mp4')))
-    MyUtils.delog(f'操作盘 {MyUtils.diskname} 统计完毕')
+    MyUtils.delog(f'操作盘 {MyUtils.diskpath} 统计完毕')
     #    再统计记录
     for i in DouyinUtils.allpieces.l:
         d = MyUtils.jsontodict(i)
         d = d[MyUtils.keys(d)[0]]
-        if d['disk'] == MyUtils.diskname:
+        if d['disk'] == MyUtils.diskpath:
             continue
         p = (d['author'], d['title'])
         if p in lis:

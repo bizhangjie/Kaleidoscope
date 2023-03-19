@@ -2,10 +2,10 @@ import MyUtils
 
 
 def main():
-    print(MyUtils.diskname)
+    print(MyUtils.diskpath)
     print(MyUtils.standarlizedPath('./'))
     MyUtils.setrootpath('d')
-    print(MyUtils.diskname)
+    print(MyUtils.diskpath)
     print(MyUtils.standarlizedPath('./'))
 
 
