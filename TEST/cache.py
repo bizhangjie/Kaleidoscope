@@ -9,8 +9,8 @@ from retrying import retry
 @retry(retry_on_exception=MyUtils.retry)
 def fun():
     f = MyUtils.cache(MyUtils.desktoppath('0'))
-    print(f.get())
-
+    while True:
+        print(f.get())
 
 def main():
     fun()

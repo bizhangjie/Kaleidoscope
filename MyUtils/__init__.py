@@ -18,6 +18,7 @@ import PIL
 import PySimpleGUI
 import cv2
 import moviepy
+import numpy
 import pyautogui
 import pyperclip
 import requests
@@ -36,10 +37,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 # 初始化1
 # region
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
+
 Logcount = 0
 debug = sys.gettrace()
 MyError = selenium.common.exceptions.TimeoutException
-retrylist = [selenium.common.exceptions.WebDriverException,
+retrylist = [
              MyError, selenium.common.exceptions.ElementClickInterceptedException,
              Exception, ConnectionRefusedError,
              urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError,
@@ -115,8 +117,6 @@ def DebugConsume(func):
     def inner(*a, **b):
         def inner1(f, *a, **b):
             ret = f(*a, **b)
-            if not debug:
-                return ret
             stole = nowstr()
             filename1 = filename(inspect.getframeinfo(inspect.currentframe().f_back.f_back)[0])
             filename1 = rmtail(filename1, '.py')
@@ -584,6 +584,57 @@ def retry(e):
 
 # 特殊功能函数
 # region
+
+def info(s):
+    # 如果是类，列举属性和方法
+    if not type(s) in [int, str, list, dict, float, tuple, ]:
+        att = []
+        for i in dir(s):
+            if not i in dir(object):
+                att.append(i)
+        log(f'属性和方法：{att}')
+        return att
+
+    if type(s) in [str]:
+        # 磁盘
+        if len(s) == 1:
+            gb = 1024 ** 3  # GB == gigabyte
+            try:
+                total_b, used_b, free_b = shutil.disk_usage(s.strip('\n') + ':')  # 查看磁盘的使用情况
+            except Exception as e:
+                Exit(e)
+            # log(f'{s.upper()}' + '盘总空间: {:6.2f} GB '.format(total_b / gb))
+            # log('\t已使用 : {:6.2f} GB '.format(used_b / gb))
+            # log('\t\t空余 : {:6.2f} GB '.format(free_b / gb))
+            return (free_b / gb)
+
+        #     文件（夹）
+        if isfile(s) or isdir(s):
+            s = standarlizedPath(s)
+            sss = ''
+            if isdir(s):
+                sss = '夹'
+            log(f'路径：{s}（文件{sss}）')
+            log(f'创建日期：{createtime(s)}')
+            log(f'修改日期：{modifytime(s)}')
+            log(f'访问日期：{accesstime(s)}')
+            log(f'大小：{size(s)}MB')
+
+            # 是视频
+            if tail(s, '.') in ['wmv', 'mp4']:
+                t = videolength(s)
+                log(f'{filename(s)} 时长{int(t / 60)}:{t - int(t / 60)}')
+            return size(s)
+    # 其它类型
+    elif type(s) in [list, tuple, dict]:
+        if len(s) > 3:
+            tip(f'{s[0:2]}...{s[-1]}')
+        else:
+            tip(s)
+        tip(f'类型：{type(s)} 大小：{int(int(sys.getsizeof(s) / 1024 / 1024 * 100) / 100.0)}MB 内存地址：{id(s)} 长度{len(list(s))}')
+    elif type(s) in [int, str, float, ]:
+        tip(f'类型：{type(s)} 大小：{int(sys.getsizeof(s))}Byte 内存地址：{id(s)}')
+
 # 获取锁
 def getlock(name, content=None):
     f = txt(projectpath(f'{name}lock.txt'))
@@ -853,14 +904,15 @@ def Input(x, y, s):
     sleep(0.5)
     pyautogui.hotkey('Enter')
     sleep(1)
-
+# endregion
 
 # 音视频、图片
 # region
 
+
 #     拼接图片
 def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical', reverse=None, filelist=None,
-                  bottom=0, top=0, left=0, right=0):
+                  cuttop=0,cutbottom=0,cutleft=0,cutright=0):
     """
 
     @param inputpath:
@@ -873,37 +925,60 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
     @param top:
     @param left:
     @param right:
+    @param cuttop:顶部裁剪
     @return:
     """
+
+    def do(img1, img2, combine='vertical', outputpath=None,
+           ratio1=0.3, ratio2=0.3, scale1=150, scale2=150):
+        """
+        裁剪后自动识别拼接图片
+        @param img1:上图片路径
+        @param img2:
+        @param cuttop:上部裁剪
+        @return:
+        """
+        image1 = cv2.imread(img1)
+        image2 = cv2.imread(img2)
+        if mode=='vertical' and image1.shape[1] >= image2.shape[1] or mode=='horizontal' and image1.shape[0] >= image2.shape[0]:
+            image1=image1[cuttop:image1.shape[0] - cutbottom, cutleft:image1.shape[1] - cutright]
+        image2=image2[cuttop:image2.shape[0] - cutbottom, cutleft:image2.shape[1] - cutright]
+        scale1, scale2 = min(scale1, int(image1.shape[1] * ratio1)), min(scale2, int(image2.shape[1] * ratio2))
+        result = cv2.matchTemplate(image2[:scale2, :], image1, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        delog(max_val, min_val, max_loc, min_loc)
+        delog('相似匹配位置', max_loc)
+        # look(image2[:scale2, :])
+
+        if combine == 'vertical':
+
+            cv2.imwrite(img1, image1[:max_loc[1]])
+            image3 = cv2.vconcat([image1[:int(max_loc[1]), :], image2])
+            cv2.imwrite(img1, image3)
+
 
     if outputpath == None:
         if outputname == None:
             outputpath = parentpath(inputpath) + 'combined.jpg'
         else:
             outputpath = parentpath(inputpath) + outputname
-
     if filelist == None:
-        images = [PIL.Image.open(x) for x in listfile(inputpath)]
-    else:
-        images = [PIL.Image.open(x) for x in filelist]
+        filelist=[]
+        l1=SortedName(listfile(inputpath,full=False))
+        for i in l1:
+            filelist.append(inputpath + '/'+i)
     if reverse:
-        images.reverse()
-    widths, heights = zip(*(i.size for i in images))
-    widths = [w - left - right for w in widths]
-    heights = [h - top - bottom for h in heights]
-    if mode == 'vertical':
-        new_im = PIL.Image.new('RGB', (max(widths), sum(heights)))
-        y_offset = 0
-        for im in images:
-            im = im.crop((left, top, im.size[0] - right, im.size[1] - bottom))
-            new_im.paste(im, (0, y_offset))
-            y_offset += im.size[1]
-    # elif mode == 'horizontal':
-    #     total_width = sum(widths-left-right)
-    #     max_height = max(heights-left-right)
-    #     new_im = PIL.Image.new('RGB', (total_width, max_height))
+        filelist.reverse()
+    first=filelist.pop(0)
+    for i in filelist:
+        do(first, i,)
+    if outputpath==None:
+        if outputname==None:
+            outputname='basic.png'
+        outputpath=parentpath(inputpath)+outputname
+    sleep(2)
+    move(first, outputpath)
 
-    new_im.save(outputpath)
 
 
 class pic():
@@ -1002,55 +1077,6 @@ def videolength(s):
 
 # endregion
 
-def info(s):
-    # 如果是类，列举属性和方法
-    if not type(s) in [int, str, list, dict, float, tuple, ]:
-        att = []
-        for i in dir(s):
-            if not i in dir(object):
-                att.append(i)
-        log(f'属性和方法：{att}')
-        return att
-
-    if type(s) in [str]:
-        # 磁盘
-        if len(s) == 1:
-            gb = 1024 ** 3  # GB == gigabyte
-            try:
-                total_b, used_b, free_b = shutil.disk_usage(s.strip('\n') + ':')  # 查看磁盘的使用情况
-            except Exception as e:
-                Exit(e)
-            # log(f'{s.upper()}' + '盘总空间: {:6.2f} GB '.format(total_b / gb))
-            # log('\t已使用 : {:6.2f} GB '.format(used_b / gb))
-            # log('\t\t空余 : {:6.2f} GB '.format(free_b / gb))
-            return (free_b / gb)
-
-        #     文件（夹）
-        if isfile(s) or isdir(s):
-            s = standarlizedPath(s)
-            sss = ''
-            if isdir(s):
-                sss = '夹'
-            log(f'路径：{s}（文件{sss}）')
-            log(f'创建日期：{createtime(s)}')
-            log(f'修改日期：{modifytime(s)}')
-            log(f'访问日期：{accesstime(s)}')
-            log(f'大小：{size(s)}MB')
-
-            # 是视频
-            if tail(s, '.') in ['wmv', 'mp4']:
-                t = videolength(s)
-                log(f'{filename(s)} 时长{int(t / 60)}:{t - int(t / 60)}')
-            return size(s)
-    # 其它类型
-    elif type(s) in [list, tuple, dict]:
-        if len(s) > 3:
-            tip(f'{s[0:2]}...{s[-1]}')
-        else:
-            tip(s)
-        tip(f'类型：{type(s)} 大小：{int(int(sys.getsizeof(s) / 1024 / 1024 * 100) / 100.0)}MB 内存地址：{id(s)} 长度{len(list(s))}')
-    elif type(s) in [int, str, float, ]:
-        tip(f'类型：{type(s)} 大小：{int(sys.getsizeof(s))}Byte 内存地址：{id(s)}')
 
 
 # endregion
@@ -1058,6 +1084,8 @@ def info(s):
 # 进程池与线程池
 # region
 def sleep(t=9999):
+    if t>10:
+        delog(f'睡眠 {t} 秒')
     time.sleep(t)
 
 
@@ -1089,6 +1117,11 @@ class pool():
 
 # 文件系统读写
 # region
+def cleardir(path):
+    path=standarlizedPath(path)
+    deletedirandfile(path)
+    createpath(path+'/')
+
 # 判断路径存在
 def exists(path):
     return os.path.exists(path)
@@ -1204,8 +1237,20 @@ def rmempty(root, tree=False, silent=False):
         deletedirandfile(dlis)
 
 
-# 打开文件或者网页
 def look(path):
+    """
+    打开文件或者网页
+    @param path:
+    @return:
+    """
+    if type(path)in [numpy.ndarray]:
+        p=cachepath('cv2/look.png')
+        createpath(p)
+        deletedirandfile([p])
+        cv2.imwrite(p,path)
+        # cv2.imwrite(p,numpy.load(path))
+        look(p)
+        return
     if 'https' in path:
         openedge(path)
     path = standarlizedPath(path)
@@ -2271,6 +2316,11 @@ class cache():
         self.json = json
 
     def get(self, silent=False):
+        """
+        删除
+        @param silent:
+        @return:
+        """
         if self.silent:
             silent = True
         while True:
@@ -2528,9 +2578,33 @@ def warn(*a):
 
 # 基础数据结构
 # region
+def SortedName(l):
+    """
+    自动排序名字
+    @param l:
+    @return:
+    """
+    d=[]
+    for i in l:
+        i,ext=extentionandname(i,exist=False)
+        ret=research(r'_\d+$',i)
+        if ret:
+            d.append((rmtail(i,ret.group()),ret.group(),ext))
+            continue
+        ret=research(r'\d+$',i)
+        if ret:
+            d.append((rmtail(i,ret.group()),ret.group(),ext))
+            continue
+        d.append((i,'',ext))
+    d.sort(key=lambda x:(x[0],Int(x[1]),x[2]))
+    l=[]
+    for i in d:
+        l.append(i[0]+i[1]+i[2])
+    return l
+
 # 实现包括None在内的int转换
 def Int(s):
-    if s in [None, False]:
+    if s in [None, False,'']:
         return 0
     return int(s)
 
@@ -2678,8 +2752,14 @@ def refind(s, re):
     return re.findall(s, re)
 
 
-# 截取字符串末尾
 def cuttail(s, mark='_', strict=False):
+    """
+    截取字符串末尾
+    @param s:
+    @param mark:
+    @param strict: 不包括mark
+    @return:
+    """
     if type(s) == list:
         warn('用法错误。')
         sys.exit(-1)
@@ -2714,10 +2794,10 @@ def tail(s, mark='/', strict=True):
 
 def gettail(s, mark='/', strict=True):
     """
-    找到最右侧匹配，返回后面的不包括匹配的内容
+    找到最右侧匹配
     @param s:
     @param mark:
-    @param strict:
+    @param strict:不包括mrak
     @return:
     """
     s, mark = str(s), str(mark)
@@ -2946,72 +3026,68 @@ def alertpage(l):
     page.switch_to.window(page.window_handles[0])
 
 
-def Element(l, depth=5, silent=debug):
-    res = elements(l, depth, silent)
+def Element(l, s,method=By.XPATH,depth=5, silent=debug,strict=True):
+    res = Elements(l,s, depth=depth, silent=silent, method=method,strict=strict)
     if res == []:
         return None
     else:
         return res[0]
 
-
-def element(l, depth=5, silent=None):
-    return Element(l, depth, silent)
-
-
-def elements(l, depth=5, silent=None):
-    return Elements(l, depth, silent)
-
-
-def Elements(l, depth=5, silent=None):
+def Elements(l, s, depth=7, silent=True, method=By.XPATH,strict=True):
     """
-    传入完全规范的字符表达式和根元素。返回元素列表，找不到为[]
-    :param l:
-    :return:
+    :param l:根元素
+    :param s:字符表达式
+    :return:元素列表，找不到为[]
     """
-    if len(l) == 3:
-        page = l[0]
-        method = l[1]
-        s = l[2]
+    root= l[0]
+    s.replace('\'', '\"')
+    # 重写xpath语法规则
+    s.replace('span', '*[name()="span"]')
+    s.replace('//@','//*/@')
+    s.replace('//text()','//*/text()')
+    atr=None
+    if '/text()'in s:
+        s=Strip(s,'/text()')
+        atr='text'
+    if '/@' in s:
+        s,atr=cuttail(s,'/@')
+    ret=root.find_elements(method,s)
+    if len(ret):
+        if atr==None:
+            return ret
+        if atr not in ['text']:
+            return [i.get_attribute(atr) for i in ret]
+        else:
+            return [i.text if i.text else i.get_attribute('text') for i in ret]
     else:
-        page = l[0]
-        method = By.XPATH
-        s = l[1]
-    result = page.find_elements(method, s)
-    # delog((page,method,s))
-    # delog((result,type(result),len(result)))
-    if len(result):
-        return result
-    else:
-        depth += 1
         sleep(2)
-        if debug and not silent:
-            # tip(f'元素未找到，重试... method={method}, string={s}')
-            {}
         if depth >= 10:
+            message=(f'最终未获取到元素。 method={method},str={s}')
+            if strict:
+                Exit(message)
             if not silent:
-                warn(f'最终未获取到元素。 method={method},str={s}')
+                warn(message)
             return []
         else:
-            return Elements(l, depth, silent)
+            return Elements(l,s,depth= depth+1,method=method,strict=strict)
 
+def elements(*a,**b):
+    return Elements(*a,**b)
 
-# 必须要跳过的
-def skip(l, strict=False):
+def element(*a,**b):
+    return Element(*a,**b)
+
+def skip(l, s, method=By.XPATH,strict=False):
     """
-    简单跳过，不做操作，等待人工操作来跳过，否则一直等待
-    :param l:列表：页面，XPATH/ID，字符串
+    简单等待，不做操作，等待人工操作
+    :param l:页面
     :return:
     """
     page = l[0]
-    method = l[1]
-    s = l[2]
     sleep(1)
-    if Element([page, method, s], depth=8, silent=True):
+    if Element(l,s, depth=8, silent=True, method=method,strict=strict):
         warn(f'{s} detected. 等待其消失中以继续。。。')
         alertpage([page])
-        # if strict==True:
-        #     log(f'严格模式已打开。准备重建...')
-        #     raise retrylist[0]
         WebDriverWait(page, 99999, 3).until_not(expected_conditions.presence_of_element_located(locator=(method, s)))
         sleep(2)
 
@@ -3146,6 +3222,32 @@ class Edge():
         self.type = 'edge'
         self.set_window_size(900, 1000)
 
+    def click(self, *a, strict=True):
+        if len(a) > 1:
+            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
+            Exit(' 未实现')
+        s = a[0]
+        if s == None:
+            return
+        if type(s) in [str]:
+            return Edge.click(self, self.element(s, strict=strict))
+        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
+            try:
+                s.click()
+            except:
+                try:
+                    ActionChains(self.driver).move_to_element(to_element=s).click().perform()
+                    return
+                except Exception as e:
+                    warn(['clickelement error！', e])
+
+    def skip(self, s, strict=False, click=False):
+        if not click:
+            return skip([self.driver], s, strict=strict)
+        e = self.element(s, strict=False)
+        if not e == None:
+            self.click(e)
+
     def extendtofull(self,x=None):
         if not self.silent:
             Exit('不支持非静默模式调用')
@@ -3153,6 +3255,9 @@ class Edge():
         if x is None:
             x=self.get_window_size()[0]
         self.set_window_size(x, self.getscrollheight())
+
+    def get_window_size(self):
+        return self.driver.get_window_size()['width'], self.driver.get_window_size()['height']
 
     def nearend(self):
         """
@@ -3548,25 +3653,6 @@ class Edge():
     def clickelement(self, *a):
         return Edge.click(a)
 
-    def click(self, *a, strict=True):
-        if len(a) > 1:
-            # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
-            Exit(' 未实现')
-        s = a[0]
-        if s == None:
-            return
-        if type(s) in [str]:
-            return Edge.click(self, self.element(s, strict=strict))
-        if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
-            try:
-                s.click()
-            except:
-                try:
-                    ActionChains(self.driver).move_to_element(to_element=s).click().perform()
-                    return
-                except Exception as e:
-                    warn(['clickelement error！', e])
-
     def moveto(self, *a, strict=True, x=None, y=None, xoffset=None, yoffset=None):
         if len(a) > 1:
             # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
@@ -3612,46 +3698,18 @@ class Edge():
             root = self.driver
         # 重写xpath规则
         s = s.replace('svg', '*[name()="svg"]')
-        s1 = s
-        for i in ['@href', '@src', 'text()', '.text', '@style']:
-            if '//' + i in s:
-                Exit('暂不支持这种用法。在属性前使用 \"//\" ')
-            s = Strip(s, '/' + i)
-            s = Strip(s, i)
 
         # 获取元素列表
         if not type(s) == list:
-            ret = elements([root, By.XPATH, s], depth=depth, silent=silent, )
+            ret = elements([root], s, depth=depth, silent=silent, strict=strict)
         else:
             for i in s:
-                ret = elements([root, By.XPATH, i], depth=depth, silent=silent)
+                ret = elements([root],i, depth=depth, silent=silent)
                 if not ret == []:
                     break
         if strict:
             self.errorscr(ret)
-
-        # 重写xpath规则
-        newret = []
-        if 'text()' in s1[-6:] or 'text' in s1[-4:] or '.text' in s1[-5:]:
-            for i in ret:
-                if not i.text == '':
-                    newret.append(i.text)
-                elif not i.get_attribute('text') == '':
-                    newret.append(i.get_attribute('text'))
-                else:
-                    Exit(f'获取了元素的空字符串内容')
-        elif '@style' in s1[-5:]:
-            for i in ret:
-                newret.append(i.get_attribute('style'))
-        elif '@href' in s1[-5:]:
-            for i in ret:
-                newret.append(i.get_attribute('href'))
-        elif '@src' in s1[-4:]:
-            for i in ret:
-                newret.append(i.get_attribute('src'))
-        else:
-            return ret
-        return newret
+        return ret
 
     def Elements(self, *a, **b):
         return self.elements(*a, **b)
@@ -3731,8 +3789,6 @@ class Edge():
     def switchto(self, n=-1):
         self.driver.switch_to.window(self.driver.window_handles[n])
 
-    def get_window_size(self):
-        return self.driver.get_window_size()['width'], self.driver.get_window_size()['height']
 
     def set_window_size(self, *a, **b):
         log(f'扩展窗口至大小：{a, b}')
@@ -3793,13 +3849,6 @@ class Edge():
             self.switchto(-1)
         except Exception as e:
             warn(e)
-
-    def skip(self, s, strict=False, click=False):
-        if not click:
-            return skip([self.driver, By.XPATH, s], strict=strict)
-        e = self.element(s, strict=False)
-        if not e == None:
-            self.click(e)
 
     def title(self):
         if self.url() == '':
@@ -3981,7 +4030,7 @@ def MyPress(l):
 
 def title(l):
     page = l[0]
-    element = Element([page, By.XPATH, '/html/head/title'])
+    element = Element([page],s='/html/head/title')
     if element == None:
         return ''
     return standarlizedFileName(element.get_attribute('text'))
@@ -4020,7 +4069,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
         sleep(t)
         page.quit()
         sleep(1)
-        delog(f'正在检测是否下载到了{root}')
+        delog(f'正在检测是否下载到了路径 {root}')
         for ii in listfile(root):
             if name in ii and '.crdownload' in ii:
                 deletedirandfile(ii)
@@ -4060,7 +4109,7 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
     # 设置下载路径
     prefs = {'download.default_directory': f'{root}'}
     options.add_experimental_option('prefs', prefs)
-    # options.add_argument('--mute')
+    options.add_argument('--mute')
     if silent == True:
         options.add_argument('--headless=new')
     page = webdriver.Chrome(chrome_options=options)
@@ -4125,6 +4174,8 @@ def scrshot(l):
         warn(f'{path}已存在。即将覆盖下载')
     path = path.strip('.png') + '.png'
     file('wb', path, element.screenshot_as_png)
+
+
 
 
 # endregion

@@ -7,7 +7,6 @@ import DouyinUtils
 import MyUtils
 import Maintainace
 
-# 变量
 # region
 allusers = DouyinUtils.allusers
 allpieces = DouyinUtils.allpieces
@@ -19,46 +18,26 @@ history = DouyinUtils.history
 
 @retry(retry_on_exception=MyUtils.retry)
 def main():
-    # region
-    if not MyUtils.debug:
-        Maintainace.SeleniumSpace()
-    else:
-        allusers.rollback()
-    global Host,Page,host,page
-    Host=MyUtils.Chrome()
-    Page=MyUtils.Chrome()
-    host=Host.driver
-    page=Page.driver
-    # endregion
-    # 开始用户循环
+    allusers.rollback()
+    global host,page
+    host=MyUtils.Chrome()
+    page=MyUtils.Chrome()
     while True:
-        User = allusers.get()[0]
-        history.add(MyUtils.value(User))
-        useruid = list(User.keys())[0]
-        useruid=MyUtils.Strip(useruid,'https://www.douyin.com/user/')
-
-        # 用户主页
-        Host.get('https://www.douyin.com/user/' + useruid)
-        PiecesNum,author,ps=DouyinUtils.hostdata([Host])
-        if PiecesNum==0:
+        useruid = list(allusers.get()[0].keys())[0]
+        host.get(f'https://www.douyin.com/user/{useruid}')
+        MyUtils.sleep(2)
+        DouyinUtils.滑块验证([host])
+        DouyinUtils.跳转验证([host])
+        DouyinUtils.登录验证([host])
+        try:
+            author,urls,=DouyinUtils.hostdata([host],tab='作品')
+        except:
+            MyUtils.warn('用户异常。')
             continue
+        DouyinUtils.addauthor(useruid, author)
         MyUtils.delog(f'  ------转到{author}的主页-----',useruid)
-        DouyinUtils.addauthor(useruid, author, allusers)
-        Host.scroll()
-
-        # 作品页
-        for elementurl in ps:
-            VideoNum=MyUtils.gettail(elementurl,'/')
-            if DouyinUtils.skiprecorded(VideoNum):
-                continue
-            Page.get(elementurl)
-            MyUtils.sleep(1)
-            DouyinUtils.skipverify([Page])
-            title,ispic,=DouyinUtils.piecepagedata([Page])
-            DouyinUtils.load(ispic, Page.driver, VideoNum, author, title, readytodownload)
-
-
-            #     ready下载数量过载保护
+        for videourl in urls:
+            DouyinUtils.load([page], videourl, author=author)
             while readytodownload.length() > DouyinUtils.maxready:
                 MyUtils.log('下载队列已满。Detect 等待中...')
                 time.sleep(10)

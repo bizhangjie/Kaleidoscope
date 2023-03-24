@@ -5,45 +5,53 @@ import time
 from selenium.webdriver.common.by import By
 import MyUtils
 MyUtils.setrootpath(MyUtils.getsettings('douyin'))
-if MyUtils.debug:
-    maxready=3
-else:
-    maxready=99
+maxready=99
 # 文件定义
 allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
 specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
 allpieces = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllPieces.txt')
 
 readytodownload = MyUtils.cache('D:/Kaleidoscope/抖音/ReadytoDownload.txt',silent=MyUtils.debug)
-exceptuser = MyUtils.txt('D:/Kaleidoscope/抖音/FailedUsers.txt')
+exceptuser = MyUtils.rtxt('D:/Kaleidoscope/抖音/FailedUsers.txt')
 failed = MyUtils.Json('D:/Kaleidoscope/抖音/FailedPieces.txt')
 missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
 expirepiecex=MyUtils.rjson(MyUtils.projectpath('./抖音/ExpiredPieces.txt'))
 history=MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
 
-def HostPieces(l):
+def TurnHostTab(l,tab='作品'):
     """
-
-    @param l:页面数组
-    @return: 所有作品元素
+    切换主页展示条目
+    @param l:
+    @param tab:
+    @return: 建议作品数；False代表获取失败
     """
-    page = l[0]
-    Page=MyUtils.Chrome(driver=[page])
+    Page=l[0]
     try:
-        psn=int(Page.element('//*[@id="douyin-right-container"]//h2/span[@data-e2e]/text()',strict=False))
+        Page.click(f'//*[@id="douyin-right-container"]//span[text()="{tab}"]')
+        psn=Page.element(f"//*[@id='douyin-right-container']//span[text()='{tab}']/following-sibling::span/text()",strict=False)
         if psn==0:
             MyUtils.warn(f'用户无作品。{Page.url()}')
-            return []
-    except:
+        if psn==None:
+            return False
+    except Exception as e:
         MyUtils.warn(f'发现用户异常。{Page.url()}')
         exceptuser.add(MyUtils.gettail(Page.url(),'/'))
-        return []
+    return int(psn)
+
+def HostPieces(l,tab='作品'):
+    """
+    获取主页的作品
+    @param l:页面数组
+    @return: 所有作品url
+    """
+    Page=l[0]
+    psn=TurnHostTab(l,tab)
     def func(ret,l):
         if ret is None:
             ret=[]
-        return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-right-container"]//div[contains(@data-e2e,"user-post-list")]//li//a/@href'), set=True)
+        return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-right-container"]//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
     ret=Page.Down(start=0,scale=400,pause=2,func=func)
-    if not len(ret)==psn:
+    if psn and not len(ret)==psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
     return ret
 
@@ -132,65 +140,51 @@ def simplinfo(num, author, title):
     # return json.dumps({str(num):{'disk':MyUtils.hashcode,'author':author,'title':title}},ensure_ascii=True)
 
 
-def load(flag, page, VideoNum, author, title, readytoDownload=readytodownload):
-    VideoUrl = []
-    if not flag:
-        # region
-        element = MyUtils.Element(depth=5, l=[page, By.XPATH, '//xg-video-container/video/source[1]'])
-        if element == None:
-            MyUtils.warn(f'获取作品下载地址失败。元素未获取到。')
-            page.quit()
-            raise (MyUtils.MyError)
-        VideoUrl = [element.get_attribute('src')]
-        #     endregion
+def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,useruid=None):
+    """
+    作品页进行下载
+    @param l: 页面
+    @param videourl: 作品url
+    @param author: 已知作者
+    @param readytoDownload:
+    @param ispic:
+    @return:useruid（如果没有传入），author（如果没有传入）
+    """
+    page=l[0]
+    if skiprecorded(videourl):
+        return
+    page.get(videourl)
+    if author==None:
+        userlink=page.element('//*[@id="douyin-right-container"]//div[@data-e2e="user-info"]//a/@href')
+        if 'live' in userlink:
+            MyUtils.delog('直播')
+            return None,None
+        useruid=MyUtils.gettail(userlink,'/')
+        author=page.element('//*[@id="douyin-right-container"]//div[@data-e2e="user-info"]//a//span[not(text()="")]/text()')
+    if ispic==None:
+        ispic='note'in page.url()
+    if not ispic:
+        VideoUrl=page.elements('//xg-video-container/video/source[1]/@src',depth=8)
     else:
-        # region
-        elements = MyUtils.Elements(depth=7, l=[page, By.XPATH,
-                                                '//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img'])
-        # 跳过已下载
-        if skipdownloaded(flag,allpieces,VideoNum,title,author,len(elements)):
-            return
-        for e in elements:
-            https = e.get_attribute('src')
-            VideoUrl.append(https)
-        #     endregion
-    readytoDownload.add({"list": [VideoNum, author, title, VideoUrl, flag]})
+        VideoUrl=page.elements('//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img/@src',depth=8)
+    num=MyUtils.gettail(page.url(),'/')
+    title=MyUtils.rmtail(page.element("//title/text()"),' - 抖音')
+    readytoDownload.add({"list": [num, author, title, VideoUrl, ispic]})
     MyUtils.delog(f'下载队列 ({readytoDownload.length()})')
-
-
-# 详情页
-def Title(l):
-    # 传入网页，返回作品标题
-    page = l[0]
-    title = MyUtils.title([page])
-    if title:
-        return title.strip(' - 抖音')
-    else:
-        print(f'[DouyinUtils][Title] 获取title 失败。you may try {page.current_url}')
-
-
+    if not useruid==None:
+        return useruid,author
 def dislike(l):
-    Page=MyUtils.Chrome(driver=[l[0]])
+    Page=l[0]
     l1=Page.elements('//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[2]/div/div[1]/div[1]',strict=False)
     MyUtils.extend(l1,Page.elements('//*[@id="root"]/div[1]/div[2]/div/div/div[1]/div[3]/div/div[2]/div[1]/div[1]/div',strict=False))
-    MyUtils.clickelement([l[0],l1[0]])
+    Page.click(l1[0])
+    MyUtils.delog('已取消喜欢')
     time.sleep(3)
-    # ???貌似要等很久？
 
 
-# def pieceinfo(s):
-#     page=s[0]
-#     url=s[1]
-#     if 'note' in url:
-#         author=page.element('/html/body/div[1]/div/div[2]/div/main/div[2]/div[1]/div[1]/a').get_attribute('href')
-#         if 'live'in author:
-#             return
-#         author=MyUtils.gettail(author)
-
-
-# 从记录中判断
-def skiprecorded(VideoNum):
-    if (VideoNum in allpieces.d.keys()):
+def skiprecorded(videourl):
+    videourl,VideoNum = MyUtils.splittail(videourl, '/')
+    if (videourl+VideoNum in allpieces.d.keys()):
         MyUtils.log(f'作品 {VideoNum} 在记录中，跳过')
         return True
     return False
@@ -223,6 +217,21 @@ def skipdownloaded(flag, record, VideoNum, title, author,num=None):
             return False
     return False
 
+
+def 滑块验证(l):
+    page=l[0]
+    page.skip('//*[@id="captcha_container"]',strict=False)
+
+def 跳转验证(l):
+    page=l[0]
+    while '验证码中间'in page.title():
+        MyUtils.sleep(3)
+        MyUtils.log('等待页面跳转中...')
+
+def 登录验证(l):
+    page=l[0]
+    page.click('//div[@class="dy-account-close"]',strict=False)
+
 def skipverify(l):
     """
 
@@ -241,19 +250,18 @@ def skipverify(l):
 MyUtils.tip('DouyinUtils loaded.')
 
 
-def hostdata(l):
+def hostdata(l,tab='作品'):
     """
 
     @param l:主页
-    @return: 作品数，author，作品元素列表
+    @return: author，作品url
 
     """
     Host=l[0]
-    skipverify([Host])
-    author = MyUtils.Element([Host.driver, By.XPATH, '/html/head/title']).get_attribute('text')
-    author = author[0:author.rfind('的主页')]
-    ps=HostPieces([Host.driver])
-    return len(ps),author,ps
+    登录验证([Host])
+    author=MyUtils.rmtail(Host.title(),'的主页')
+    ps=HostPieces([Host],tab=tab)
+    return author,ps
 
 def piecepagedata(l):
     """

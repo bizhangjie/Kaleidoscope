@@ -1,5 +1,5 @@
 import MyUtils
-MyUtils.setrootpath('d')
+MyUtils.setrootpath(d='d')
 def init():
     path=MyUtils.projectpath(f'./self/RAM/{MyUtils.today()}.md')
     if MyUtils.isfile(path):
