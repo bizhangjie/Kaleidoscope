@@ -42,7 +42,7 @@ def getpics(page, path):
         page.switchto(-1)
         MyUtils.pagedownload(page.url(), f'{path}/{count}', t=7)
         page.close()
-        page.hotkey('left')
+        page.hotkey('cutleft')
         MyUtils.sleep(1)
 
 

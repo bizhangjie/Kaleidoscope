@@ -921,37 +921,58 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
     @param mode:
     @param reverse:
     @param filelist:
-    @param bottom:
-    @param top:
-    @param left:
-    @param right:
+    @param cutbottom:
+    @param cuttop:
+    @param cutleft:
+    @param cutright:
     @param cuttop:顶部裁剪
     @return:
     """
 
-    def do(img1, img2, combine='vertical', outputpath=None,
-           ratio1=0.3, ratio2=0.3, scale1=150, scale2=150):
+    def do(img1, img2, mode='vertical', outputpath=None,
+           ratio1=0.3, ratio2=0.3, scale1=70, scale2=70):
         """
         裁剪后自动识别拼接图片
         @param img1:上图片路径
         @param img2:
-        @param cuttop:上部裁剪
+        @param mode:
+        @param outputpath:
+        @param ratio1:
+        @param ratio2:
+        @param scale1:
+        @param scale2:与image1的重合验证部分
         @return:
         """
         image1 = cv2.imread(img1)
         image2 = cv2.imread(img2)
-        if mode=='vertical' and image1.shape[1] >= image2.shape[1] or mode=='horizontal' and image1.shape[0] >= image2.shape[0]:
-            image1=image1[cuttop:image1.shape[0] - cutbottom, cutleft:image1.shape[1] - cutright]
-        image2=image2[cuttop:image2.shape[0] - cutbottom, cutleft:image2.shape[1] - cutright]
-        scale1, scale2 = min(scale1, int(image1.shape[1] * ratio1)), min(scale2, int(image2.shape[1] * ratio2))
-        result = cv2.matchTemplate(image2[:scale2, :], image1, cv2.TM_CCOEFF_NORMED)
+        # 先去掉原图片拼接方向上的衔接部分的裁剪部分
+        if mode=='vertical':
+            # 允许中断后继续操作，因此有时候不处理image1
+            # if image2.size==image1.size:
+            image1=image1[:image1.shape[0]-cutbottom,:]
+            image2=image2[cuttop:image2.shape[0]:]
+        matchimage1=image1
+        matchimage2=image2
+        # 匹配时再去掉垂直于拼接方向上的裁剪部分外的部分
+        if mode=='vertical':
+            matchimage1=matchimage1[:,cutleft:image1.shape[1]-cutright]
+            matchimage2=matchimage2[:,cutleft:image2.shape[1]-cutright]
+        # 进行匹配
+        # 预设匹配区域
+        scale1, scale2 = min(scale1, int(matchimage1.shape[1] * ratio1)), min(scale2, int(matchimage2.shape[1] * ratio2))
+        if mode == 'vertical':
+            matchimage2=matchimage2[:scale2, :]
+        result = cv2.matchTemplate(matchimage2,matchimage1, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        delog(max_val, min_val, max_loc, min_loc)
         delog('相似匹配位置', max_loc)
+        # look(matchimage1)
+        # look(matchimage2)
         # look(image2[:scale2, :])
 
-        if combine == 'vertical':
-
+        if mode == 'vertical':
+            if max_loc==(0,0) or max_val<0.99:
+                warn('图片匹配失败，直接拼接')
+                max_loc=(0,image1.shape[0])
             cv2.imwrite(img1, image1[:max_loc[1]])
             image3 = cv2.vconcat([image1[:int(max_loc[1]), :], image2])
             cv2.imwrite(img1, image3)
@@ -3111,13 +3132,13 @@ def scrollheight(l):
 @consume
 def scroll(l, silent=None, x=None, y=None, ratio=1, t=1, ite=None):
     """
-    移动到元素、下滚
+    移动到元素、不断下滚
     @param l:
     @param silent:
     @param x:
     @param y:
     @param ratio:
-    @param t:
+    @param t:下滚刷新间隔
     @param ite:
     @return:
     """
@@ -3298,9 +3319,9 @@ class Edge():
     def hotkey(self, *a):
         for s in a:
             # region
-            if s == 'left':
+            if s == 'cutleft':
                 ActionChains(self.driver).key_down(Keys.ARROW_LEFT).perform()
-            elif s == 'right':
+            elif s == 'cutright':
                 ActionChains(self.driver).key_down(Keys.ARROW_RIGHT).perform()
             elif s == 'up':
                 ActionChains(self.driver).key_down(Keys.ARROW_UP).perform()
@@ -3325,9 +3346,9 @@ class Edge():
         #     # endregion
         for s in a:
             #         region
-            if s == 'left':
+            if s == 'cutleft':
                 ActionChains(self.driver).key_up(Keys.ARROW_LEFT).perform()
-            elif s == 'right':
+            elif s == 'cutright':
                 ActionChains(self.driver).key_up(Keys.ARROW_RIGHT).perform()
             elif s == 'up':
                 ActionChains(self.driver).key_up(Keys.ARROW_UP).perform()
@@ -3365,7 +3386,7 @@ class Edge():
         return scrollwidth([self.driver])
 
     def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False, clipinterval=0.6,
-                   top=0, bottom=0, left=0, right=0, adjust=17):
+                   cuttop=0, cutbottom=0, cutleft=0, cutright=0):
         """
         往上获取全屏。固定保存在basic_.png。
         @param path:路径名而不是文件名
@@ -3373,7 +3394,7 @@ class Edge():
         @param autodown:是否下滚
         @param pause:不切片上滚时间间隔
         @param clip: 是否切片
-        @param top: 顶部固定浮动元素高度
+        @param cuttop: 顶部固定浮动元素高度
         @param clipinterval: 切片时间间隔
         @return:
         """
@@ -3389,22 +3410,28 @@ class Edge():
             self.down()
 
         if clip:
-            clipsize = self.getscrollheight() - self.getscrolltop() - Int(top) - Int(bottom)
+            self.down()
+            # 为了防止图片懒加载跳屏，先上滚一次
+            self.up()
+            self.down()
+
+            buf=60
+            clipsize = self.getscrollheight() - self.getscrolltop() - Int(cuttop) - Int(cutbottom)-buf
             clipcount = 0
             while True:
                 self.scroll(int(self.getscrollheight() - clipsize * clipcount-self.get_window_size()[1]+130))
+                sleep(clipinterval)
                 # 50是一般认为clipsize不会小于的值
                 clippath = f'{parentpath(path)}/clipped/{extentionandname(path, exist=False)[0]}{clipcount}{extentionandname(path, exist=False)[1]}'
                 createpath(clippath)
                 self.driver.get_screenshot_as_file(clippath)
                 delog(f'已保存部分截图到{clippath}')
                 clipcount += 1
-                sleep(clipinterval)
                 if self.getscrolltop() == 0:
                     break
             combineimages(parentpath(clippath), outputname='basic.png', mode='vertical', reverse=True,
                           filelist=[f"{parentpath(clippath)}/basic{i}.png" for i in range(clipcount)],
-                          left=left, right=right, top=top, bottom=bottom + adjust)
+                            cuttop=cuttop, cutbottom=cutbottom, cutleft=cutleft, cutright=cutright)
             deletedirandfile(parentpath(clippath), silent=True)
         else:
             self.up(scale=scale, pause=pause)
@@ -3425,10 +3452,10 @@ class Edge():
     def save(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
              clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
              overwrite=True, redownload=True, savevideo=False,
-             top=0, bottom=0, left=0, right=0, adjust=17):
+             cuttop=0, cutbottom=0, cutleft=0, cutright=0,clipinterval=2):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
-        @param path:
+        @param path:收藏路径后缀
         @param video:
         @param minsize:
         @param t:
@@ -3443,6 +3470,9 @@ class Edge():
         @param pause: 滚动间隔
         @param overwrite: 是否覆盖
         @param redownload: 是否重新下载
+        @param savevideo: 是否保存视频
+        @param cuttop: 顶部固定浮动元素高度
+        @param clipinterval: 切片时间间隔
         @return:
         """
         # region
@@ -3496,13 +3526,12 @@ class Edge():
         # 额外操作
         if not extrafunc == None:
             extrafunc([self])
-        # endregion
         # 保存页面截图
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
             self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=True,
-                            top=top, bottom=bottom, left=left, right=right, adjust=adjust)
+                            cutright=cutright, cutleft=cutleft, cuttop=cuttop, cutbottom=cutbottom,clipinterval=clipinterval)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -3601,20 +3630,25 @@ class Edge():
 
     # 快捷键保存截屏
     def ctrlshifts(self, path=None, t=3):
-        if not self.type in 'chrome':
-            Exit('不是chrome浏览器。不能用ctrl+shift+S 保存e')
+        """
+        快捷键保存截屏
+        @param path:
+        @param t:
+        @return:
+        """
+        if not self.type in 'edge':
+            Exit('不是 edge 浏览器。不能用ctrl+shift+S 保存e')
         self.top()
         self.maxwindow()
+        self.down(t=t)
         if path == None:
             path = collectionpath(f'/其它/{self.title()}')
         sleep(0.5)
         hotkey('ctrl', 'shift', 's')
         sleep(1)
+        lis1 = listfile(userpath('Downloads'))
         click('browser/捕获整页.png')
         sleep(t)
-        lis1 = listfile(userpath('Downloads'))
-        hotkey('ctrl', 's')
-        sleep(t * 2)
         lis2 = listfile(userpath('Downloads'))
         for i in lis2:
             if not i in lis1:
@@ -3744,7 +3778,7 @@ class Edge():
             h = 0
         return setscrolltop([self.driver, h])
 
-    def up(self, scale=100, pause=1):
+    def up(self, scale=250, pause=1):
         """
         向上滚动
         @param scale:上滚距离
@@ -3923,7 +3957,7 @@ def edge(url='', silent=None, mine=False, mute=True):
 
 
 # 点击屏幕
-def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05, grayscale=True, xoffset=0, yoffset=0, strict=False):
+def click(x=10, y=10, button='cutleft', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05, grayscale=True, xoffset=0, yoffset=0, strict=False):
     """
 
     @param x:x为坐标，或者图片路径
@@ -3989,7 +4023,7 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
 
 # 右击屏幕
 def rclick(x, y):
-    click(x, y, button='right')
+    click(x, y, button='cutright')
 
 
 # 点击元素

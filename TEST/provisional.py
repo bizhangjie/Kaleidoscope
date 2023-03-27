@@ -8,7 +8,7 @@ def merge_images_vertically(img_top_path, img_bottom_path, output_path):
 
     # 确保两个图像具有相同的尺寸
     if img_top.size != img_bottom.size:
-        raise ValueError("Top and bottom images must have the same size")
+        raise ValueError("Top and cutbottom images must have the same size")
 
     # 智能识别上下重合处的位置
     overlap_height = 0  # 重叠的高度（以像素为单位）

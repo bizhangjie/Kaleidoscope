@@ -1,5 +1,5 @@
 import MyUtils
-new='chrome'
+new='edge'
 
 def main():
     root=r'D:\standardizedPF\python\310'
@@ -16,7 +16,7 @@ def main():
     if new=='edge':
         page=MyUtils.Chrome('https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/')
         href=page.element('//*[@id="downloads-channel"]//a[contains(@aria-label,"stable channel")and contains(@aria-label,"x64")]/@href')
-        MyUtils.pagedownload(href,root+'/edgedriver_win64.zip',overwrite=True)
+        MyUtils.pagedownload(href,root+'/edgedriver_win64.zip',overwrite=True,auto=True)
         MyUtils.unzip(root+'/edgedriver_win64.zip')
         MyUtils.move(root+'/edgedriver_win64/msedgedriver.exe',root+'/msedgedriver.exe',overwrite=True)
     page.quit()

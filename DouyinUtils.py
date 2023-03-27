@@ -27,8 +27,8 @@ def TurnHostTab(l,tab='作品'):
     """
     Page=l[0]
     try:
-        Page.click(f'//*[@id="douyin-right-container"]//span[text()="{tab}"]')
-        psn=Page.element(f"//*[@id='douyin-right-container']//span[text()='{tab}']/following-sibling::span/text()",strict=False)
+        Page.click(f'//*[@id="douyin-cutright-container"]//span[text()="{tab}"]')
+        psn=Page.element(f"//*[@id='douyin-cutright-container']//span[text()='{tab}']/following-sibling::span/text()",strict=False)
         if psn==0:
             MyUtils.warn(f'用户无作品。{Page.url()}')
         if psn==None:
@@ -49,7 +49,7 @@ def HostPieces(l,tab='作品'):
     def func(ret,l):
         if ret is None:
             ret=[]
-        return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-right-container"]//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
+        return MyUtils.extend(ret, l[0].elements('//*[@id="douyin-cutright-container"]//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
     ret=Page.Down(start=0,scale=400,pause=2,func=func)
     if psn and not len(ret)==psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
@@ -94,7 +94,7 @@ def HostPiecesNum(l):
     page = l[0]
     MyUtils.setscrolltop([page, 0])
     time.sleep(0.2)
-    l1 = MyUtils.Element([page, By.XPATH, '//*[@id="douyin-right-container"]//h2/span[2]'], depth=9, silent=True)
+    l1 = MyUtils.Element([page, By.XPATH, '//*[@id="douyin-cutright-container"]//h2/span[2]'], depth=9, silent=True)
     l2 = MyUtils.Element([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div/div[2]/div[1]/div[2]/div/div/div[1]/span[2]'], depth=9, silent=True)
     ret = 0
     if not l1 == None:
@@ -155,12 +155,12 @@ def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,us
         return
     page.get(videourl)
     if author==None:
-        userlink=page.element('//*[@id="douyin-right-container"]//div[@data-e2e="user-info"]//a/@href')
+        userlink=page.element('//*[@id="douyin-cutright-container"]//div[@data-e2e="user-info"]//a/@href')
         if 'live' in userlink:
             MyUtils.delog('直播')
             return None,None
         useruid=MyUtils.gettail(userlink,'/')
-        author=page.element('//*[@id="douyin-right-container"]//div[@data-e2e="user-info"]//a//span[not(text()="")]/text()')
+        author=page.element('//*[@id="douyin-cutright-container"]//div[@data-e2e="user-info"]//a//span[not(text()="")]/text()')
     if ispic==None:
         ispic='note'in page.url()
     if not ispic:

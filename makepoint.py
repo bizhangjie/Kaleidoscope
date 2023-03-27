@@ -72,8 +72,8 @@ for year, month in yearmonth:
 
 #     for i in l1:
 #         for j in l2:
-#             left,right,up,down=i,i+scale,j+scale,j
-#             leftb,rightb,upb,downb=lontox(left),lontox(right),lattoy(up),lattoy(down)
+#             cutleft,cutright,up,down=i,i+scale,j+scale,j
+#             leftb,rightb,upb,downb=lontox(cutleft),lontox(cutright),lattoy(up),lattoy(down)
 #             center=(i+scale/2.0,j+scale/2.0)
 #             selecter = baijiahao'create table chelsa_china_{year}_{month}_accumulated  lifecycle 20 as select ,pr,tas,tasmax,tasmin from chelsa_china where year={year} and month={month}\
 #             and lon>{leftb} and lon<{rightb} and lat>{downb} and lat<{upb};'
@@ -83,6 +83,6 @@ for year, month in yearmonth:
 # csv_write = csv.writer(out, dialect='excel')
 # for i in l1:
 #     for j in l2:
-#         left,right,up,down=i,i+scale,j+scale,j
-#         leftb,rightb,upb,downb=lontox(left),lontox(right),lattoy(up),lattoy(down)
+#         cutleft,cutright,up,down=i,i+scale,j+scale,j
+#         leftb,rightb,upb,downb=lontox(cutleft),lontox(cutright),lattoy(up),lattoy(down)
 #         csv_write.writerow([leftb,rightb,upb,downb])
