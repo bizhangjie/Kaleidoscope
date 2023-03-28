@@ -50,7 +50,6 @@ def HostPieces(l,tab='作品'):
     def func(ret,l):
         if ret is None:
             ret=[]
-        MyUtils.sleep(2)
         l[0].click('//span[text()="刷新"]',strict=False)
         return MyUtils.extend(ret, l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
     while psn and len(ret)<psn:
