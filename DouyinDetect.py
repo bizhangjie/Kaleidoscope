@@ -20,8 +20,8 @@ history = DouyinUtils.history
 def main():
     allusers.rollback()
     global host,page
-    host=MyUtils.Chrome()
     page=MyUtils.Chrome()
+    host=MyUtils.Chrome()
     while True:
         useruid = list(allusers.get()[0].keys())[0]
         host.get(f'https://www.douyin.com/user/{useruid}')

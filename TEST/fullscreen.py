@@ -1,5 +1,5 @@
 import MyUtils
-url='https://mp.weixin.qq.com/s/ftN4kg6pnUEgK5DmH2Qv-g'
+url='https://new.qq.com/rain/a/20220519A0AFYF00'
 if __name__ == '__main__':
     page=MyUtils.Chrome(url,mine=False,silent=False)
     # page.extendtofull()

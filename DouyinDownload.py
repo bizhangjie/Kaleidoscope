@@ -70,11 +70,14 @@ def download():
             MyUtils.warn(f'下载失败，{VideoNum} 记录补全到 {Failed.path}.{author} 的编号:{VideoNum} 标题:{title}\n{VideoUrl}')
         # endregion
 
-def main(t=10):
+def main(t=3):
     # 持续性唤醒
     while True:
         download()
-        MyUtils.log(f'下载队列已空。Downloader 等待中...')
+        MyUtils.log(f'Downloader 循环等待中...')
+        t+=1
+        if t>=2:
+            t=0
         time.sleep(t)
 
 if __name__=='__main__':
