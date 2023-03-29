@@ -20,6 +20,8 @@ def download():
         if rec == None:
             return
         (VideoNum, author, title, VideoUrl, ispic) = rec["list"]
+        if author==None:
+            continue
         if VideoUrl==[]:
             MyUtils.warn(f'下载url为空。')
             return
@@ -74,7 +76,7 @@ def main(t=3):
     # 持续性唤醒
     while True:
         download()
-        MyUtils.log(f'Downloader 循环等待中...')
+        # MyUtils.log(f'Downloader 循环等待中...')
         t+=1
         if t>=2:
             t=0

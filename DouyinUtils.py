@@ -53,6 +53,11 @@ def HostPieces(l,tab='作品'):
         MyUtils.sleep(2)
         l[0].click('//span[text()="刷新"]',strict=False)
         return MyUtils.extend(ret, l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
+
+    # 如果数量获取失败就只获取一次
+    if psn==False:
+        psn=1
+
     while psn and len(ret)<psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
         MyUtils.extend(ret,Page.Down(start=0,scale=400,pause=2,func=func))

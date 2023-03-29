@@ -1,5 +1,7 @@
 import MyUtils
 
+config=MyUtils.jsondata('savepage')
+
 
 cuttop, cutbottom, cutright ,cutleft= 0, 0, 0,0
 extrafunc=None
@@ -24,10 +26,14 @@ if __name__ == '__main__':
             MyUtils.sleep(3)
         MyUtils.log(f'准备保存网页：  {url}')
         page = MyUtils.Chrome(url, silent=False,mine=False)
-        if 'baijiahao'in url:
-            cutright=400
-            cuttop=90
-            path='百家号/'
+
+
+        for k in config.data:
+            if k in url:
+                page.save(minsize=minisize, scale=scale, look=look, t=t,path=path,
+                          extrafunc=extrafunc,pause=pause,
+                          **config.data[k])
+
 
         page.save(minsize=minisize, scale=scale, look=look, t=t,path=path,
                   extrafunc=extrafunc,pause=pause,

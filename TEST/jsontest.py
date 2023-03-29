@@ -1,6 +1,13 @@
-import  MyUtils
-js=MyUtils.jsondata(MyUtils.projectpath('data.json'))
-js.add({'a':1,'b':2})
-js.remove('a')
-print(js.get('b'))
+import MyUtils
 
+js = MyUtils.jsondata('savepage')
+js.setdata({
+    'baijiahao':{
+        'dir': '百家号',
+        'cuttop': 90,
+        'cutright':490,
+    },
+
+})
+
+print(js.get('savepage'))

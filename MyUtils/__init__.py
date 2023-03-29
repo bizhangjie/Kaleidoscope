@@ -39,6 +39,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
 
 Logcount = 0
+global debug
 debug = sys.gettrace()
 MyError = selenium.common.exceptions.TimeoutException
 retrylist = [
@@ -1828,7 +1829,7 @@ def file(mode, path, IOList=None, encoding=None):
     @param path:
     @param IOList:
     @param encoding:
-    @return:
+    @return:列表或是open对象
     """
     try:
         path = standarlizedPath(path)
@@ -1850,16 +1851,20 @@ def file(mode, path, IOList=None, encoding=None):
         elif mode == 'w':
             with open(path, mode='w', encoding=encoding) as file:
                 file.writelines(IOList)
+                return file
         elif mode == 'wb':
             try:
                 with open(path, mode='wb') as file:
                     file.write(IOList)
+                    return file
             except:
                 with open(path, mode='wb') as file:
                     file.writelines(IOList)
+                    return file
         elif mode == 'a':
             with open(path, mode='a', encoding=encoding) as file:
                 file.writelines(IOList)
+                return file
     except Exception as e:
         warn(e)
         warn(info(IOList))
@@ -2097,7 +2102,6 @@ class jsondata:
             json.dump({}, open(mode='w', file=self.path, encoding=self.encoding))
 
         self.data = json.load(open(mode='r', file=self.path, encoding=self.encoding))
-        out(self.data)
 
     def remove(self, s):
         if isinstance(s, dict):
@@ -2135,6 +2139,10 @@ class jsondata:
                 self.data[key] = value
         if self.autosave:
             self.save()
+
+    def setdata(self, d):
+        self.data = d
+        self.save()
 
 
 class Json(txt):
@@ -3775,7 +3783,7 @@ class Edge():
         if ret == []:
             return None
         else:
-            return ret[0]
+            return next((x for x in ret if x is not None), None)
 
     def Element(self, *a, **b):
         return self.element(*a, **b)

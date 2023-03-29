@@ -6,9 +6,9 @@ from selenium.webdriver.common.by import By
 import DouyinUtils
 import MyUtils
 # 小号
-# Account='MS4wLjABAAAAlHut0BHZMJOe2xxGFCq9IDcV-MuLNL_XIxRTZiO8nThhJMYmWRhbFlzfrIo5MqCH'
+Account='MS4wLjABAAAAlHut0BHZMJOe2xxGFCq9IDcV-MuLNL_XIxRTZiO8nThhJMYmWRhbFlzfrIo5MqCH'
 # 大号
-Account='MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q'
+# Account='MS4wLjABAAAAPw9P0loZpA5wjaWiHzxQb4B9E2Jgt4ZPWfiycyO_E4Q'
 users = DouyinUtils.allusers
 readytodownload = DouyinUtils.readytodownload
 
@@ -21,7 +21,7 @@ def main():
     _,urls=DouyinUtils.hostdata([page],tab='喜欢')
     for videourl in urls:
         useruid,author=DouyinUtils.load([page], videourl)
-        if useruid==None:
+        if useruid==None or author==None:
             continue
         DouyinUtils.dislike([page])
 
