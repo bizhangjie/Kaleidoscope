@@ -33,7 +33,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-
+from functools import wraps
 # 初始化1
 # region
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
@@ -71,17 +71,58 @@ headers = {
 
 # 注解
 # region
+# 使用json保存配置文件，进行关键字参数覆盖
+def useState(fn):
+    @wraps(fn)
+    def wrapper(*args, config=True, **kwargs):
+
+        if config:
+            config=jsondata(jsonpath(fn.__name__))
+
+            # 获取函数定义时关键字参数默认值
+            defaults = fn.__defaults__ or ()
+            default_values = dict(zip(fn.__code__.co_varnames[:fn.__code__.co_argcount][-len(defaults):], defaults))
+
+            # jsondata config 覆盖
+            for k, v in config.data.items():
+                if k in default_values:
+                    default_values[k] = v
+
+            # 调用处代码覆盖
+            default_values.update(kwargs)
+
+            # 构造新的参数列表
+            new_args = []
+            for arg in args:
+                if arg in default_values:
+                    new_args.append(default_values[arg])
+                    del default_values[arg]
+                else:
+                    new_args.append(arg)
+
+            # 将剩余的默认值添加到kwargs中
+            kwargs.update(default_values)
+
+            # 调用原始函数
+            return fn(*new_args, **kwargs)
+        else:
+            return fn(*args, **kwargs)
+
+    return wrapper
+
 # 多名函数
 def newname(func):
-    def inner(originalfunc, *a, **b):
+    @wraps(func)
+    def wrapper(originalfunc, *a, **b):
         return originalfunc(*a, **b)
 
-    return inner
+    return wrapper
 
 
 # 只有一个参数，如果有多个，则重复执行函数，或者空参数
 def multisingleargs(func):
-    def inner(*a):
+    @wraps(func)
+    def wrapper(*a):
         res = []
         if a in [None, (), []]:
             return func()
@@ -89,12 +130,13 @@ def multisingleargs(func):
             res.append(func(i))
         return res
 
-    return inner
+    return wrapper
 
 
 # 最后一个参数可以是列表以重复执行
 def listed(func):
-    def inner(*a, **c):
+    @wraps(func)
+    def wrapper(*a, **c):
         res = []
         if a in [None, (), []]:
             return func()
@@ -110,12 +152,12 @@ def listed(func):
         else:
             return func(*a, **c)
 
-    return inner
+    return wrapper
 
 
 # 计算调试时函数的消耗时间
 def DebugConsume(func):
-    def inner(*a, **b):
+    def wrapper(*a, **b):
         def inner1(f, *a, **b):
             ret = f(*a, **b)
             stole = nowstr()
@@ -135,12 +177,13 @@ def DebugConsume(func):
 
         return inner1(func, *a, **b)
 
-    return inner
+    return wrapper
 
 
 # 计算运行时函数的消耗时间
 def RuntimeConsume(func):
-    def inner(*a, **b):
+    @wraps(func)
+    def wrapper(*a, **b):
         def inner1(f, *a, **b):
             if not debug:
                 stole = nowstr()
@@ -161,12 +204,13 @@ def RuntimeConsume(func):
 
         return inner1(func, *a, **b)
 
-    return inner
+    return wrapper
 
 
 # 计算函数的消耗时间
 def consume(func):
-    def inner(*a, **b):
+    @wraps(func)
+    def wrapper(*a, **b):
         def inner1(f, *a, **b):
             stole = nowstr()
             ret = f(*a, **b)
@@ -184,7 +228,7 @@ def consume(func):
 
         return inner1(func, *a, **b)
 
-    return inner
+    return wrapper
 
 
 # endregion
@@ -966,15 +1010,16 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
         scale1, scale2 = min(scale1, int(matchimage1.shape[1] * ratio1)), min(scale2, int(matchimage2.shape[1] * ratio2))
         if mode == 'vertical':
             matchimage2 = matchimage2[:scale2, :]
-        result = cv2.matchTemplate(matchimage2, matchimage1, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        # 需要从下到上匹配，所以要翻转
+        result_filpped = cv2.matchTemplate(cv2.flip(matchimage2,0), cv2.flip(matchimage1,0), cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(cv2.flip(result_filpped,0))
         delog('相似匹配位置', max_loc)
         # look(matchimage1)
         # look(matchimage2)
         # look(image2[:scale2, :])
 
         if mode == 'vertical':
-            if max_loc == (0, 0) or max_val < 0.99:
+            if max_loc == (0, 0) or max_val < 0.97:
                 warn('图片匹配失败，直接拼接')
                 max_loc = (0, image1.shape[0])
             cv2.imwrite(img1, image1[:max_loc[1]])
@@ -3390,9 +3435,9 @@ class Edge():
     def hotkey(self, *a):
         for s in a:
             # region
-            if s == 'cutleft':
+            if s == 'left':
                 ActionChains(self.driver).key_down(Keys.ARROW_LEFT).perform()
-            elif s == 'cutright':
+            elif s == 'right':
                 ActionChains(self.driver).key_down(Keys.ARROW_RIGHT).perform()
             elif s == 'up':
                 ActionChains(self.driver).key_down(Keys.ARROW_UP).perform()
@@ -3417,9 +3462,9 @@ class Edge():
         #     # endregion
         for s in a:
             #         region
-            if s == 'cutleft':
+            if s == 'left':
                 ActionChains(self.driver).key_up(Keys.ARROW_LEFT).perform()
-            elif s == 'cutright':
+            elif s == 'right':
                 ActionChains(self.driver).key_up(Keys.ARROW_RIGHT).perform()
             elif s == 'up':
                 ActionChains(self.driver).key_up(Keys.ARROW_UP).perform()
@@ -3520,9 +3565,19 @@ class Edge():
             self.click('//*[@id="overrideLink"]')
         time.sleep(1)
 
-    def save(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
+
+    def save(self,*a,**b):
+        config=jsondata('save')
+        for i in config.data:
+            if i in self.url():
+                jsondata('savepage').setdata(config.data[i])
+                break
+        return self.savepage(*a,**b)
+
+    @useState
+    def savepage(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
              clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
-             overwrite=True, redownload=True, savevideo=False,
+             overwrite=True, redownload=True, savevideo=False, clip=True,
              cuttop=0, cutbottom=0, cutleft=0, cutright=0, clipinterval=2):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
@@ -3547,9 +3602,6 @@ class Edge():
         @return:
         """
         # region
-        if self.url() == '':
-            return
-
         if minsize in [False, None]:
             minsize = (9999, 9999)
 
@@ -3601,7 +3653,7 @@ class Edge():
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=True,
+            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=clip,
                             cutright=cutright, cutleft=cutleft, cuttop=cuttop, cutbottom=cutbottom, clipinterval=clipinterval)
 
         # 保存页面图片
@@ -4031,7 +4083,7 @@ def edge(url='', silent=None, mine=False, mute=True):
 
 
 # 点击屏幕
-def click(x=10, y=10, button='cutleft', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05, grayscale=True, xoffset=0, yoffset=0, strict=False):
+def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05, grayscale=True, xoffset=0, yoffset=0, strict=False):
     """
 
     @param x:x为坐标，或者图片路径

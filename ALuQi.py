@@ -1,7 +1,7 @@
 import MyUtils
 
 # 移动根目录的文件
-sourcepath = 'd:/璐琪'
+sourcepath = './璐琪'
 MyUtils.setrootpath(dname=['3'])
 todolist=[]
 # 先预报，人工检查看看对不对

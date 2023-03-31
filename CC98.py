@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
 
     # 已经在edge中打开，需要获取url批量保存
-    def get1(loop=2):
+    def get1(loop=11):
         lis = MyUtils.geturls(loop)
         print(lis)
         f.add(lis)
@@ -14,13 +14,14 @@ if __name__ == '__main__':
 
     #     已经记录，直接批量保存第一页
     def get2():
-        for i in f.l:
+        l=f.l
+        for i in l:
             i = i[:34]
-            page = MyUtils.Chrome(i, silent=True, mine=True)
-            page.save(MyUtils.collectionpath('cc98/'), titletail=' - CC98论坛', minsize=(150, 150), scale=400)
+            page = MyUtils.Chrome(i, silent=False, mine=True)
+            page.set_window_size(1300, page.getscrollheight())
+            page.save(titletail=' - CC98论坛', minsize=(150, 150))
             page.quit()
-        #     全部成功以后，清空待爬记录
-        f.clear()
+            f.delete(i)
 
 
     # 保存所有页
@@ -50,6 +51,6 @@ if __name__ == '__main__':
         f.clear()
 
 
-    # get1(20)
-    # get2()
-    get3()
+    # get1(3)c
+    get2()
+    # get3()

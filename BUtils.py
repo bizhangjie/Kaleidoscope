@@ -349,7 +349,8 @@ def quitdownloader():
 
 
 def opendownloader():
-    MyUtils.hotkey('alt', 'tab')
+    while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownload.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+        MyUtils.hotkey('alt', 'tab')
     time.sleep(0.4)
     MyUtils.click(1426, 209)
 
