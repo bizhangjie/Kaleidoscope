@@ -24,7 +24,7 @@ def main():
     host=MyUtils.Chrome()
     while True:
         useruid = list(allusers.get()[0].keys())[0]
-        host.get(f'https://www.douyin.com/user/{useruid}')
+        host.get(f'https://m.douyin.com/share/user/{useruid}')
         MyUtils.sleep(2)
         DouyinUtils.滑块验证([host])
         DouyinUtils.跳转验证([host])
