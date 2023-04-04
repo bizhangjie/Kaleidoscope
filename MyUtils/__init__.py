@@ -147,7 +147,7 @@ def listed(func):
                 if not type(ret) == list:
                     res.append(ret)
                 else:
-                    extend(res, ret)
+                    res+=ret
             return res
         else:
             return func(*a, **c)
@@ -1295,7 +1295,7 @@ def rmempty(root, tree=False, silent=False):
     dlis = []
     if tree == False:
         for i in listdir(root):
-            if [] == extend(listdir(i), listfile(i)):
+            if [] == listdir(i)+listfile(i):
                 dlis.append(i)
     if not dlis == []:
         if not silent:
@@ -1378,7 +1378,7 @@ def jsonpath(s=''):
 
 # 下属的文件夹和文件
 def listall(path):
-    return extend(listfile(path), listdir(path))
+    return listfile(path)+listdir(path)
 
 
 # 判断是否是空的文件夹
@@ -1387,7 +1387,7 @@ def isemptydir(path):
     if not isdir(path):
         warn(f'{path}是文件夹？请检查路径。')
         return False
-    if [] == extend(listfile(path), listdir(path)):
+    if [] == listfile(path)+listdir(path):
         return True
     else:
         return False
@@ -1598,9 +1598,9 @@ def listfile(path, full=True):
 
 def listfiletree(path):
     lis = []
-    extend(lis, listfile(path))
+    lis+=listfile(path)
     for i in listdir(path):
-        extend(lis, listfiletree(i))
+        lis+=listfiletree(i)
     return lis
 
 
@@ -1687,7 +1687,7 @@ class table():
                 self.l.append(i)
             for d in self.l:
                 for k in d:
-                    self.d.update({k: extend(self.d[k], [d[k]])})
+                    self.d.update({k: self.d[k]+[d[k]]})
 
     def save(self):
         f = open(self.path, encoding='utf-8-sig', mode='w', newline="")
@@ -1701,7 +1701,7 @@ class table():
             self.l.append(d)
             for key in d:
                 if key in keys(self.d):
-                    extend(self.d[key], [d[key]])
+                    self.d[key]+=[d[key]]
         if type(d) in [tuple, list]:
             count = 0
             newd = {}
@@ -1888,11 +1888,11 @@ def file(mode, path, IOList=None, encoding=None):
         # 比特流
         if mode == 'rb':
             with open(path, mode='rb') as file:
-                return extend(IOList, file.readlines())
+                return IOList+file.readlines()
         # 字符流
         elif mode == 'r':
             with open(path, mode='r', encoding=encoding) as file:
-                return extend(IOList, file.readlines())
+                return IOList+file.readlines()
         elif mode == 'w':
             with open(path, mode='w', encoding=encoding) as file:
                 file.writelines(IOList)
@@ -2059,14 +2059,14 @@ class RefreshTXT(txt):
         backupname = self.path.strip('.txt') + '_backup.txt'
         if not os.path.exists(backupname):
             f = txt(backupname, self.encoding)
-            extend(f.l, extend([nowstr()], self.l))
+            f.l=[nowstr()]+self.l
             f.save('create backup')
         else:
             if counttime(txt(backupname).l[0]) <= 3600 * 24 and strict == False:
                 return
             RefreshTXT.set(self)
             f = txt(backupname)
-            f.l = extend([nowstr()], self.l)
+            f.l = [nowstr()]+self.l
             f.save('refresh backup')
         # endregion
 
@@ -2075,7 +2075,7 @@ class RefreshTXT(txt):
     def save(self, silent=None):
         if silent == None:
             silent = self.silent
-        self.l = Set(extend([], self.l, rtxt(self.path, silent=silent).l))
+        self.l = Set(self.l+rtxt(self.path, silent=silent).l)
         RefreshTXT.set(self, silent=silent)
         txt.save(self, 'Rtxt 合并保存', silent=silent)
 
@@ -2091,7 +2091,7 @@ class RefreshTXT(txt):
             silent = self.silent
         if len(self.l) < 1:
             return None
-        self.l = (extend(self.l[1:], [self.l[0]]))
+        self.l = self.l[1:]+[self.l[0]]
         self.loopcount -= 1
         RefreshTXT.save(self, silent=silent)
         return self.l[-1]
@@ -2102,7 +2102,7 @@ class RefreshTXT(txt):
         self.__init__(self.path, self.encoding, silent=self.silent)
         if len(self.l) <= 1:
             return None
-        self.l = extend([self.l[-1]], self.l[:-1])
+        self.l = [self.l[-1]]+self.l[:-1]
         self.loopcount += 1
         self.save(silent=silent)
         return self.l[0]
@@ -2252,7 +2252,7 @@ class RefreshJson(Json, RefreshTXT):
                 newl = i.split('}{')
                 newl[0] = newl[0][1:]
                 newl[-1] = newl[-1][:-1]
-                extend(addl, newl)
+                addl+=newl
                 dell.append(i)
         for j in addl:
             RefreshTXT.add(self, '{' + j + '}', silent=silent)
@@ -2263,7 +2263,7 @@ class RefreshJson(Json, RefreshTXT):
     def all(self):
         ret = []
         for i in range(self.length()):
-            extend(ret, self.get())
+            ret+=self.get()
         return ret
 
     # 返回值的键
@@ -2295,7 +2295,7 @@ class RefreshJson(Json, RefreshTXT):
                 ret = []
                 for j in newl:
                     j = '{' + j + '}'
-                    extend(ret, RefreshJson.get(j))
+                    ret+=RefreshJson.get(j)
                 return ret
             else:
                 Exit(f'{e}')
@@ -2323,7 +2323,7 @@ class RefreshJson(Json, RefreshTXT):
                     return
                 RefreshTXT.delete(self, dicttojson(din), silent=silent)
                 try:
-                    din = {key(d): list(Set(extend([value(d)], value(din))))}
+                    din = {key(d): list(Set([value(d)]+ value(din)))}
                 except Exception as e:
                     print(din)
                     print(d)
@@ -2357,7 +2357,7 @@ class RefreshJson(Json, RefreshTXT):
                 if not key(ii) == k:
                     continue
                 dlis.append(i)
-                extend(values, value(ii))
+                values+=value(ii)
                 try:
                     values = list(Set(values))
                 except:
@@ -2752,29 +2752,6 @@ def simplinfo(num, author, title, diskname=None):
         diskname = getdiskname()
     return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
 
-
-def mergelist(*a):
-    return extend(*a)
-
-
-def extend(*a, set=False):
-    if len(a) > 2:
-        for i in a[1:]:
-            extend(a[0], i)
-        return a[0]
-    if len(a) == 1:
-        l1 = []
-        l2 = a[0]
-    else:
-        l1, l2 = a
-    if l1 == None:
-        warn(f'l1: None  l2: {l2}')
-        return l2
-    for i in l2:
-        l1.append(i)
-    if set:
-        return Set(l1)
-    return l1
 
 
 class MyError(BaseException):
@@ -3681,7 +3658,7 @@ class Edge():
         res = []
         if path == None:
             path = collectionpath(f'/其它/{self.title()}/')
-        extend(res, self.elements('//pic', strict=False), self.elements('//img', strict=False))
+        res+=self.elements('//pic', strict=False), self.elements('//img', strict=False)
         count = 0
         for i in res:
             if i.size['height'] < minsize[1] or i.size['width'] < minsize[0]:
@@ -3727,7 +3704,7 @@ class Edge():
     # 保存页面上的所有视频
     def savevideos(self, path, t=5, minsize=None):
         res = []
-        extend(res, self.elements('//video', strict=False), )
+        res+=self.elements('//video', strict=False)
         count = 0
         for i in res:
             count += 1
@@ -4136,6 +4113,10 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
         X, Y = x - defaultxscale / 2, y - defaultyscale / 2
         X, Y = int(X / defaultxscale * xsize / defaultuiscale * uiscale), int(Y / defaultyscale * ysize / defaultuiscale * uiscale)
         x, y = X + xsize / 2, Y + ysize / 2
+        if x==0:
+            x=1
+        if y==0:
+            y=1
         pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:

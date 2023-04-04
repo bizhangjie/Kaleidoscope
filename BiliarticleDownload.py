@@ -13,8 +13,7 @@ if __name__ == '__main__':
     num=int(MyUtils.removetail(e[2:],' 页'))
     for i in range(num):
         MyUtils.sleep(0.3)
-        MyUtils.extend(urls,page.elements('//*[@id="page-article"]//li[contains(@class,"article-item")]//h2/a/@href'))
-        # MyUtils.extend(titles,page.elements('//*[@id="page-article"]//li[contains(@class,"article-item")]//h2/a/text()'))
+        urls+=page.elements('//*[@id="page-article"]//li[contains(@class,"article-item")]//h2/a/@href')
         if i==num-1:
             break
         page.click('//*[@id="page-article"]//li[@class="be-pager-next"]')

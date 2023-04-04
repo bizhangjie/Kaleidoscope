@@ -16,8 +16,7 @@ if __name__ == '__main__':
         e1=page.elements('//video',strict=False)
         e2=page.elements('//source',strict=False)
         e3=page.elements('//pic',strict=False)
-        MyUtils.extend(e1,e2,e3)
-        e1=list(set(e1))
+        e1=list(set(e1+e2+e3))
         urls=[]
         for e in e1:
             url=(e.get_attribute('href'))
