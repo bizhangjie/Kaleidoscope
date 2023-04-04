@@ -12,7 +12,7 @@ def main():
             opened=True
             f=MyUtils.txt(MyUtils.cachepath('halfday.txt'))
             f.clear()
-            MyUtils.extend(f.l,['"今天的我将和现实对话。今天的我将和未来的自我对话。\n'])
+            f.l+=['"今天的我将和现实对话。今天的我将和未来的自我对话。\n']
             f.save()
             MyUtils.getscreenlock()
             MyUtils.look(f.path)

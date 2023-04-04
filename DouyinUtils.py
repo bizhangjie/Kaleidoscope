@@ -50,7 +50,7 @@ def HostPieces(l,tab='作品'):
     def func(ret,l):
         if ret is None:
             ret=[]
-        return MyUtils.extend(ret, l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
+        return ret, l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
 
     # 如果数量获取失败就只获取一次
     if psn==False:
@@ -58,7 +58,7 @@ def HostPieces(l,tab='作品'):
 
     while psn and len(ret)<psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
-        MyUtils.extend(ret,Page.Down(start=Page.getscrollheight(),scale=400,pause=2,func=func))
+        ret+=Page.Down(start=Page.getscrollheight(),scale=400,pause=2,func=func)
         Page.click('//span[text()="刷新"]',strict=False)
     return ret
 
@@ -118,7 +118,7 @@ def HostLikeNum(l):
     page = l[0]
     l1 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div[4]/div[1]/div[1]/div[2]/span'], depth=9, silent=True)
     l2 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div/div[2]/div[1]/div[2]/div/div/div[2]/span[2]'], depth=9, silent=True)
-    LikeElement = MyUtils.extend(l1, l2)[0]
+    LikeElement = (l1+l2)[0]
     LikeNum = LikeElement.text
     LikeElement.click()
     return LikeNum
@@ -138,7 +138,7 @@ def addauthor(useruid, author, users=allusers):
         return
     authors = MyUtils.jsontodict(User)[useruid]
     if not author in authors:
-        users.add({useruid: MyUtils.extend(authors, [author])})
+        users.add({useruid: authors+[author]})
         MyUtils.delog(f'添加了用户名称在{users.path}中')
 
 
@@ -183,7 +183,7 @@ def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,us
 def dislike(l):
     Page=l[0]
     l1=Page.elements('//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[2]/div/div[1]/div[1]',strict=False)
-    MyUtils.extend(l1,Page.elements('//*[@id="root"]/div[1]/div[2]/div/div/div[1]/div[3]/div/div[2]/div[1]/div[1]/div',strict=False))
+    l1+=Page.elements('//*[@id="root"]/div[1]/div[2]/div/div/div[1]/div[3]/div/div[2]/div[1]/div[1]/div',strict=False)
     Page.click(l1[0])
     MyUtils.delog('已取消喜欢')
     time.sleep(3)

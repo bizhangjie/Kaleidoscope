@@ -1,0 +1,31 @@
+{
+  "baijiahao": {
+    "path": "\u767e\u5bb6\u53f7",
+    "cuttop": 90,
+    "cutright": 490
+  },
+  "weixin.qq.com": {
+    "path": "\u767e\u5bb6\u53f7",
+    "cuttop": 0,
+    "cutright": 300
+  },
+  "sohu.com": {
+    "path": null,
+    ",cutleft": 260,
+    "cuttop": 50,
+    "cutright": 430
+  },
+  "cc98.org": {
+    "path": "cc98/",
+    "titletail": " - CC98论坛",
+    "scale": 200
+  },
+  "zhuanlan.zhihu": {
+    "path": "知乎/",
+    "titletail": "- 知乎",
+    "scale": 200,
+    "cuttop": 70,
+    "cutright": 250,
+    "cutbottom": 70
+  }
+}

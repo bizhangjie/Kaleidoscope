@@ -19,8 +19,8 @@ if __name__ == '__main__':
             count += 1
             namelist = []
             name = ''
-            MyUtils.extend(namelist, page.elements('//*[@id="picture-dialog"]/div[1]/div[1]//*/text()', strict=False),
-                           page.elements('//*[@id="picture-dialog"]//div[contains(@class,"picture-footer")]//span[@class="text"]/text()', strict=False))
+            namelist+=page.elements('//*[@id="picture-dialog"]/div[1]/div[1]//*/text()', strict=False),
+                           page.elements('//*[@id="picture-dialog"]//div[contains(@class,"picture-footer")]//span[@class="text"]/text()', strict=False)
             for i in namelist:
                 name += f'{i} - '
             name += f'{count}'

@@ -35,7 +35,7 @@ def deleteRecorded():
                 j = ({dkey: {"disk": MyUtils.diskpath, 'author': author, "title": title}})
                 deletelis.append(j)
                 missing.add(j,silent=True)
-    MyUtils.out(MyUtils.extend([f'将删除以下{len(deletelis)} 个记录在 {allpieces.path} 中'],deletelis))
+    MyUtils.out([f'将删除以下{len(deletelis)} 个记录在 {allpieces.path} 中']+deletelis)
     allpieces.delete(deletelis,silent=True)
 
 
