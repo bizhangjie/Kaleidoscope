@@ -58,7 +58,7 @@ def HostPieces(l,tab='作品'):
 
     while psn and len(ret)<psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
-        MyUtils.extend(ret,Page.Down(start=0,scale=400,pause=2,func=func))
+        MyUtils.extend(ret,Page.Down(start=Page.getscrollheight(),scale=400,pause=2,func=func))
         Page.click('//span[text()="刷新"]',strict=False)
     return ret
 

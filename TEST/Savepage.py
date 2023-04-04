@@ -16,6 +16,7 @@ def provisional(page):
 if __name__ == '__main__':
     while True:
         url=MyUtils.txt(MyUtils.cachepath('savepage/savepage.txt')).l[0]
+        # url=r'https://blog.google/technology/ai/bard-google-ai-search-updates'
         while url==None:
             url=MyUtils.txt(MyUtils.cachepath('savepage/savepage.txt')).l[0]
             MyUtils.sleep(3)
@@ -24,5 +25,9 @@ if __name__ == '__main__':
         page.save(minsize=minisize, scale=scale, look=look, t=t,path=path,
                   extrafunc=extrafunc,pause=pause,
                   )
+        # page.save(minsize=minisize, scale=scale, look=look, t=t,path=path,
+        #           extrafunc=extrafunc,pause=pause,
+        #           cuttop=85,cutbottom=95
+        #           )
         page.quit()
         MyUtils.txt(MyUtils.cachepath('savepage/savepage.txt')).delete(url)

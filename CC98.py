@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     #     已经记录，直接批量保存第一页
     def get2():
-        l=f.l
+        l=list(f.l)
         for i in l:
             i = i[:34]
             page = MyUtils.Chrome(i, silent=False, mine=True)
