@@ -12,7 +12,7 @@ def generate_points(n,r ,x0=0, y0=0):
     return points
 def generate_X(step=100):
     line1 = [(x, x * 1080 // 1920) for x in range(1, 1921, step)]
-    line2 = [(x, 1080*((1920-x)//1920)) for x in range(1920, 0, -step)]
+    line2 = [(x, int(1080*((1920-x)/1920))) for x in range(1920, 0, -step)]
     points = line1 + line2
     return points
 
