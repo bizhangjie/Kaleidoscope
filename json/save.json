@@ -27,5 +27,13 @@
     "cuttop": 70,
     "cutright": 250,
     "cutbottom": 70
-  }
+  },
+  "weibo.com": {
+    "path": "微博/",
+    "titletail": "-微博",
+    "scale": 250,
+    "cuttop": 135,
+    "cutright": 100,
+    "cutbottom": 0
+  },
 }
