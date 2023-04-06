@@ -143,7 +143,7 @@ def addauthor(useruid, author, users=allusers):
 
 
 def simplinfo(num, author, title):
-    return json.dumps({str(num): {'disk': MyUtils.diskpath, 'author': author, 'title': title}}, ensure_ascii=False)
+    return json.dumps({str(num): {'disk': MyUtils.getdiskname(), 'author': author, 'title': title}}, ensure_ascii=False)
     # return json.dumps({str(num):{'disk':MyUtils.hashcode,'author':author,'title':title}},ensure_ascii=True)
 
 
@@ -216,12 +216,12 @@ def skipdownloaded(flag, record, VideoNum, title, author,num=None):
     '''
     path = './抖音/' + author
     if (os.path.exists(f'{path}/{VideoNum}_{title}.mp4') and not flag):
-        record.add(simplinfo(VideoNum, author, title))
+        record.add(simplinfo('video'+VideoNum, author, title))
         MyUtils.log(f' {MyUtils.standarlizedPath(path)}/{VideoNum}_{title}.mp4  已存在磁盘中，补全记录')
         return True
     if flag:
         if  len(MyUtils.listfile(f'{path}/{VideoNum}_{title}'))==num:
-            record.add(simplinfo(VideoNum, author, title))
+            record.add(simplinfo('pic'+VideoNum, author, title))
             MyUtils.log(f' {path}/{VideoNum}_{title} 共{num}张图片已存在磁盘中，补全记录')
             return True
         else:
