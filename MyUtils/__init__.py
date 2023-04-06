@@ -3119,13 +3119,23 @@ def getpics(loop, path):
         move(j, f'{path}.{gettail(j, ".")}')
 
 
-def geturls(loop=1):
+def geturls(loop=1,func=None,type='edge'):
+    """
+    获取已打开浏览器的所有链接
+    @param loop:
+    @param func:处理每次get到的url
+    @param type:浏览器类型
+    @return:
+    """
     ret = []
     hotkey('alt', 'tab')
     for i in range(loop):
-        click(420, 62)
+        click(cachepath(type+'url.png'),xoffset=80)
         hotkey('ctrl', 'c')
-        ret.append(pyperclip.paste())
+        c=pyperclip.paste()
+        if func:
+            c=func(c)
+        ret.append(c)
         hotkey('ctrl', 'w')
     hotkey('alt', 'tab')
     return ret
@@ -3917,12 +3927,21 @@ class Edge():
         self.driver.execute_script(f"window.open('{url}')")
         Edge.switchto(self, )
 
-    def get(self, url):
+    def get(self, url,t=None):
+        """
+
+        @param url:
+        @param t: 加载后的缓冲时间
+        @return:
+        """
         try:
             if not 'https://' in url and not 'http://' in url:
                 url = 'https://' + url
             self.driver.get(url)
-            sleep(0.4)
+            if  t:
+                sleep(t)
+            else:
+                sleep(0.4)
         except Exception as e:
             if e in [selenium.common.exceptions.InvalidArgumentException]:
                 Exit(f'请检查url = {url} 是否错误。')
@@ -3938,8 +3957,17 @@ class Edge():
         log(f'扩展窗口至大小：{a, b}')
         self.driver.set_window_size(*a, **b)
 
-    # 会改变窗口大小位置
-    def elementshot(self, path, s, xoffset=None, yoffset=None, extend=None, overwrite=True):
+    def elementshot(self, path, s, xoffset=None, yoffset=None, moveto=True, overwrite=True):
+        """
+        会改变窗口大小位置
+        @param path:
+        @param s:
+        @param xoffset:
+        @param yoffset:
+        @param moveto: 是否移动到元素位置
+        @param overwrite:
+        @return:
+        """
         path = standarlizedPath(path)
         if isfile(path):
             if overwrite:
@@ -3953,11 +3981,13 @@ class Edge():
             y = s.location['y']
             if not yoffset == None:
                 y += yoffset
-            self.scroll(y)
+            if moveto:
+                self.scroll(y)
             if 100 + s.size['height'] > self.get_window_size()[1]:
                 self.set_window_size(self.get_window_size()[0], self.get_window_size()[1] + 100 + s.size['height'])
             self.scroll(y)
-            createpath(path)
+            if moveto:
+                createpath(path)
             file('wb', path, s.screenshot_as_png)
             return
 
