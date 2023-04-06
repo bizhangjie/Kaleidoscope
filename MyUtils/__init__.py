@@ -2357,7 +2357,7 @@ class RefreshJson(Json, RefreshTXT):
                 if not key(ii) == k:
                     continue
                 dlis.append(i)
-                values+=value(ii)
+                values+=[value(ii)]
                 try:
                     values = list(Set(values))
                 except:
@@ -3836,7 +3836,7 @@ class Edge():
         return self.element(*a, **b)
 
     @listed
-    def elements(self, s, depth=9, silent=True, strict=True, root=None):
+    def elements(self, s, depth=9, silent=True, strict=True, root=None,refresh=False):
         """
         根据多个但只有一个有效的字符串匹配元素，返回第一组
         @param s:匹配字符串或是元素
@@ -3844,6 +3844,7 @@ class Edge():
         @param silent:
         @param strict:True表示如果没找到，直接报错
         @param root:根元素。默认是self.driver
+        @param refresh:找不到元素是否刷新页面
         @return:
         """
         if root == None:
@@ -3859,9 +3860,12 @@ class Edge():
                 ret = elements([root], i, depth=depth, silent=silent)
                 if not ret == []:
                     break
-        if strict:
-            self.errorscr(ret)
-            warn('errorscr 最终未获取到元素')
+        if ret in[None,[]]:
+            if refresh:
+                self.refresh()
+                return self.elements(s,depth=depth, silent=silent, strict=strict, root=root, refresh=refresh)
+            if strict:
+                self.errorscr(ret)
         return ret
 
     def Elements(self, *a, **b):
