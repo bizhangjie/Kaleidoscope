@@ -44,7 +44,7 @@ debug = sys.gettrace()
 MyError = selenium.common.exceptions.TimeoutException
 retrylist = [
     MyError, selenium.common.exceptions.ElementClickInterceptedException,
-    Exception, ConnectionRefusedError,
+    Exception, ConnectionRefusedError,SystemExit,
     urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError,
     selenium.common.exceptions.TimeoutException,
     selenium.common.exceptions.NoSuchWindowException, pyautogui.FailSafeException,
@@ -596,7 +596,7 @@ def Exit(*a):
     """
     try:
         warn(*a)
-        sys.exit(-1)
+        raise retrylist[0]
     except Exception as e:
         warn('程序不能正常停止。请手动终止。')
         warn(e)
@@ -1385,7 +1385,7 @@ def listall(path):
 def isemptydir(path):
     path = standarlizedPath(path)
     if not isdir(path):
-        warn(f'{path}是文件夹？请检查路径。')
+        warn(f'{path}不是文件夹，请检查路径。')
         return False
     if [] == listfile(path)+listdir(path):
         return True
@@ -2740,6 +2740,8 @@ def Int(s):
 # 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
     res = []
+    if l==None:
+        return []
     for i in l:
         if i in res:
             continue
@@ -3336,7 +3338,7 @@ class Edge():
         self.type = 'edge'
         self.set_window_size(900, 1000)
 
-    def click(self, *a, strict=True):
+    def click(self, *a, strict=True, depth=9):
         if len(a) > 1:
             # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
             Exit(' 未实现')
@@ -3344,7 +3346,7 @@ class Edge():
         if s == None:
             return
         if type(s) in [str]:
-            return Edge.click(self, self.element(s, strict=strict))
+            return Edge.click(self, self.element(s, strict=strict, depth=depth))
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             try:
                 s.click()
@@ -3387,16 +3389,22 @@ class Edge():
         @param start:
         @param end:
         @param scale:
-        @param func:第一次首参为None，二参为self的迭代函数
+        @param func:第一次首参为None，二参为self，循环下滚执行
         @param pause:
-        @return:
+        @return:[]
         """
         self.scroll(start)
-        ret = None
-        while not self.nearend() or (not end == None and self.getscrolltop() < end):
+        ret = []
+        while True:
+            if (not end == None and self.getscrolltop() < end):
+                break
+
             if not func == None:
-                ret = func(ret, [self], *a, **b)
+                ret+=func(ret, [self], *a, **b)
             self.scroll(scale + self.getscrolltop())
+
+            if self.nearend():
+                break
             sleep(pause)
         return ret
 
@@ -3843,6 +3851,7 @@ class Edge():
                     break
         if strict:
             self.errorscr(ret)
+            warn('errorscr 最终未获取到元素')
         return ret
 
     def Elements(self, *a, **b):

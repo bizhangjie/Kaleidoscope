@@ -46,20 +46,20 @@ def HostPieces(l,tab='作品'):
     """
     Page=l[0]
     psn=TurnHostTab(l,tab)
-    ret=[]
     def func(ret,l):
+        登录验证(l)
+        l[0].click('//span[text()="刷新"]',strict=False,depth=10)
         if ret is None:
             ret=[]
-        return ret, l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href'), set=True)
-
+        return ret+l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href')
+    ret=func([],l)
     # 如果数量获取失败就只获取一次
     if psn==False:
         psn=1
 
     while psn and len(ret)<psn:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
-        ret+=Page.Down(start=Page.getscrollheight(),scale=400,pause=2,func=func)
-        Page.click('//span[text()="刷新"]',strict=False)
+        ret+=MyUtils.Set(ret+Page.Down(start=Page.getscrollheight(),scale=1300,pause=0,func=func))
     return ret
 
 
@@ -118,7 +118,7 @@ def HostLikeNum(l):
     page = l[0]
     l1 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div[4]/div[1]/div[1]/div[2]/span'], depth=9, silent=True)
     l2 = MyUtils.Elements([page, By.XPATH, '/html/body/div[1]/div/div[2]/div/div/div/div[2]/div[1]/div[2]/div/div/div[2]/span[2]'], depth=9, silent=True)
-    LikeElement = (l1+l2)[0]
+    LikeElement = l1+l2[0]
     LikeNum = LikeElement.text
     LikeElement.click()
     return LikeNum
@@ -138,7 +138,7 @@ def addauthor(useruid, author, users=allusers):
         return
     authors = MyUtils.jsontodict(User)[useruid]
     if not author in authors:
-        users.add({useruid: authors+[author]})
+        users.add({useruid: authors+ [author]})
         MyUtils.delog(f'添加了用户名称在{users.path}中')
 
 
@@ -170,10 +170,16 @@ def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,us
         author=page.element('//div[@data-e2e="user-info"]//a//span[not(text()="")]/text()')
     if ispic==None:
         ispic='note'in page.url()
-    if not ispic:
-        VideoUrl=page.elements('//xg-video-container/video/source[1]/@src',depth=8)
-    else:
-        VideoUrl=page.elements('//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img/@src',depth=8)
+    while True:
+        try:
+            if not ispic:
+                VideoUrl=page.elements('//xg-video-container/video/source[1]/@src',depth=8)
+                break
+            else:
+                VideoUrl=page.elements('//*[@id="root"]/div[1]/div[2]/div/main/div[1]/div[1]/div/div[2]/div/img/@src',depth=8)
+                break
+        except:
+            page.refresh()
     num=MyUtils.gettail(page.url(),'/')
     title=MyUtils.rmtail(page.element("//title/text()"),' - 抖音')
     readytoDownload.add({"list": [num, author, title, VideoUrl, ispic]})
@@ -237,7 +243,7 @@ def 跳转验证(l):
 
 def 登录验证(l):
     page=l[0]
-    page.click('//div[@class="dy-account-close"]',strict=False)
+    page.click('//div[@class="dy-account-close"]',strict=False,depth=10)
 
 def skipverify(l):
     """

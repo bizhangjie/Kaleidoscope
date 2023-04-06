@@ -25,7 +25,7 @@ def download():
         if VideoUrl==[]:
             MyUtils.warn(f'下载url为空。')
             return
-        if DouyinUtils.skipdownloaded(ispic, allpieces, VideoNum, title, author):
+        if DouyinUtils.skipdownloaded(ispic, allpieces, VideoNum, title, author,num=len(VideoUrl)):
             MyUtils.warn('已下载。弹回。', f'VideoNum={VideoNum} HostID={author} title={title} VideoUrl={VideoUrl}')
             return
         path = './抖音/' + author

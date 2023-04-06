@@ -16,27 +16,25 @@ history = DouyinUtils.history
 # endregion
 
 
-@retry(retry_on_exception=MyUtils.retry)
+# @retry(retry_on_exception=MyUtils.retry)
 def main():
-    allusers.rollback()
     global host,page
     page=MyUtils.Chrome()
     host=MyUtils.Chrome()
     while True:
         useruid = list(allusers.get()[0].keys())[0]
         host.get(f'https://m.douyin.com/share/user/{useruid}')
-        MyUtils.sleep(2)
+        MyUtils.sleep(4)
         DouyinUtils.滑块验证([host])
         DouyinUtils.跳转验证([host])
-        DouyinUtils.登录验证([host])
         try:
             author,urls,=DouyinUtils.hostdata([host],tab='作品')
-        except:
-            MyUtils.warn('用户异常。')
+        except Exception as e:
+            MyUtils.warn(['用户异常。\n']+[e])
             continue
         DouyinUtils.addauthor(useruid, author)
         MyUtils.delog(f'  ------转到{author}的主页-----',useruid)
-        for videourl in urls:
+        for videourl in MyUtils.Set(urls):
             DouyinUtils.load([page], videourl, author=author)
             while readytodownload.length() > DouyinUtils.maxready:
                 MyUtils.log('下载队列已满。Detect 等待中...')
