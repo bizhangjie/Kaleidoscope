@@ -42,9 +42,10 @@ Logcount = 0
 global debug
 debug = sys.gettrace()
 MyError = selenium.common.exceptions.TimeoutException
+# 不包括 SystemExit，因为默认通过这个来强行中止严重错误
 retrylist = [
     MyError, selenium.common.exceptions.ElementClickInterceptedException,
-    Exception, ConnectionRefusedError,SystemExit,
+    Exception, ConnectionRefusedError,
     urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError,
     selenium.common.exceptions.TimeoutException,
     selenium.common.exceptions.NoSuchWindowException, pyautogui.FailSafeException,
@@ -960,7 +961,7 @@ def Input(x, y, s):
 
 #     拼接图片
 def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical', reverse=None, filelist=None,
-                  cuttop=0, cutbottom=0, cutleft=0, cutright=0):
+                  cuttop=0, cutbottom=0, cutleft=0, cutright=20):
     """
 
     @param inputpath:
@@ -972,7 +973,7 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
     @param cutbottom:
     @param cuttop:
     @param cutleft:
-    @param cutright:
+    @param cutright: 总有些傻哔情况有点右侧进度条
     @param cuttop:顶部裁剪
     @return:
     """
@@ -1019,7 +1020,7 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
         # look(image2[:scale2, :])
 
         if mode == 'vertical':
-            if max_loc == (0, 0) or max_val < 0.97:
+            if max_val < 0.97:
                 warn('图片匹配失败，直接拼接')
                 max_loc = (0, image1.shape[0])
             cv2.imwrite(img1, image1[:max_loc[1]])
@@ -1361,6 +1362,9 @@ def userpath(s=''):
 def projectpath(s=''):
     return get_base_path('D:/Kaleidoscope', s)
 
+# js 脚本目录
+def jspath(s=''):
+    return get_base_path(projectpath('js'), s)
 
 # 临时文件目录
 def cachepath(s=''):
@@ -1465,10 +1469,20 @@ def rename(s1, s2, overwrite=True):
 
 
 # 判断是否是存在文件
-def isfile(s):
+def isfile(s,notnull=True):
+    """
+    判断是否是存在文件
+    @param s:
+    @param notnull: 文件不为空
+    @return:
+    """
     if not type(s) in [str]:
+        warn(f'isfile的参数必须是字符串，而不是{type(s)}')
         return False
-    return os.path.isfile(s)
+    if os.path.isfile(s):
+        if notnull:
+            return not 0==os.path.getsize(s)
+        return True
 
 
 # 判断是否是存在文件夹
@@ -1498,7 +1512,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
     移动文件或文件夹
     @param s1:
     @param s2:
-    @param overwrite: 是否覆盖同名文件。如果aurorename，同名内容不同文件会重命名而不是覆盖。
+    @param overwrite: 是否覆盖同名文件。如果autorename，同名内容不同文件会重命名而不是覆盖。
     @param autorename: 是否重命名同名文件。如果overwrite，同名同内容文件会直接覆盖而不是重命名。
     @param merge: 是否合并同名文件夹。如果autorename，同名文件夹会重命名而不是合并。
     @param silent:
@@ -1970,6 +1984,11 @@ class txt():
 
     @listed
     def delete(self, s):
+        """
+        自动保存。
+        @param s:
+        @return:
+        """
         for i in self.l:
             if i == s:
                 self.l.remove(s)
@@ -2444,7 +2463,7 @@ class cache():
 
     def get(self, silent=False):
         """
-        删除
+        删除。如果失误直接删除
         @param silent:
         @return:
         """
@@ -2456,7 +2475,11 @@ class cache():
                 if f.l == []:
                     return
                 if self.json:
-                    s = jsontodict(f.l[0])
+                    try:
+                        s = jsontodict(f.l[0])
+                    except Exception as e:
+                        f.delete(s)
+                        return self.get()
                 else:
                     s = f.l[0]
                 f.l.pop(0)
@@ -3164,9 +3187,9 @@ def Elements(l, s, depth=7, silent=True, method=By.XPATH, strict=True):
     root = l[0]
     s.replace('\'', '\"')
     # 重写xpath语法规则
-    s.replace('span', '*[name()="span"]')
-    s.replace('//@', '//*/@')
-    s.replace('//text()', '//*/text()')
+    s=s.replace('span', '*[name()="span"]')
+    s=s.replace('//@', '//*/@')
+    s=s.replace('//text()', '//*/text()')
     atr = None
     if '/text()' in s:
         s = Strip(s, '/text()')
@@ -3288,18 +3311,26 @@ def scroll(l, silent=None, x=None, y=None, ratio=1, t=1, ite=None):
             pass
 
 
-def requestdownload(LocalPath, url, mode='rb'):
-    CreatePath(LocalPath)
+def requestdownload(path, url, mode='wb'):
+    """
+
+    @param path: 目标路径
+    @param url: 源 url
+    @param mode:
+    @return:
+    """
+    path=standarlizedPath(path)
+    CreatePath(path)
     try:
-        with open(LocalPath, mode) as f:
+        with open(path, mode) as f:
             f.write(requests.get(url=url, headers=headers).content)
     except(requests.exceptions.SSLError):
         try:
-            with open(LocalPath, mode) as f:
+            with open(path, mode) as f:
                 f.write(requests.get(url=url, headers=headers, verify=False).content)
         finally:
             input('SSLError')
-            requestdownload(LocalPath, mode, url)
+            requestdownload(path, mode, url)
 
 
 def chrome(url='', mine=None, silent=None, t=100, mute=True):
@@ -3348,6 +3379,110 @@ class Edge():
         self.type = 'edge'
         self.set_window_size(900, 1000)
 
+    @consume
+    def download(self,url, path, t=15, silent=True, depth=0, auto=None, redownload=None,
+                     overwrite=False):
+        """
+        浏览器自动重命名 '~' 为 '_'
+        @param url:
+        @param path: 必须指定文件名，建议指定后缀名。文件名自动重命名"~"为"_"
+        @param t:下载和下载后浏览器自动安全检查的时间
+        @param silent:
+        @param depth:
+        @param auto:是否是打开页面即自动下载
+        @param overwrite: 覆盖下载或是覆盖移动
+        @param redownload: 一定会重新下载。
+        @return:True 下载了并且下载成功；False 下载了但是下载失败；字符串 返回检测到的以前的错误命名
+        """
+
+        path = standarlizedPath(path)
+        defaultpath=userpath('Downloads/')
+        previouscontent=listfile(defaultpath)
+        if not redownload:
+            #     已下载
+            if exists(path) and not size(path) == 0:
+                if not overwrite:
+                    log(f'{path} 已存在，将不下载')
+                    return True
+                else:
+                    move(path, cachepath(f'trashbin/{now()}'))
+
+        def recursive():
+            """
+
+            @return:
+            """
+            sleep(t)
+            self.close()
+            self.switchto(previouspage)
+            sleep(1)
+            delog(f'正在检测是否下载到了路径 {root}')
+            move([x for x in set(listfile(defaultpath)) if x not in set(previouscontent)][0],root+'/',overwrite=overwrite,autorename=redownload)
+            for ii in listfile(root):
+                if name in ii and '.crdownload' in ii:
+                    deletedirandfile(ii)
+                    warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
+                    return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent,
+                                        auto=auto, redownload=redownload, overwrite=overwrite)
+                if name in ii:
+                    if redownload:
+                        move(ii, path, autorename=redownload, overwrite=overwrite)
+                    return True
+            warn(f'{t}s后下载失败。没有检测到缓存文件  请手动尝试 {url}')
+            return False
+
+        # 递归停止条件
+        if depth > 5:
+            warn('最终下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
+            return False
+
+        createpath(path)
+        path = standarlizedPath(path, strict=True)
+        path = path.replace('~', '_')
+
+        if redownload:
+            root = standarlizedPath(cachepath('pagedownload/'), strict=True)
+        else:
+            root = (path[:path.rfind('\\')])
+        name = path[path.rfind('\\') + 1:]
+
+        # 打开页面
+        try:
+            previouspage=self.driver.current_window_handle
+            self.open(url)
+            if tellstringsame(self.title(), '403'):
+                warn(f'这个url已经被服务器关闭  403  ：{url}')
+                return False
+
+        except Exception as e:
+            warn(e)
+            warn(type(e))
+            sys.exit(-1)
+
+        i = 0
+        # 如果这个链接打开就能自动下载
+        if not auto == None:
+            return recursive()
+
+        while i < 10:
+            previouscontent = listfile(defaultpath)
+            # 什么？？？竟然要尝试10次，哈哈哈真是笑死我了
+            try:
+                self.driver.execute_script(f"const a1=document.createElement('a');\
+                a1.href='{url}';\
+                a1.download='{name}';\
+                a1.click();")
+                # root必须存在，否则会跳出为另存为
+                delog(f'pagedownload 正在下载 {url} 到 {root}')
+                break
+            except Exception as e:
+                warn('下载重试中...')
+                warn(e)
+                warn(type(e))
+                i += 1
+
+        return recursive()
+
     def click(self, *a, strict=True, depth=9):
         if len(a) > 1:
             # ActionChains(self.driver).move_to_element(to_element=Element(s)).click().perform()
@@ -3382,6 +3517,11 @@ class Edge():
             x = self.get_window_size()[0]
         self.set_window_size(x, self.getscrollheight())
 
+    def excutejs(self,jsname):
+        if not '.js'in jsname:
+            jsname+='.js'
+        self.driver.execute_script(''.join(txt(jspath(jsname)).l))
+
     def get_window_size(self):
         return self.driver.get_window_size()['width'], self.driver.get_window_size()['height']
 
@@ -3401,7 +3541,7 @@ class Edge():
         @param scale:
         @param func:第一次首参为None，二参为self，循环下滚执行
         @param pause:
-        @return:[]
+        @return:[] 或者 None
         """
         self.scroll(start)
         ret = []
@@ -3410,7 +3550,9 @@ class Edge():
                 break
 
             if not func == None:
-                ret+=func(ret, [self], *a, **b)
+                ret1=func(ret, [self], *a, **b)
+                if not ret1==None:
+                    ret+=ret1
             self.scroll(scale + self.getscrolltop())
 
             if self.nearend():
@@ -3496,7 +3638,7 @@ class Edge():
     def Width(self):
         return scrollwidth([self.driver])
 
-    def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=False, clipinterval=0.6,
+    def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=True, clipinterval=0.6,
                    cuttop=0, cutbottom=0, cutleft=0, cutright=0):
         """
         往上获取全屏。固定保存在basic_.png。
@@ -3955,31 +4097,38 @@ class Edge():
                 Exit(e)
 
     def switchto(self, n=-1):
-        self.driver.switch_to.window(self.driver.window_handles[n])
+        if type(n)in [int]:
+            self.driver.switch_to.window(self.driver.window_handles[n])
+        if type(n) in [str]:
+            self.driver.switch_to.window(n)
 
     def set_window_size(self, *a, **b):
         log(f'扩展窗口至大小：{a, b}')
         self.driver.set_window_size(*a, **b)
 
-    def elementshot(self, path, s, xoffset=None, yoffset=None, moveto=True, overwrite=True):
+    def elementshot(self, s,path=None, xoffset=None, yoffset=None, moveto=True, overwrite=True):
         """
         会改变窗口大小位置
         @param path:
-        @param s:
+        @param s: 元素，表达式
         @param xoffset:
         @param yoffset:
         @param moveto: 是否移动到元素位置
         @param overwrite:
-        @return:
+        @return: 图片路径
         """
-        path = standarlizedPath(path)
-        if isfile(path):
-            if overwrite:
-                warn(f'{path}已存在。即将覆盖下载')
-            else:
-                return True
-        if not '.png' in path:
-            path += '.png'
+        currentheight=self.getscrolltop()
+        if path==None:
+            path=cachepath('elementshot.png')
+        else:
+            path = standarlizedPath(path)
+            if isfile(path):
+                if overwrite:
+                    warn(f'{path}已存在。即将覆盖下载')
+                else:
+                    return True
+            if not '.png' in path:
+                path += '.png'
 
         if type(s) in [selenium.webdriver.remote.webelement.WebElement]:
             y = s.location['y']
@@ -3987,17 +4136,16 @@ class Edge():
                 y += yoffset
             if moveto:
                 self.scroll(y)
+            else:
+            #     强制重新渲染
+                self.scroll(currentheight)
             if 100 + s.size['height'] > self.get_window_size()[1]:
                 self.set_window_size(self.get_window_size()[0], self.get_window_size()[1] + 100 + s.size['height'])
-            self.scroll(y)
-            if moveto:
-                createpath(path)
             file('wb', path, s.screenshot_as_png)
-            return
+            return path
 
         if type(s) in [str]:
-            Edge.elementshot(self, path, Edge.element(self, s))
-            return
+            return Edge.elementshot(self, path, Edge.element(self, s))
 
     # 遇到异常（元素为空时），终止并检查当前页面截图
     def errorscr(self, t=None):
@@ -4013,7 +4161,7 @@ class Edge():
     def look(self, a=None):
         path = f'D:/Kaleidoscope/cache/current.png'
         if not a == None:
-            self.elementshot(path, a)
+            self.elementshot(a,path)
             look(path)
             return
         deletedirandfile([path])
@@ -4240,6 +4388,8 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
     """
 
     path = standarlizedPath(path)
+    # if not '.'in path:
+    #     path+=
     if not redownload:
         #     已下载
         if exists(path) and not size(path) == 0:

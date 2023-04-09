@@ -37,7 +37,7 @@ if __name__ == '__main__':
                 picurls=page.elements('//*[@id="app"]//div[@class="swiper-wrapper"]//div/@style',strict=False)
                 videourl=page.element('//*[@id="app"]//div[@class="note-container"]//xg-poster/@style',strict=False)
 
-                descriptionshot=page.elementshot('//*[@id="app"]/div[1]/div/div[2]/div[2]//div[@class="note-content"]',)
+                descriptionshot=page.elementshot(s='//*[@id="app"]/div[1]/div/div[2]/div[2]//div[@class="note-content"]',)
 
                 if not picurls==[]:
                     for i in picurls:

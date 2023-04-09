@@ -273,6 +273,7 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
         MyUtils.warn('第三方下载引擎解析视频失败。')
         return False
     while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader1.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+        MyUtils.delog('等待下载器解析中')
         MyUtils.sleep(5)
 
     MyUtils.click(708, 504)

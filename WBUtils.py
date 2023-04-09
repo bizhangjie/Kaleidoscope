@@ -1,8 +1,9 @@
 import MyUtils
-
+# /微博/author_useruid/profile/profile.png,cover.png,avator.png
+# /微博/author_useruid/poster/postertime/png, video, basic
 
 allusers=MyUtils.rjson(MyUtils.projectpath('微博/allusers.txt'))
-
+MyUtils.setrootpath(dname=[-1])
 def fun():
     pass
 
@@ -24,4 +25,5 @@ def getwebusers(l):
     page=l[0]
     page.get('https://weibo.com/u/page/follow/5849475471/followGroup?tabid=4864853400880908')
     MyUtils.sleep(1)
-    return ['https://weibo.com'+i for i in page.elements('//*[@id="scroller"]//div[@class="vue-recycle-scroller__item-view"]//a[contains(@href,"/")]/@href')]
+    # return ['https://weibo.com'+i for i in page.elements('//*[@id="scroller"]//div[@class="vue-recycle-scroller__item-view"]//a[contains(@href,"/")]/@href')]
+    return [i for i in page.elements('//*[@id="scroller"]//div[@class="vue-recycle-scroller__item-view"]//a[contains(@href,"/")]/@href')]

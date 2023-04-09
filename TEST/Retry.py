@@ -9,8 +9,8 @@ index = 0
 
 @retry(retry_on_exception=MyUtils.retry)
 def main():
-    page, page2 = MyUtils.chrome(), MyUtils.chrome()
     time.sleep(3)
+    exit(-1)
     raise selenium.common.exceptions.TimeoutException
 
 
