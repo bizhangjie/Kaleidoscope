@@ -19,6 +19,7 @@ import PySimpleGUI
 import cv2
 import moviepy
 import numpy
+import openpyxl
 import pyautogui
 import pyperclip
 import requests
@@ -34,6 +35,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from functools import wraps
+
 # 初始化1
 # region
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
@@ -78,11 +80,12 @@ def useState(fn):
     def wrapper(*args, config=True, **kwargs):
 
         if config:
-            config=jsondata(jsonpath(fn.__name__))
+            config = jsondata(jsonpath(fn.__name__))
 
             # 获取函数定义时关键字参数默认值
             defaults = fn.__defaults__ or ()
-            default_values = dict(zip(fn.__code__.co_varnames[:fn.__code__.co_argcount][-len(defaults):], defaults))
+            default_values = dict(
+                zip(fn.__code__.co_varnames[:fn.__code__.co_argcount][-len(defaults):], defaults))
 
             # jsondata config 覆盖
             for k, v in config.data.items():
@@ -110,6 +113,7 @@ def useState(fn):
             return fn(*args, **kwargs)
 
     return wrapper
+
 
 # 多名函数
 def newname(func):
@@ -148,7 +152,7 @@ def listed(func):
                 if not type(ret) == list:
                     res.append(ret)
                 else:
-                    res+=ret
+                    res += ret
             return res
         else:
             return func(*a, **c)
@@ -314,8 +318,10 @@ class Time():
         # 如果是六七个数字就默认是年月日，时分秒
         # 如果是字符串就转换
 
-        def reset(self, year=now().year, month=now().month, day=now().day, hour=now().hour, min=now().minute, sec=now().second, mic=now().microsecond):
-            self[0].t = datetime.datetime(int(year), int(month), int(day), int(hour), int(min), int(sec), int(mic))
+        def reset(self, year=now().year, month=now().month, day=now().day, hour=now().hour,
+                  min=now().minute, sec=now().second, mic=now().microsecond):
+            self[0].t = datetime.datetime(int(year), int(month), int(day), int(hour), int(min),
+                                          int(sec), int(mic))
 
         # 默认设置为现在时间
         reset([self])
@@ -467,27 +473,36 @@ def strtotime(s=nowstr()):
     if not type(s) == str:
         warn(f'用法错误。s不是字符串而是{info(s)}')
         return
+    s = s.replace('：', ':')
     s = s.replace('年', '-').replace('月', '-').replace('日', '')
     s = s.replace('时', ':').replace('分', ':').replace('秒', '')
 
-    # 星期（返回的是这周的）
+    # 星期（返回的是今日所在这周的）
     if '星期' in s:
+        # 0-6
         today = int(now().weekday())
         t = Time()
         if s == '星期一':
             t.add((0 - today) * 24 * 3600)
+            s = s.replace('星期一', '')
         if s == '星期二':
             t.add((1 - today) * 24 * 3600)
+            s = s.replace('星期二', '')
         if s == '星期三':
             t.add((2 - today) * 24 * 3600)
+            s = s.replace('星期三', '')
         if s == '星期四':
             t.add((3 - today) * 24 * 3600)
+            s = s.replace('星期四', '')
         if s == '星期五':
             t.add((4 - today) * 24 * 3600)
+            s = s.replace('星期五', '')
         if s == '星期六':
             t.add((5 - today) * 24 * 3600)
+            s = s.replace('星期六', '')
         if s == '星期日' or s == '星期天':
             t.add((6 - today) * 24 * 3600)
+            s = s.replace('星期日', '')
         return t
 
     # 先处理毫秒
@@ -574,7 +589,8 @@ def timearr(s=nowstr()):
 
     if len(s) > 10:
         (year, month, day, hour, min) = (
-            int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]), int(s[s.rfind('-') + 1:s.find(' ')]), int(s[s.rfind(' ') + 1:s.find(':')]),
+            int(s[0:4]), int(s[s.find('-') + 1:s.rfind('-')]), int(s[s.rfind('-') + 1:s.find(' ')]),
+            int(s[s.rfind(' ') + 1:s.find(':')]),
             int(s[s.find(':') + 1:s.rfind(':')]))
         try:
             mic = int(s[s.find('.') + 1:])
@@ -790,7 +806,8 @@ class CMD():
 
     def showall(self=None):
         for i in range(0, 256):
-            print(i, CMD.front(i, f'-------{i}号颜色--------'), CMD.reset(), CMD.background(i, '\t' * 100), CMD.reset())
+            print(i, CMD.front(i, f'-------{i}号颜色--------'), CMD.reset(),
+                  CMD.background(i, '\t' * 100), CMD.reset())
         for i in range(0, 110):
             print(CMD.font(i), f'这是{i}号示例字体', CMD.reset())
 
@@ -803,7 +820,8 @@ class CMD():
                "-Command", "-"]  # Listen commands from stdin
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        self.popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, startupinfo=startupinfo)
+        self.popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT, startupinfo=startupinfo)
         self.coding = coding
         self.run(cmds, silent=silent)
 
@@ -960,7 +978,8 @@ def Input(x, y, s):
 
 
 #     拼接图片
-def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical', reverse=None, filelist=None,
+def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertical', reverse=None,
+                  filelist=None,
                   cuttop=0, cutbottom=0, cutleft=0, cutright=20):
     """
 
@@ -1008,12 +1027,14 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
             matchimage2 = matchimage2[:, cutleft:image2.shape[1] - cutright]
         # 进行匹配
         # 预设匹配区域
-        scale1, scale2 = min(scale1, int(matchimage1.shape[1] * ratio1)), min(scale2, int(matchimage2.shape[1] * ratio2))
+        scale1, scale2 = min(scale1, int(matchimage1.shape[1] * ratio1)), min(scale2, int(
+            matchimage2.shape[1] * ratio2))
         if mode == 'vertical':
             matchimage2 = matchimage2[:scale2, :]
         # 需要从下到上匹配，所以要翻转
-        result_filpped = cv2.matchTemplate(cv2.flip(matchimage2,0), cv2.flip(matchimage1,0), cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(cv2.flip(result_filpped,0))
+        result_filpped = cv2.matchTemplate(cv2.flip(matchimage2, 0), cv2.flip(matchimage1, 0),
+                                           cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(cv2.flip(result_filpped, 0))
         delog('相似匹配位置', max_loc)
         # look(matchimage1)
         # look(matchimage2)
@@ -1296,7 +1317,7 @@ def rmempty(root, tree=False, silent=False):
     dlis = []
     if tree == False:
         for i in listdir(root):
-            if [] == listdir(i)+listfile(i):
+            if [] == listdir(i) + listfile(i):
                 dlis.append(i)
     if not dlis == []:
         if not silent:
@@ -1337,7 +1358,7 @@ def Open(path):
 
 
 def get_base_path(base_path, s):
-    if base_path in s or ':'in s:
+    if base_path in s or ':' in s:
         return s
     if './' in s:
         s = s[2:]
@@ -1362,9 +1383,11 @@ def userpath(s=''):
 def projectpath(s=''):
     return get_base_path('D:/Kaleidoscope', s)
 
+
 # js 脚本目录
 def jspath(s=''):
     return get_base_path(projectpath('js'), s)
+
 
 # 临时文件目录
 def cachepath(s=''):
@@ -1382,7 +1405,7 @@ def jsonpath(s=''):
 
 # 下属的文件夹和文件
 def listall(path):
-    return listfile(path)+listdir(path)
+    return listfile(path) + listdir(path)
 
 
 # 判断是否是空的文件夹
@@ -1391,7 +1414,7 @@ def isemptydir(path):
     if not isdir(path):
         warn(f'{path}不是文件夹，请检查路径。')
         return False
-    if [] == listfile(path)+listdir(path):
+    if [] == listfile(path) + listdir(path):
         return True
     else:
         return False
@@ -1469,7 +1492,7 @@ def rename(s1, s2, overwrite=True):
 
 
 # 判断是否是存在文件
-def isfile(s,notnull=True):
+def isfile(s, notnull=True):
     """
     判断是否是存在文件
     @param s:
@@ -1481,7 +1504,7 @@ def isfile(s,notnull=True):
         return False
     if os.path.isfile(s):
         if notnull:
-            return not 0==os.path.getsize(s)
+            return not 0 == os.path.getsize(s)
         return True
 
 
@@ -1545,10 +1568,12 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
         if isdir(s2):
             if merge:
                 for all in listall(s2):
-                    move(all, f'{s1}/{filename(all)}', overwrite=overwrite, silent=silent, autorename=autorename, merge=merge)
+                    move(all, f'{s1}/{filename(all)}', overwrite=overwrite, silent=silent,
+                         autorename=autorename, merge=merge)
             else:
                 # 思路是直接把文件夹当作文件来判断。因此直接copy上面的逻辑
-                b, newname = regeneratename(filename(s1), parentpath(s2), originalpath=parentpath(s1))
+                b, newname = regeneratename(filename(s1), parentpath(s2),
+                                            originalpath=parentpath(s1))
                 if b and overwrite:
                     deletedirandfile(s1)
                     delog(f'移动时已有相同文件夹 {s2}。覆盖。')
@@ -1562,7 +1587,7 @@ def move(s1, s2, overwrite=False, silent=True, autorename=True, merge=True):
                     Open(parentpath(s1))
                     Open(parentpath(s2))
                     Exit(f'移动时已有文件夹。请检查 {s1} {s2}')
-        if isfile(dir):
+        if isfile(s2):
             Exit(f'移动文件夹为文件错误。 {s1} {s2}')
 
     shutil.move(standarlizedPath(s1), standarlizedPath(s2))
@@ -1612,9 +1637,9 @@ def listfile(path, full=True):
 
 def listfiletree(path):
     lis = []
-    lis+=listfile(path)
+    lis += listfile(path)
     for i in listdir(path):
-        lis+=listfiletree(i)
+        lis += listfiletree(i)
     return lis
 
 
@@ -1701,7 +1726,7 @@ class table():
                 self.l.append(i)
             for d in self.l:
                 for k in d:
-                    self.d.update({k: self.d[k]+[d[k]]})
+                    self.d.update({k: self.d[k] + [d[k]]})
 
     def save(self):
         f = open(self.path, encoding='utf-8-sig', mode='w', newline="")
@@ -1715,7 +1740,7 @@ class table():
             self.l.append(d)
             for key in d:
                 if key in keys(self.d):
-                    self.d[key]+=[d[key]]
+                    self.d[key] += [d[key]]
         if type(d) in [tuple, list]:
             count = 0
             newd = {}
@@ -1731,6 +1756,66 @@ class table():
         writer.writerows([self.l[-1]])
         if not silent:
             delog(f'added {self.path} {self.l[-1]}')
+
+
+def add_extension(path, extension, strict=True):
+    """
+    给路径文件名加上扩展名
+    :param path: 原始路径名
+    :param extension: 不带"."的扩展名，可以是字符串或列表
+    :param strict: 如果疑似已经有扩展名则强制退出
+    :return:
+    """
+    path = standarlizedPath(path)
+    if path.endswith('/'):
+        Exit(f'加扩展名时路径不应以/结尾！ {path}')
+    if isinstance(extension, str):
+        if '.' in path and not path.endswith('.' + extension):
+            warn(f'疑似已经有扩展名！ {path}')
+            if strict:
+                Exit('疑似已经有扩展名！')
+        if not f'.{extension}' in path:
+            path += f'.{extension}'
+            return
+    elif isinstance(extension, list):
+        if not any(path.endswith(ext) for ext in extension):
+            path += '.' + extension[0]
+    return path
+
+
+class excel():
+    """
+    add，每次访问全部数据内容要内存开销
+    save，read要磁盘开销
+
+    """
+
+    def __init__(self, path, title=False):
+        """
+        当已有文件
+        @param path:
+        @param title:表头。一般是字符串数组。
+        """
+        self.path = add_extension(standarlizedPath(path), ['csv', 'xls', 'xlsx'])
+
+        # 处理title
+        if type(title) in [str]:
+            title = [title]
+        if title in [False, None]:
+            self.title=False
+        if self.title==[]:
+            self.title=['']
+
+
+        self.workbook = openpyxl.Workbook(self.path)
+        self.sheet = self.workbook.active
+        if not isfile(self.path):
+            if self.title:
+                self.sheet.append(self.title)
+            self.save()
+
+    def save(self):
+        self.workbook.save(self.path)
 
 
 class Csv(table):
@@ -1784,8 +1869,13 @@ def deletedirandfile(l, silent=None):
             shutil.rmtree(standarlizedPath(i, strict=True))
 
 
-# 统一路径格式
 def standarlizedPath(s='', strict=False):
+    """
+    统一路径格式
+    @param s:
+    @param strict:
+    @return:
+    """
     b = False
     if s == '':
         s = __file__
@@ -1902,11 +1992,11 @@ def file(mode, path, IOList=None, encoding=None):
         # 比特流
         if mode == 'rb':
             with open(path, mode='rb') as file:
-                return IOList+file.readlines()
+                return IOList + file.readlines()
         # 字符流
         elif mode == 'r':
             with open(path, mode='r', encoding=encoding) as file:
-                return IOList+file.readlines()
+                return IOList + file.readlines()
         elif mode == 'w':
             with open(path, mode='w', encoding=encoding) as file:
                 file.writelines(IOList)
@@ -2078,14 +2168,14 @@ class RefreshTXT(txt):
         backupname = self.path.strip('.txt') + '_backup.txt'
         if not os.path.exists(backupname):
             f = txt(backupname, self.encoding)
-            f.l=[nowstr()]+self.l
+            f.l = [nowstr()] + self.l
             f.save('create backup')
         else:
             if counttime(txt(backupname).l[0]) <= 3600 * 24 and strict == False:
                 return
             RefreshTXT.set(self)
             f = txt(backupname)
-            f.l = [nowstr()]+self.l
+            f.l = [nowstr()] + self.l
             f.save('refresh backup')
         # endregion
 
@@ -2094,7 +2184,7 @@ class RefreshTXT(txt):
     def save(self, silent=None):
         if silent == None:
             silent = self.silent
-        self.l = Set(self.l+rtxt(self.path, silent=silent).l)
+        self.l = Set(self.l + rtxt(self.path, silent=silent).l)
         RefreshTXT.set(self, silent=silent)
         txt.save(self, 'Rtxt 合并保存', silent=silent)
 
@@ -2110,7 +2200,7 @@ class RefreshTXT(txt):
             silent = self.silent
         if len(self.l) < 1:
             return None
-        self.l = self.l[1:]+[self.l[0]]
+        self.l = self.l[1:] + [self.l[0]]
         self.loopcount -= 1
         RefreshTXT.save(self, silent=silent)
         return self.l[-1]
@@ -2121,7 +2211,7 @@ class RefreshTXT(txt):
         self.__init__(self.path, self.encoding, silent=self.silent)
         if len(self.l) <= 1:
             return None
-        self.l = [self.l[-1]]+self.l[:-1]
+        self.l = [self.l[-1]] + self.l[:-1]
         self.loopcount += 1
         self.save(silent=silent)
         return self.l[0]
@@ -2271,7 +2361,7 @@ class RefreshJson(Json, RefreshTXT):
                 newl = i.split('}{')
                 newl[0] = newl[0][1:]
                 newl[-1] = newl[-1][:-1]
-                addl+=newl
+                addl += newl
                 dell.append(i)
         for j in addl:
             RefreshTXT.add(self, '{' + j + '}', silent=silent)
@@ -2282,7 +2372,7 @@ class RefreshJson(Json, RefreshTXT):
     def all(self):
         ret = []
         for i in range(self.length()):
-            ret+=self.get()
+            ret += self.get()
         return ret
 
     # 返回值的键
@@ -2314,7 +2404,7 @@ class RefreshJson(Json, RefreshTXT):
                 ret = []
                 for j in newl:
                     j = '{' + j + '}'
-                    ret+=RefreshJson.get(j)
+                    ret += RefreshJson.get(j)
                 return ret
             else:
                 Exit(f'{e}')
@@ -2342,7 +2432,7 @@ class RefreshJson(Json, RefreshTXT):
                     return
                 RefreshTXT.delete(self, dicttojson(din), silent=silent)
                 try:
-                    din = {key(d): list(Set([value(d)]+ value(din)))}
+                    din = {key(d): list(Set([value(d)] + value(din)))}
                 except Exception as e:
                     print(din)
                     print(d)
@@ -2376,7 +2466,7 @@ class RefreshJson(Json, RefreshTXT):
                 if not key(ii) == k:
                     continue
                 dlis.append(i)
-                values+=[value(ii)]
+                values += [value(ii)]
                 try:
                     values = list(Set(values))
                 except:
@@ -2423,7 +2513,8 @@ class RefreshJson(Json, RefreshTXT):
     def pieceinfo(self, num, author, title, extra=None):
         diskname = getdiskname()
         if extra in ['', None]:
-            return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+            return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}},
+                              ensure_ascii=False)
         else:
             # 有额外信息
             if type(extra) in [dict]:
@@ -2433,7 +2524,8 @@ class RefreshJson(Json, RefreshTXT):
                 ret = {str(num): din}
                 return json.dumps(ret, ensure_ascii=False)
             elif type(extra) in [str]:
-                return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
+                return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}},
+                                  ensure_ascii=False)
 
     def addpiece(self, num, author, title, extra=None):
         """
@@ -2615,7 +2707,8 @@ def console(s, duration=999, text_color='#F08080', font=('Hack', 14), size=28):
         layout = [[PySimpleGUI.Text(outs, background_color='#add123', pad=(0, 0),
                                     text_color=text_color, font=font)]]
         win = PySimpleGUI.Window('', layout, no_titlebar=True, keep_on_top=True,
-                                 location=(120 * 16 / 3 * 2, 0), auto_close=True, auto_close_duration=duration,
+                                 location=(120 * 16 / 3 * 2, 0), auto_close=True,
+                                 auto_close_duration=duration,
                                  transparent_color='#add123', margins=(0, 0))
         event, values = win.read(timeout=0)
         sleep(0.3)
@@ -2705,11 +2798,12 @@ def delog(*a):
         delog('已处理。准备退出。')
         sys.exit(0)
         return
-    dic = {'begin': 'Announce Begin',
-           'end': "Announce End",
-           'a': 'Announce Begin',
-           'z': "Announce End"
-           }
+    dic = {
+        'begin': 'Announce Begin',
+        'end': "Announce End",
+        'a': 'Announce Begin',
+        'z': "Announce End"
+    }
     try:
         if str(s) in dic.keys():
             s = dic.get(s)
@@ -2763,7 +2857,7 @@ def Int(s):
 # 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
     res = []
-    if l==None:
+    if l == None:
         return []
     for i in l:
         if i in res:
@@ -2775,8 +2869,8 @@ def Set(l):
 def simplinfo(num, author, title, diskname=None):
     if diskname == None:
         diskname = getdiskname()
-    return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}}, ensure_ascii=False)
-
+    return json.dumps({str(num): {'disk': diskname, 'author': author, 'title': title}},
+                      ensure_ascii=False)
 
 
 class MyError(BaseException):
@@ -3066,7 +3160,8 @@ def getdiskname():
 # 爬虫
 # region
 #  爬取论坛的每一页
-def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150), t=3, scale=200, saveuid=True, look=True, mine=True, silent=False):
+def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150), t=3, scale=200,
+          saveuid=True, look=True, mine=True, silent=False):
     if firsturl == '':
         return
     # uid是否文件夹注入帖子uid前缀
@@ -3098,9 +3193,11 @@ def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150)
     delog(pastcount)
 
     if saveuid:
-        page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第1页/'), minsize=minsize, direct=True, look=look, scale=scale)
+        page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第1页/'), minsize=minsize,
+                  direct=True, look=look, scale=scale)
     else:
-        page.save(collectionpath(f'{hostname}/{title}{pastcount}/第1页/'), minsize=minsize, direct=True, look=look, scale=scale)
+        page.save(collectionpath(f'{hostname}/{title}{pastcount}/第1页/'), minsize=minsize,
+                  direct=True, look=look, scale=scale)
     # func2  根据帖子的uid，返回后面的每页的urllist
     urllist = func2([page, uid])
     page.quit()
@@ -3111,9 +3208,11 @@ def forum(firsturl, titletail, hostname, func1, func2, func3, minsize=(150, 150)
         # func3  检查后面的每页是否被反爬了
         func3([page])
         if saveuid:
-            page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第{count}页/'), minsize=minsize, direct=True, look=look, scale=scale)
+            page.save(collectionpath(f'{hostname}/{uid}_{title}{pastcount}/第{count}页/'),
+                      minsize=minsize, direct=True, look=look, scale=scale)
         else:
-            page.save(collectionpath(f'{hostname}/{title}{pastcount}/第{count}页/'), minsize=minsize, direct=True, look=look, scale=scale)
+            page.save(collectionpath(f'{hostname}/{title}{pastcount}/第{count}页/'), minsize=minsize,
+                      direct=True, look=look, scale=scale)
         page.quit()
 
 
@@ -3142,7 +3241,7 @@ def getpics(loop, path):
         move(j, f'{path}.{gettail(j, ".")}')
 
 
-def geturls(loop=1,func=None,type='edge'):
+def geturls(loop=1, func=None, type='edge'):
     """
     获取已打开浏览器的所有链接
     @param loop:
@@ -3153,11 +3252,11 @@ def geturls(loop=1,func=None,type='edge'):
     ret = []
     hotkey('alt', 'tab')
     for i in range(loop):
-        click(cachepath(type+'url.png'),xoffset=80)
+        click(cachepath(type + 'url.png'), xoffset=80)
         hotkey('ctrl', 'c')
-        c=pyperclip.paste()
+        c = pyperclip.paste()
         if func:
-            c=func(c)
+            c = func(c)
         ret.append(c)
         hotkey('ctrl', 'w')
     hotkey('alt', 'tab')
@@ -3187,9 +3286,9 @@ def Elements(l, s, depth=7, silent=True, method=By.XPATH, strict=True):
     root = l[0]
     s.replace('\'', '\"')
     # 重写xpath语法规则
-    s=s.replace('span', '*[name()="span"]')
-    s=s.replace('//@', '//*/@')
-    s=s.replace('//text()', '//*/text()')
+    s = s.replace('span', '*[name()="span"]')
+    s = s.replace('//@', '//*/@')
+    s = s.replace('//text()', '//*/text()')
     atr = None
     if '/text()' in s:
         s = Strip(s, '/text()')
@@ -3236,7 +3335,8 @@ def skip(l, s, method=By.XPATH, strict=False):
     if Element(l, s, depth=8, silent=True, method=method, strict=strict):
         warn(f'{s} detected. 等待其消失中以继续。。。')
         alertpage([page])
-        WebDriverWait(page, 99999, 3).until_not(expected_conditions.presence_of_element_located(locator=(method, s)))
+        WebDriverWait(page, 99999, 3).until_not(
+            expected_conditions.presence_of_element_located(locator=(method, s)))
         sleep(2)
 
 
@@ -3293,11 +3393,14 @@ def scroll(l, silent=None, x=None, y=None, ratio=1, t=1, ite=None):
             page = l[0]
             if ScrollTop == getscrolltop([page]):
                 return False
-            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
-            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
+            page.execute_script(
+                f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+            page.execute_script(
+                f'document.documentElement.scrollTop=document.documentElement.scrollHeight-20')
             ScrollTop = getscrolltop([page])
             sleep(t)
-            page.execute_script(f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
+            page.execute_script(
+                f'document.documentElement.scrollTop=document.documentElement.scrollHeight*{ratio}')
             sleep(t)
 
             # 有限下滑次数
@@ -3319,7 +3422,7 @@ def requestdownload(path, url, mode='wb'):
     @param mode:
     @return:
     """
-    path=standarlizedPath(path)
+    path = standarlizedPath(path)
     CreatePath(path)
     try:
         with open(path, mode) as f:
@@ -3348,7 +3451,8 @@ def chrome(url='', mine=None, silent=None, t=100, mute=True):
         options.add_argument('mute-audio')
         delog('浏览器打开静音')
     if mine:
-        options.add_argument(f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
+        options.add_argument(
+            f"--user-data-dir=C:\\Users\\{user}\\AppData\\Local\\Google\\Chrome\\User Data")
     # options.add_experimental_option("excludeSwitches", ['enable-automation'])
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(t)
@@ -3380,8 +3484,8 @@ class Edge():
         self.set_window_size(900, 1000)
 
     @consume
-    def download(self,url, path, t=15, silent=True, depth=0, auto=None, redownload=None,
-                     overwrite=False):
+    def download(self, url, path, t=15, silent=True, depth=0, auto=None, redownload=None,
+                 overwrite=False):
         """
         浏览器自动重命名 '~' 为 '_'
         @param url:
@@ -3396,8 +3500,8 @@ class Edge():
         """
 
         path = standarlizedPath(path)
-        defaultpath=userpath('Downloads/')
-        previouscontent=listfile(defaultpath)
+        defaultpath = userpath('Downloads/')
+        previouscontent = listfile(defaultpath)
         if not redownload:
             #     已下载
             if exists(path) and not size(path) == 0:
@@ -3417,7 +3521,8 @@ class Edge():
             self.switchto(previouspage)
             sleep(1)
             delog(f'正在检测是否下载到了路径 {root}')
-            move([x for x in set(listfile(defaultpath)) if x not in set(previouscontent)][0],root+'/',overwrite=overwrite,autorename=redownload)
+            move([x for x in set(listfile(defaultpath)) if x not in set(previouscontent)][0],
+                 root + '/', overwrite=overwrite, autorename=redownload)
             for ii in listfile(root):
                 if name in ii and '.crdownload' in ii:
                     deletedirandfile(ii)
@@ -3448,7 +3553,7 @@ class Edge():
 
         # 打开页面
         try:
-            previouspage=self.driver.current_window_handle
+            previouspage = self.driver.current_window_handle
             self.open(url)
             if tellstringsame(self.title(), '403'):
                 warn(f'这个url已经被服务器关闭  403  ：{url}')
@@ -3517,9 +3622,9 @@ class Edge():
             x = self.get_window_size()[0]
         self.set_window_size(x, self.getscrollheight())
 
-    def excutejs(self,jsname):
-        if not '.js'in jsname:
-            jsname+='.js'
+    def excutejs(self, jsname):
+        if not '.js' in jsname:
+            jsname += '.js'
         self.driver.execute_script(''.join(txt(jspath(jsname)).l))
 
     def get_window_size(self):
@@ -3550,9 +3655,9 @@ class Edge():
                 break
 
             if not func == None:
-                ret1=func(ret, [self], *a, **b)
-                if not ret1==None:
-                    ret+=ret1
+                ret1 = func(ret, [self], *a, **b)
+                if not ret1 == None:
+                    ret += ret1
             self.scroll(scale + self.getscrolltop())
 
             if self.nearend():
@@ -3669,10 +3774,13 @@ class Edge():
             self.down()
 
             buf = 60
-            clipsize = self.getscrollheight() - self.getscrolltop() - Int(cuttop) - Int(cutbottom) - buf
+            clipsize = self.getscrollheight() - self.getscrolltop() - Int(cuttop) - Int(
+                cutbottom) - buf
             clipcount = 0
             while True:
-                self.scroll(int(self.getscrollheight() - clipsize * clipcount - self.get_window_size()[1] + 130))
+                self.scroll(
+                    int(self.getscrollheight() - clipsize * clipcount - self.get_window_size()[
+                        1] + 130))
                 sleep(clipinterval)
                 # 50是一般认为clipsize不会小于的值
                 clippath = f'{parentpath(path)}/clipped/{extentionandname(path, exist=False)[0]}{clipcount}{extentionandname(path, exist=False)[1]}'
@@ -3682,8 +3790,10 @@ class Edge():
                 clipcount += 1
                 if self.getscrolltop() == 0:
                     break
-            combineimages(parentpath(clippath), outputname='basic.png', mode='vertical', reverse=True,
-                          filelist=[f"{parentpath(clippath)}/basic{i}.png" for i in range(clipcount)],
+            combineimages(parentpath(clippath), outputname='basic.png', mode='vertical',
+                          reverse=True,
+                          filelist=[f"{parentpath(clippath)}/basic{i}.png" for i in
+                                    range(clipcount)],
                           cuttop=cuttop, cutbottom=cutbottom, cutleft=cutleft, cutright=cutright)
             deletedirandfile(parentpath(clippath), silent=True)
         else:
@@ -3702,20 +3812,21 @@ class Edge():
             self.click('//*[@id="overrideLink"]')
         time.sleep(1)
 
-
-    def save(self,*a,**b):
-        config=jsondata('save')
+    def save(self, *a, **b):
+        config = jsondata('save')
         for i in config.data:
             if i in self.url():
                 jsondata('savepage').setdata(config.data[i])
                 break
-        return self.savepage(*a,**b)
+        return self.savepage(*a, **b)
 
     @useState
-    def savepage(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100, direct=False,
-             clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None, pause=1,
-             overwrite=True, redownload=True, savevideo=False, clip=True,
-             cuttop=0, cutbottom=0, cutleft=0, cutright=0, clipinterval=2):
+    def savepage(self, path=None, video=False, minsize=(100, 100), t=3, titletail=None, scale=100,
+                 direct=False,
+                 clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None,
+                 pause=1,
+                 overwrite=True, redownload=True, savevideo=False, clip=True,
+                 cuttop=0, cutbottom=0, cutleft=0, cutright=0, clipinterval=2):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:收藏路径后缀
@@ -3790,8 +3901,10 @@ class Edge():
         if self.type == 'edge' and not self.silent:
             self.ctrlshifts(path, t)
         else:
-            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause, clip=clip,
-                            cutright=cutright, cutleft=cutleft, cuttop=cuttop, cutbottom=cutbottom, clipinterval=clipinterval)
+            self.fullscreen(f'{path}/basic.png', scale=scale, autodown=autodown, pause=pause,
+                            clip=clip,
+                            cutright=cutright, cutleft=cutleft, cuttop=cuttop, cutbottom=cutbottom,
+                            clipinterval=clipinterval)
 
         # 保存页面图片
         self.savepics(path, 7, minsize=minsize)
@@ -3818,7 +3931,7 @@ class Edge():
         res = []
         if path == None:
             path = collectionpath(f'/其它/{self.title()}/')
-        res+=self.elements('//pic', strict=False), self.elements('//img', strict=False)
+        res += self.elements('//pic', strict=False), self.elements('//img', strict=False)
         count = 0
         for i in res:
             if i.size['height'] < minsize[1] or i.size['width'] < minsize[0]:
@@ -3864,7 +3977,7 @@ class Edge():
     # 保存页面上的所有视频
     def savevideos(self, path, t=5, minsize=None):
         res = []
-        res+=self.elements('//video', strict=False)
+        res += self.elements('//video', strict=False)
         count = 0
         for i in res:
             count += 1
@@ -3978,7 +4091,7 @@ class Edge():
         return self.element(*a, **b)
 
     @listed
-    def elements(self, s, depth=9, silent=True, strict=True, root=None,refresh=False):
+    def elements(self, s, depth=9, silent=True, strict=True, root=None, refresh=False):
         """
         根据多个但只有一个有效的字符串匹配元素，返回第一组
         @param s:匹配字符串或是元素
@@ -4002,10 +4115,11 @@ class Edge():
                 ret = elements([root], i, depth=depth, silent=silent)
                 if not ret == []:
                     break
-        if ret in[None,[]]:
+        if ret in [None, []]:
             if refresh:
                 self.refresh()
-                return self.elements(s,depth=depth, silent=silent, strict=strict, root=root, refresh=refresh)
+                return self.elements(s, depth=depth, silent=silent, strict=strict, root=root,
+                                     refresh=refresh)
             if strict:
                 self.errorscr(ret)
         return ret
@@ -4073,7 +4187,7 @@ class Edge():
         self.driver.execute_script(f"window.open('{url}')")
         Edge.switchto(self, )
 
-    def get(self, url,t=None):
+    def get(self, url, t=None):
         """
 
         @param url:
@@ -4084,7 +4198,7 @@ class Edge():
             if not 'https://' in url and not 'http://' in url:
                 url = 'https://' + url
             self.driver.get(url)
-            if  t:
+            if t:
                 sleep(t)
             else:
                 sleep(0.4)
@@ -4097,7 +4211,7 @@ class Edge():
                 Exit(e)
 
     def switchto(self, n=-1):
-        if type(n)in [int]:
+        if type(n) in [int]:
             self.driver.switch_to.window(self.driver.window_handles[n])
         if type(n) in [str]:
             self.driver.switch_to.window(n)
@@ -4106,7 +4220,7 @@ class Edge():
         log(f'扩展窗口至大小：{a, b}')
         self.driver.set_window_size(*a, **b)
 
-    def elementshot(self, s,path=None, xoffset=None, yoffset=None, moveto=True, overwrite=True):
+    def elementshot(self, s, path=None, xoffset=None, yoffset=None, moveto=True, overwrite=True):
         """
         会改变窗口大小位置
         @param path:
@@ -4117,9 +4231,9 @@ class Edge():
         @param overwrite:
         @return: 图片路径
         """
-        currentheight=self.getscrolltop()
-        if path==None:
-            path=cachepath('elementshot.png')
+        currentheight = self.getscrolltop()
+        if path == None:
+            path = cachepath('elementshot.png')
         else:
             path = standarlizedPath(path)
             if isfile(path):
@@ -4137,10 +4251,11 @@ class Edge():
             if moveto:
                 self.scroll(y)
             else:
-            #     强制重新渲染
+                #     强制重新渲染
                 self.scroll(currentheight)
             if 100 + s.size['height'] > self.get_window_size()[1]:
-                self.set_window_size(self.get_window_size()[0], self.get_window_size()[1] + 100 + s.size['height'])
+                self.set_window_size(self.get_window_size()[0],
+                                     self.get_window_size()[1] + 100 + s.size['height'])
             file('wb', path, s.screenshot_as_png)
             return path
 
@@ -4161,7 +4276,7 @@ class Edge():
     def look(self, a=None):
         path = f'D:/Kaleidoscope/cache/current.png'
         if not a == None:
-            self.elementshot(a,path)
+            self.elementshot(a, path)
             look(path)
             return
         deletedirandfile([path])
@@ -4232,7 +4347,8 @@ def edge(url='', silent=None, mine=False, mute=True):
     if mute:
         options.add_argument('--mute-audio')
     if mine:
-        options.add_argument('--user-data-dir=C:\\Users\\17371\\AppData\\Local\\Microsoft\\Edge\\User Data')
+        options.add_argument(
+            '--user-data-dir=C:\\Users\\17371\\AppData\\Local\\Microsoft\\Edge\\User Data')
         options.add_argument('headless')
     try:
         driver = webdriver.Edge(options=options)
@@ -4251,7 +4367,8 @@ def edge(url='', silent=None, mine=False, mute=True):
 
 
 # 点击屏幕
-def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05, grayscale=True, xoffset=0, yoffset=0, strict=False):
+def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05,
+          grayscale=True, xoffset=0, yoffset=0, strict=False):
     """
 
     @param x:x为坐标，或者图片路径
@@ -4302,12 +4419,13 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
         defaultyscale = 1080
         global uiscale, xsize, ysize
         X, Y = x - defaultxscale / 2, y - defaultyscale / 2
-        X, Y = int(X / defaultxscale * xsize / defaultuiscale * uiscale), int(Y / defaultyscale * ysize / defaultuiscale * uiscale)
+        X, Y = int(X / defaultxscale * xsize / defaultuiscale * uiscale), int(
+            Y / defaultyscale * ysize / defaultuiscale * uiscale)
         x, y = X + xsize / 2, Y + ysize / 2
-        if x==0:
-            x=1
-        if y==0:
-            y=1
+        if x == 0:
+            x = 1
+        if y == 0:
+            y = 1
         pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:
@@ -4374,7 +4492,8 @@ def setscrolltop(l):
 
 
 @consume
-def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=None, overwrite=False):
+def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=None,
+                 overwrite=False):
     """
     @param url:
     @param path: 必须指定文件名，建议指定后缀名。文件名自动重命名"~"为"_"
@@ -4408,7 +4527,8 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
             if name in ii and '.crdownload' in ii:
                 deletedirandfile(ii)
                 warn(f'{t}s后下载失败。没有缓存文件存留（自动删除） 请手动尝试 {url}')
-                return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload, overwrite=overwrite)
+                return pagedownload(url, path, t=t + t, depth=depth + 1, silent=silent, auto=auto,
+                                    redownload=redownload, overwrite=overwrite)
             if name in ii:
                 if redownload:
                     move(ii, path, autorename=redownload, overwrite=overwrite)
@@ -4467,7 +4587,8 @@ def pagedownload(url, path, t=15, silent=True, depth=0, auto=None, redownload=No
             # 需要重启pagedownload的下载报错
             warn(e)
             page.quit()
-            return pagedownload(url, path, t=t, depth=depth + 1, silent=silent, auto=auto, redownload=redownload, overwrite=overwrite)
+            return pagedownload(url, path, t=t, depth=depth + 1, silent=silent, auto=auto,
+                                redownload=redownload, overwrite=overwrite)
         else:
             warn(e)
             warn(type(e))

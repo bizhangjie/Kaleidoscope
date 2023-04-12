@@ -24,3 +24,8 @@ MyUtils.delog(MyUtils.Time('22:05'))
 MyUtils.delog(MyUtils.Time('22:05:01'))
 MyUtils.delog(MyUtils.Time('22:05:01.123456').mic())
 MyUtils.delog(MyUtils.Time('2023-01-01').counttime(MyUtils.Time()))
+
+
+MyUtils.delog('-------------')
+s='1.9 21：01'
+MyUtils.delog(MyUtils.Time(s).s())

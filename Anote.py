@@ -2,11 +2,11 @@ import pyperclip
 
 import MyUtils
 
+root = MyUtils.projectpath('self/记录 语录 随笔 随想')
 
 def main():
     # 初始化
     interval = 0
-    root = MyUtils.projectpath('self/记录 语录 随笔 随想')
     fcount = MyUtils.txt(root + '/count.txt')
     fcache = MyUtils.txt(root + '/cache.txt')
     while True:
@@ -41,6 +41,16 @@ def main():
         MyUtils.log(f'[第{count}条]{MyUtils.nowstr()} 已保存。现在你可以在{frecord.path}查看。')
     MyUtils.delog('Quitting Anote ....')
 
+def calculateOverall():
+    fall=MyUtils.txt(root+'/all.txt')
+    for i in MyUtils.listfile(root):
+        i=MyUtils.filename(i)
+        if '-'in i and '.txt' in i:
+            f=MyUtils.txt(root+'/'+i)
+            fall.l+=f.l
+        fall.save()
+    MyUtils.look(fall.path)
 
 if __name__ == '__main__':
     main()
+    # calculateOverall()

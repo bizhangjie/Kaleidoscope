@@ -18,7 +18,6 @@ def generate_X(step=100):
 
 
 MyUtils.releasescreenlock()
-
 # for point in generate_points(20, 300, 960,540):
 for point in generate_X():
     MyUtils.click(point[0], point[1],gap=0)

@@ -1,3 +1,3 @@
 import MyUtils
 
-print(MyUtils.standarlizedPath())
+print(MyUtils.standarlizedPath('./1/'))
