@@ -2557,7 +2557,7 @@ class cache():
         """
         删除。如果失误直接删除
         @param silent:
-        @return:
+        @return:首条。
         """
         if self.silent:
             silent = True
@@ -3931,7 +3931,7 @@ class Edge():
         res = []
         if path == None:
             path = collectionpath(f'/其它/{self.title()}/')
-        res += self.elements('//pic', strict=False), self.elements('//img', strict=False)
+        res = self.elements('//pic', strict=False)+self.elements('//img', strict=False)
         count = 0
         for i in res:
             if i.size['height'] < minsize[1] or i.size['width'] < minsize[0]:

@@ -3,7 +3,7 @@ import BUtils
 
 # 不管是否和用户模式下载重复
 所有下载数=200
-单次下载数=4
+单次下载数=7
 
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l

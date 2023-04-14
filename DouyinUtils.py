@@ -182,6 +182,8 @@ def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,us
             page.refresh()
     num=MyUtils.gettail(page.url(),'/')
     title=MyUtils.rmtail(page.element("//title/text()"),' - 抖音')
+    title=title.replace('/','_')
+    title=MyUtils.standarlizedFileName(title)
     readytoDownload.add({"list": [num, author, title, VideoUrl, ispic]})
     MyUtils.delog(f'下载队列 ({readytoDownload.length()})')
     if not useruid==None:

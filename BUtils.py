@@ -268,7 +268,7 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     MyUtils.hotkey('ctrl', 'v')
     MyUtils.sleep(0.7)
     MyUtils.hotkey('enter')
-    if MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+    if MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.9,silent=False):
         MyUtils.click(1449, 214)
         MyUtils.warn('第三方下载引擎解析视频失败。')
         return False
