@@ -20,14 +20,14 @@ history=MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
 
 def TurnHostTab(l,tab='作品'):
     """
-    切换主页展示条目
+    切换主页展示条目，并返回数目。失败返回False
     @param l:
     @param tab:
     @return: 建议作品数；False代表获取失败
     """
     Page=l[0]
+    Page.click(f'//span[text()="{tab}"]')
     try:
-        Page.click(f'//span[text()="{tab}"]')
         psn=Page.element(f"//span[text()='{tab}']/following-sibling::span/text()",strict=False)
         if psn==0:
             MyUtils.warn(f'用户无作品。{Page.url()}')
@@ -35,7 +35,8 @@ def TurnHostTab(l,tab='作品'):
             return False
     except Exception as e:
         MyUtils.warn(f'发现用户异常。{Page.url()}')
-        exceptuser.add(MyUtils.gettail(Page.url(),'/'))
+        # exceptuser.add(MyUtils.gettail(Page.url(),'/'))
+        return False
     return int(psn)
 
 def HostPieces(l,tab='作品'):

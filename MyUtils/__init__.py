@@ -13,6 +13,8 @@ import sys
 import time
 import zipfile
 from glob import glob
+import winshell
+from win32com.client import Dispatch
 
 import PIL
 import PySimpleGUI
@@ -27,6 +29,7 @@ import selenium
 import urllib3
 import win32api
 import win32con
+from PIL import ImageGrab
 from moviepy.editor import VideoFileClip
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -868,6 +871,19 @@ class CMD():
 
 # 键鼠互动
 # region
+def get_screen(path):
+    """
+    保存当前屏幕截图
+    @param path:
+    @return:
+    """
+    path=standarlizedPath(path)
+    createpath(path)
+    if isdir(path):
+        path+=f'{Now().s()}.png'
+        path=standarlizedFileName(path)
+    ImageGrab.grab().save(path)
+
 # 打开一系列的edge
 def openedge(l):
     hotkey('win')
@@ -1206,6 +1222,31 @@ class pool():
 
 # 文件系统读写
 # region
+
+def create_shortcut(source, target=None):
+    """
+
+    @param source: 源文件/文件夹
+    @param target: 快捷方式位置。默认为在桌面的同名。
+    @return:
+    """
+    if not source[1]==':':
+        source=projectpath(source)
+    source=standarlizedPath(source)
+    if target==None:
+        target=f'C:/Users/username/Desktop/{extentionandname(source)[0]}.lnk'
+    if isdir(source):
+        folder_shortcut = winshell.shortcut(target)
+        folder_shortcut.path = source
+        folder_shortcut.write()
+    if isfile(source):
+        file_shortcut = winshell.shortcut(target)
+        file_shortcut.path = source
+        # shell = Dispatch('WScript.Shell')
+        # file_shortcut.working_directory = shell.SpecialFolders('Desktop')
+        file_shortcut.write()
+
+
 def cleardir(path):
     path = standarlizedPath(path)
     deletedirandfile(path)
@@ -1366,6 +1407,9 @@ def get_base_path(base_path, s):
         s = '/' + s
     return standarlizedPath(f'{base_path}{s}')
 
+# 隐藏目录
+def selfpath(s=''):
+    return get_base_path(projectpath('self/'), s)
 
 # 收藏目录
 def collectionpath(s=''):
