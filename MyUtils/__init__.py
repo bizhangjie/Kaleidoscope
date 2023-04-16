@@ -616,9 +616,10 @@ def Exit(*a):
     """
     try:
         warn(*a)
-        raise retrylist[0]
+        exit()
     except Exception as e:
         warn('程序不能正常停止。请手动终止。')
+        log(f'错误类型为 {type(e)}')
         warn(e)
         context(2)
         sleep(9999)
@@ -4251,8 +4252,7 @@ class Edge():
                 Exit(f'请检查url = {url} 是否错误。')
             # if e in[selenium.common.exceptions.NoSuchWindowException]:
             #     pass
-            else:
-                Exit(e)
+            raise(e)
 
     def switchto(self, n=-1):
         if type(n) in [int]:
