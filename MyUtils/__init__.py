@@ -1018,18 +1018,19 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
            ratio1=0.3, ratio2=0.3, scale1=70, scale2=70):
         """
         裁剪后自动识别拼接图片
-        @param img1:上图片路径
+        @param img1:上图片路径(确定？)，是不断扩张的图片。
         @param img2:
         @param mode:
         @param outputpath:
         @param ratio1:
-        @param ratio2:
+        @param ratio2: 默认地根据图片的长宽比例来设置重合验证长度
         @param scale1:
         @param scale2:与image1的重合验证部分
         @return:
         """
+        # 新版 chrome 有进度条，image2 掉顶格2像素变为白色
         image1 = cv2.imread(img1)
-        image2 = cv2.imread(img2)
+        image2 = cv2.imread(img2)[2:,:]
         # 先去掉原图片拼接方向上的衔接部分的裁剪部分
         if mode == 'vertical':
             # 允许中断后继续操作，因此有时候不处理image1
@@ -1039,26 +1040,26 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
         matchimage1 = image1
         matchimage2 = image2
         # 匹配时再去掉垂直于拼接方向上的裁剪部分外的部分
+        # 数组的话第一位是高
         if mode == 'vertical':
             matchimage1 = matchimage1[:, cutleft:image1.shape[1] - cutright]
             matchimage2 = matchimage2[:, cutleft:image2.shape[1] - cutright]
-        # 进行匹配
         # 预设匹配区域
-        scale1, scale2 = min(scale1, int(matchimage1.shape[1] * ratio1)), min(scale2, int(
-            matchimage2.shape[1] * ratio2))
+        scale1, scale2 = min(scale1, int(matchimage1.shape[0] * ratio1)), min(scale2, int(
+            matchimage2.shape[0] * ratio2))
         if mode == 'vertical':
             matchimage2 = matchimage2[:scale2, :]
         # 需要从下到上匹配，所以要翻转
+        # 1 是template，是被滑动的图像。
         result_filpped = cv2.matchTemplate(cv2.flip(matchimage2, 0), cv2.flip(matchimage1, 0),
                                            cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(cv2.flip(result_filpped, 0))
         delog('相似匹配位置', max_loc)
         # look(matchimage1)
         # look(matchimage2)
-        # look(image2[:scale2, :])
 
         if mode == 'vertical':
-            if max_val < 0.97:
+            if max_val < 0.95:
                 warn('图片匹配失败，直接拼接')
                 max_loc = (0, image1.shape[0])
             cv2.imwrite(img1, image1[:max_loc[1]])

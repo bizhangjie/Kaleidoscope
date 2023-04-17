@@ -30,8 +30,8 @@ while True:
     # 如果是文章
     if '/p/' in page.url():
         page.set_window_size(1000,page.get_window_size()[1])
-        page.save(MyUtils.collectionpath(f'知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎',
-                  top=52,bottom=62,minsize=(200,200))
+        page.save(path=MyUtils.collectionpath(f'知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎',
+                  cuttop=63,cutbottom=84,minsize=(200,200))
     else:
         # 打开第二个窗口，在这里操作回答
 
@@ -66,11 +66,11 @@ while True:
         Answer = page.element('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[@class="ContentItem AnswerItem"]')
         height = Answer.size['height']+500
         page.scroll(height)
-        page.set_window_size(800, height)
+        page.set_window_size(750, height)
 
         # 用新方法保存
-        page.save(MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎', look=True,scale=350,
-                  top=52,bottom=62,minsize=(200,200),adjust=17)
+        page.save(path=MyUtils.collectionpath(f'./知乎/{MyUtils.gettail(page.url(), "/")}'), titletail='- 知乎', look=True,scale=350,
+                  cuttop=63,cutbottom=84,minsize=(200,200),)
 
     page.close()
     page.switchto(0)
