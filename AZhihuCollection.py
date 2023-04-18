@@ -54,9 +54,11 @@ while True:
 
         # 展开评论
         page.setscrolltop(page.getscrollheight())
+        MyUtils.sleep(1)
+        page.setscrolltop(page.getscrollheight()+100)
         e=page.element('//*[@id="root"]//main//div[@class="QuestionAnswer-content"]//div[contains(@class,"RichContent")]//button[contains(@class,"plain")]', strict=False)
         page.scroll(e)
-        page.setscrolltop(page.getscrolltop()-100)
+        page.setscrolltop(page.getscrolltop()+100)
         page.click(e)
         MyUtils.sleep(2)
         # 展开回复

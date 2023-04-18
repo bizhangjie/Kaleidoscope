@@ -76,7 +76,6 @@ def main(t=3):
     # 持续性唤醒
     while True:
         download()
-        # MyUtils.log(f'Downloader 循环等待中...')
         t+=1
         if t>=2:
             t=0

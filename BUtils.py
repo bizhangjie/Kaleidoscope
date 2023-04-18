@@ -17,13 +17,16 @@ missing = MyUtils.rjson('D:\Kaleidoscope/bili/Missing.txt')
 cachepath = MyUtils.projectpath('cache/bili')
 collectionpath = MyUtils.standarlizedPath('./bili/collection/')
 collecitonvideorecord = MyUtils.rtxt(MyUtils.projectpath('./bili/CollectionVideo'))
-MyUtils.setrootpath(dname=[-1,'-2'])
+MyUtils.setrootpath(dname=[-1, '-2'])
+
 
 # 从收藏夹导入用户
-def addwebuser(f=videouserspectrum, url='https://space.bilibili.com/661654199/fans/follow?tagid=475631', ):
+def addwebuser(f=videouserspectrum,
+               url='https://space.bilibili.com/661654199/fans/follow?tagid=475631', ):
     page = MyUtils.Chrome(url, mine=True)
     els = page.elements('/html/body/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/ul[1]/li/a')
-    names = page.elements('/html/body/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/ul[1]/li/a/img')
+    names = page.elements(
+        '/html/body/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/ul[1]/li/a/img')
     for i in range(len(els)):
         el = els[i]
         name = names[i].get_attribute('alt')
@@ -35,7 +38,8 @@ def addwebuser(f=videouserspectrum, url='https://space.bilibili.com/661654199/fa
 
 # 获得用户主页的response （暂时不是json - request
 def hostjson(uid, pagenum, ):
-    url = (f'https://api.bilibili.com/x/space/arc/search?mid={uid}&ps=30&tid=0&pn={pagenum}&keyword=&order=pubdate&jsonp=jsonp')
+    url = (
+        f'https://api.bilibili.com/x/space/arc/search?mid={uid}&ps=30&tid=0&pn={pagenum}&keyword=&order=pubdate&jsonp=jsonp')
     MyUtils.delog('hostjson request请求')
     MyUtils.delog(f'探测作者{uid}视频页的第{pagenum}页')
     res = requests.get(url, headers=MyUtils.headers)
@@ -47,7 +51,8 @@ def hostjson(uid, pagenum, ):
 
 # 获得收藏夹的response （暂时不是json - request
 def collectionjson(uid, pagenum, ):
-    url = (f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
+    url = (
+        f'https://api.bilibili.com/x/v3/fav/resource/list?media_id={uid}&pn={pagenum}&ps=20&keyword=&order=mMyUtils&type=0&tid=0&platform=web&jsonp=jsonp')
     MyUtils.log(f'探测收藏夹{uid}视频页的第{pagenum}页')
     res = requests.get(url, headers=MyUtils.headers)
     # 如果最后一页就退出
@@ -83,7 +88,8 @@ def filenametonum(s):
 def uidtoid(UID, refresh=False):
     # 从远程更新
     if refresh:
-        url = (f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
+        url = (
+            f'https://api.bilibili.com/x/space/arc/search?mid={UID}&ps=30&tid=0&pn={1}&keyword=&order=pubdate&jsonp=jsonp')
         page = MyUtils.Edge('www.bilibili.com', silent=True)
         page.get(url)
         e = page.element('/html/body/pre/text()')
@@ -119,6 +125,7 @@ def uidtoid(UID, refresh=False):
 # 通过up名称从记录中获取up uid
 def idtouid(id):
     return videouserspectrum.find(id)
+
 
 # 跳过已下载
 def skipdownloaded(bvid):
@@ -192,7 +199,8 @@ class video():
             # 处理番剧内的视频
             isfanju = page.element('/html//meta[@content="哔哩哔哩番剧"]', strict=False)
             if not isfanju == None:
-                page.get(f'https://search.bilibili.com/all?keyword={bvid}&from_source=webtop_search&spm_id_from=666.25')
+                page.get(
+                    f'https://search.bilibili.com/all?keyword={bvid}&from_source=webtop_search&spm_id_from=666.25')
                 time.sleep(2)
                 self.title = page.elements('//*[@id="i_cecream"]/div/div[2]//h3/span.text')[-1]
                 # 只保存第一个作者
@@ -204,7 +212,8 @@ class video():
                 page.quit()
                 return
 
-            self.title = page.element(['//*[@id="viewbox_report"]/h1', '//*[@id="app"]//div[@class="media-wrapper"]/h1']).text
+            self.title = page.element(['//*[@id="viewbox_report"]/h1',
+                                       '//*[@id="app"]//div[@class="media-wrapper"]/h1']).text
 
             # 获取全部的作者
             es = page.elements(
@@ -229,9 +238,9 @@ class video():
     def tellexist(self=None, page=None, bvid=None):
         if page == None:
             MyUtils.delog(f'https://www.bilibili.com/video/{bvid}')
-            page=MyUtils.Chrome(f'https://www.bilibili.com/video/{bvid}', silent=True)
+            page = MyUtils.Chrome(f'https://www.bilibili.com/video/{bvid}', silent=True)
         else:
-            page=page[0]
+            page = page[0]
         if '出错啦' in page.title() or '视频去哪了呢' in page.title():
             return False
         return True
@@ -243,6 +252,7 @@ def iscacheempty():
         MyUtils.Open(MyUtils.standarlizedPath(cachepath))
         MyUtils.warn('cache不为空。请清空后重试。')
         MyUtils.sleep(7)
+
 
 def download(bvid, author=None, useruid=None, overdownloaded=False):
     '''
@@ -268,26 +278,31 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     MyUtils.hotkey('ctrl', 'v')
     MyUtils.sleep(0.7)
     MyUtils.hotkey('enter')
-    if MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'),strict=False,confidence=0.95,limit=0.9,silent=False):
+    if MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader.png'), strict=False,
+                     confidence=0.95, limit=0.9, silent=False):
         MyUtils.click(1449, 214)
         MyUtils.warn('第三方下载引擎解析视频失败。')
         return False
-    while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader1.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+    while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader1.png'), strict=False,
+                            confidence=0.95, limit=0.8, silent=False):
         MyUtils.delog('等待下载器解析中')
         MyUtils.sleep(5)
 
     MyUtils.click(708, 504)
     MyUtils.sleep(0.7)
-    MyUtils.click(1220, 556,interval=0.07)
+    MyUtils.click(1220, 556, interval=0.07)
     MyUtils.sleep(0.7)
     # 可能有8k 4k 1080p60 1080p 720 480 320 七种清晰度，导致有三行，同时出现多P
-    MyUtils.click(1220, 576,interval=0.07)
+    MyUtils.click(1220, 576, interval=0.07)
     MyUtils.sleep(0.7)
-    MyUtils.click(1220, 606,interval=0.07)
-    # MyUtils.sleep(0.7)
-    MyUtils.log(f'{author} {bvid}已加入下载器')
+    MyUtils.click(1220, 606, interval=0.07)
     MyUtils.click(1246, 722)
-    # MyUtils.sleep(1.5)
+    MyUtils.sleep(3)
+    while MyUtils.click(MyUtils.projectpath('bili/process1.png'), strict=False, confidence=0.95,
+                        limit=0.8, silent=False,moveto=False):
+        MyUtils.delog('等待下载器加入下载队列中')
+        MyUtils.sleep(10)
+    MyUtils.log(f'{author} {bvid}已开始下载')
     # endregion
     return True
 
@@ -350,7 +365,8 @@ def quitdownloader():
 
 
 def opendownloader():
-    while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownload.png'),strict=False,confidence=0.95,limit=0.8,silent=False):
+    while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownload.png'), strict=False,
+                            confidence=0.95, limit=0.8, silent=False):
         MyUtils.hotkey('alt', 'tab')
     time.sleep(0.4)
     MyUtils.click(1426, 209)

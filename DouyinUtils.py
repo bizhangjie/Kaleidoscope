@@ -50,6 +50,8 @@ def HostPieces(l,tab='作品'):
     def func(ret,l):
         登录验证(l)
         l[0].click('//span[text()="刷新"]',strict=False,depth=10)
+        # 草泥马得等久一点
+        MyUtils.sleep(10)
         if ret is None:
             ret=[]
         return ret+l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href')
@@ -57,10 +59,18 @@ def HostPieces(l,tab='作品'):
     # 如果数量获取失败就只获取一次
     if psn==False:
         psn=1
+    MyUtils.delog(f'psn = {psn}',)
 
-    while psn and len(ret)<psn:
+    while psn and len(ret)<psn*0.9:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
-        ret+=MyUtils.Set(ret+Page.Down(start=Page.getscrollheight(),scale=1300,pause=0,func=func))
+        ret=MyUtils.Set(ret+Page.Down(start=Page.getscrollheight(),scale=1300,pause=0,func=func))
+
+    # 去重
+    length1=len(ret)
+    ret=MyUtils.Set(ret)
+    if not length1==len(ret):
+        MyUtils.warn('*******************\n\n\n********',f'作品重复 {length1}/{len(ret)}')
+
     return ret
 
 
@@ -208,7 +218,7 @@ def skiprecorded(videourl):
 
 def skipdownloaded(flag, record, VideoNum, title, author,num=None):
     '''
-
+    检查是否在磁盘中并补全记录
     @param flag:
     @param record:
     @param VideoNum:

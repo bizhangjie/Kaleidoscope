@@ -141,8 +141,13 @@ def multisingleargs(func):
     return wrapper
 
 
-# 最后一个参数可以是列表以重复执行
+
 def listed(func):
+    """
+    最后一个参数可以是列表以重复执行
+    @param func:
+    @return:
+    """
     @wraps(func)
     def wrapper(*a, **c):
         res = []
@@ -640,9 +645,16 @@ def Run():
 
 
 def retry(e):
-    log(f'{type(e)}错误，重建中 ...')
+    """
+    确定是否应该进行重试
+    @param e:
+    @return:
+    """
+    log(f'{type(e)} 错误')
     if type(e) in retrylist:
+        log('重建中 ...')
         return True
+    log('不重建。')
     return False
 
 
@@ -1024,42 +1036,53 @@ def combineimages(inputpath=None, outputpath=None, outputname=None, mode='vertic
         @param outputpath:
         @param ratio1:
         @param ratio2: 默认地根据图片的长宽比例来设置重合验证长度
-        @param scale1:
+        @param scale1: 我也不知道现在有什么用
+
         @param scale2:与image1的重合验证部分
         @return:
         """
         # 新版 chrome 有进度条，image2 掉顶格2像素变为白色
         image1 = cv2.imread(img1)
         image2 = cv2.imread(img2)[2:,:]
-        # 先去掉原图片拼接方向上的衔接部分的裁剪部分
+
+        # 原图去掉拼接方向上衔接须裁剪处
         if mode == 'vertical':
             # 允许中断后继续操作，因此有时候不处理image1
-            # if image2.size==image1.size:
             image1 = image1[:image1.shape[0] - cutbottom, :]
             image2 = image2[cuttop:image2.shape[0]:]
+
         matchimage1 = image1
-        matchimage2 = image2
-        # 匹配时再去掉垂直于拼接方向上的裁剪部分外的部分
-        # 数组的话第一位是高
+        # image1 的忽略历史累积部分
+        level1=0
         if mode == 'vertical':
-            matchimage1 = matchimage1[:, cutleft:image1.shape[1] - cutright]
-            matchimage2 = matchimage2[:, cutleft:image2.shape[1] - cutright]
-        # 预设匹配区域
+            if image1.shape[0]>3000:
+                level1+=image1.shape[0]-2000
+                matchimage1=image1[-2000:,:]
+        matchimage2 = image2
         scale1, scale2 = min(scale1, int(matchimage1.shape[0] * ratio1)), min(scale2, int(
             matchimage2.shape[0] * ratio2))
         if mode == 'vertical':
             matchimage2 = matchimage2[:scale2, :]
+
+        # 匹配图去掉垂直于拼接方向的部分
+        if mode == 'vertical':
+            matchimage1 = matchimage1[:, cutleft:image1.shape[1] - cutright]
+            matchimage2 = matchimage2[:, cutleft:image2.shape[1] - cutright]
+
+
         # 需要从下到上匹配，所以要翻转
         # 1 是template，是被滑动的图像。
         result_filpped = cv2.matchTemplate(cv2.flip(matchimage2, 0), cv2.flip(matchimage1, 0),
                                            cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(cv2.flip(result_filpped, 0))
+        if mode == 'vertical':
+            max_loc=(max_loc[0],level1+max_loc[1])
         delog('相似匹配位置', max_loc)
         # look(matchimage1)
         # look(matchimage2)
 
         if mode == 'vertical':
-            if max_val < 0.95:
+            if max_val < 0.75:
                 warn('图片匹配失败，直接拼接')
                 max_loc = (0, image1.shape[0])
             cv2.imwrite(img1, image1[:max_loc[1]])
@@ -1224,6 +1247,63 @@ class pool():
 
 # 文件系统读写
 # region
+def similar(s1, s2):
+    """
+    计算两个字符串的相似度
+    @param s1:
+    @param s2:
+    @return:
+    """
+    if not type(s1)in [str] or not type(s2) in [str]:
+        warn('similar 输入的不是字符串')
+        return False
+
+    m, n = len(s1), len(s2)
+    dp = [[0] * (n+1) for _ in range(m+1)]
+    for i in range(1, m+1):
+        dp[i][0] = i
+    for j in range(1, n+1):
+        dp[0][j] = j
+    for i in range(1, m+1):
+        for j in range(1, n+1):
+            if s1[i-1] == s2[j-1]:
+                dp[i][j] = dp[i-1][j-1]
+            else:
+                dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+    return dp[m][n]
+
+
+def delete_similar(path,new=False):
+    """
+    删除目录下名称相似的同大小文件和文件夹。保留创建时间更早的。一次只会二选一。
+    @param path:
+    @param new:是否保留创建时间更晚的
+    @return:
+    """
+    files=listfile(path)
+    dirs=listdir(path)
+    delete=[]
+    retain=[]
+    def func(l):
+        for i in l:
+            for j in l[l.index(i)+1:]:
+                if i in delete or j in delete:
+                    continue
+                if size(i)==size(j) and similar(i,j)/max(len(filename(i)),len(filename(j)))<0.1:
+                    if createtime(i)<createtime(j) and new or createtime(i)>createtime(j) and not new:
+                        ii=i
+                        jj=j
+                    else:
+                        ii=j
+                        jj=i
+                    delete.append(ii)
+                    retain.append(jj)
+                    break
+    func(files)
+    func(dirs)
+    out([f'以下是要删除的文件 {len(delete)}\n']+delete+[f'\n以下是被保留的文件 {len(retain)}\n']+retain)
+    deletedirandfile(delete)
+
 
 def create_shortcut(source, target=None):
     """
@@ -1390,7 +1470,7 @@ def look(path):
     if isdir(path):
         os.startfile(path)
         return
-    if not isfile(path) and not 'https' in path:
+    if not isfile(path,notnull=False) and not 'https' in path:
         warn(f'不存在文件或文件夹{path}')
         return
     os.startfile(path)
@@ -1682,6 +1762,11 @@ def listfile(path, full=True):
 
 
 def listfiletree(path):
+    """
+    listall
+    @param path:
+    @return:
+    """
     lis = []
     lis += listfile(path)
     for i in listdir(path):
@@ -2061,7 +2146,7 @@ def file(mode, path, IOList=None, encoding=None):
                 file.writelines(IOList)
                 return file
     except Exception as e:
-        warn(e)
+        warn(e, type(e))
         warn(info(IOList))
         sys.exit(-1)
 
@@ -2613,10 +2698,9 @@ class cache():
                 if f.l == []:
                     return
                 if self.json:
-                    try:
-                        s = jsontodict(f.l[0])
-                    except Exception as e:
-                        f.delete(s)
+                    s = jsontodict(f.l[0])
+                    if not s:
+                        f.delete(f.l[0])
                         return self.get()
                 else:
                     s = f.l[0]
@@ -2858,9 +2942,16 @@ def delog(*a):
 
 
 def warn(*a):
+    """
+
+    @param a:
+    @return:
+    """
     s = ''
     for i in a:
         s += str(i)
+        if issubclass(type(i), Exception):
+            s += str(type(i))
     Log(s, 166)
 
 
@@ -2924,6 +3015,11 @@ class MyError(BaseException):
 
 
 def jsontodict(s):
+    """
+
+    @param s:
+    @return: 如果转换失败返回False
+    """
     if type(s) == dict:
         return s
     if s == '' or s == None or s == []:
@@ -2932,8 +3028,8 @@ def jsontodict(s):
     try:
         return json.loads(s)
     except Exception as e1:
-        warn([s, e1])
-        sys.exit(-1)
+        warn(['解析字符为 json 错误\n',s, e1])
+        return False
 
 
 def dicttojson(s):
@@ -4411,11 +4507,10 @@ def edge(url='', silent=None, mine=False, mute=True):
     return driver
 
 
-# 点击屏幕
 def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, limit=0, gap=0.05,
-          grayscale=True, xoffset=0, yoffset=0, strict=False):
+          grayscale=True, xoffset=0, yoffset=0, strict=False,moveto=True):
     """
-
+    点击屏幕或者识别屏幕内容
     @param x:x为坐标，或者图片路径
     @param y:
     @param button: 左键还是右键
@@ -4428,6 +4523,7 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
     @param xoffset: 图片识别结果的偏移量
     @param yoffset:
     @param strict: 是否严格模式，严格模式下，如果定位不存在，则会返回
+    @param moveto:是否移动到
     @return:是否成功
     """
 
@@ -4471,7 +4567,8 @@ def click(x=10, y=10, button='left', silent=True, interval=0.2, confidence=1, li
             x = 1
         if y == 0:
             y = 1
-        pyautogui.click(x, y, button=button)
+        if moveto:
+            pyautogui.click(x, y, button=button)
         sleep(interval)
         if not silent:
             print(f'{x}   {y}')
