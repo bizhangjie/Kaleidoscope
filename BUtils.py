@@ -261,7 +261,7 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     @param author:
     @param useruid:
     @param overdownloaded: 是否覆盖下载
-    @return:
+    @return: 下载失败 False
     '''
     # 已下载或视频已失效
     if skipdownloaded(bvid) and not overdownloaded or BUtils.video.tellexist(bvid=bvid) == False:
@@ -283,8 +283,14 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
         MyUtils.click(1449, 214)
         MyUtils.warn('第三方下载引擎解析视频失败。')
         return False
+
+    parsecount=0
     while not MyUtils.click(MyUtils.projectpath('bili/bilivideodownloader1.png'), strict=False,
                             confidence=0.95, limit=0.8, silent=False):
+        parsecount+=1
+        if parsecount>10:
+            MyUtils.warn('似乎 url 没有解析出来')
+            return False
         MyUtils.delog('等待下载器解析中')
         MyUtils.sleep(5)
 
@@ -307,8 +313,13 @@ def download(bvid, author=None, useruid=None, overdownloaded=False):
     return True
 
 
-# 等待下载完毕后转移文件
+#
 def move(a=True):
+    """
+    等待下载完毕后转移文件
+    @param a:
+    @return:
+    """
     wait()
     if not a == True:
         useruid = a
