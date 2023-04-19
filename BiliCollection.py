@@ -5,6 +5,8 @@ import BUtils
 所有下载数=200
 单次下载数=7
 
+MyUtils.setrootpath(dname=-1)
+
 def skipdownloaded(bvid):
     return bvid in BUtils.collecitonvideorecord.l
 
@@ -45,11 +47,12 @@ def move():
 
 # 加到记录
 def addtorecord():
+    f=BUtils.collecitonvideorecord
     for i in MyUtils.listdir('./bili/collection'):
         if '待移动'in i:
             continue
         bvid=MyUtils.gettail(i,'-')
-        BUtils.collecitonvideorecord.add(bvid)
+        f.add(bvid)
 
 
 if __name__=='__main__':
