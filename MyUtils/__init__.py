@@ -2206,7 +2206,7 @@ class txt():
     @listed
     def delete(self, s):
         """
-        自动保存。
+        删除字符串相等的行。自动保存。
         @param s:
         @return:
         """
