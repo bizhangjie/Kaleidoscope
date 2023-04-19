@@ -2,7 +2,9 @@
 import MyUtils
 f=MyUtils.txt(MyUtils.projectpath('./抖音/Allpieces.txt'))
 l=f.l
+d=[]
 for i in l:
-    if i.count('"video')+i.count('"pic')>1:
-        f.delete(i)
-        print(i)
+    if MyUtils.jsontodict(i)==False:
+        d.append(i)
+f.l=[i for i in l if not i in d]
+f.save()
