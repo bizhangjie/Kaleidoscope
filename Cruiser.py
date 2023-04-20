@@ -5,13 +5,14 @@ import A20min
 import Apushgithub
 import MyUtils
 import RAM
+import screenshots
 
 # 常规组
 workgroup0 = 3
 # 临时组
 workgroup1 = 0
 # 抖音组
-workgroup2 = 5
+workgroup2 = 0
 # bili组
 workgroup3 = 0
 #
@@ -25,8 +26,11 @@ if __name__ == '__main__':
     pool1 = multiprocessing.Pool(poolnum)
 
     if workgroup0:
-        pool1.apply_async(A20min.main)
+        # pool1.apply_async(A20min.main)
+        pool1.apply_async(screenshots.main)
         pool1.apply_async(Apushgithub.main)
+
+    if workgroup1:
         pool1.apply_async(RAM.init)
 
     if workgroup2:
@@ -44,4 +48,3 @@ if __name__ == '__main__':
     pool1.close()
     pool1.join()
     MyUtils.warn('Cruiser Exiting ....')
-    time.sleep(999)

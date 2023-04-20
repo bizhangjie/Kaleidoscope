@@ -1,7 +1,7 @@
 import MyUtils
 commission='latest -WYJ'
 
-if __name__ == '__main__':
+def main():
     # 持续推送到github
     b = True
     while True:
@@ -20,3 +20,5 @@ if __name__ == '__main__':
         while not MyUtils.now().time().hour in list(range(10, 24)):
             MyUtils.sleep(60 * 5)
         MyUtils.sleep(5 * 60)
+if __name__ == '__main__':
+    main()

@@ -4,7 +4,7 @@ last=1.5
 
 last*=3600
 sleeptime=90
-def main():
+def  main():
     while True:
         stime=MyUtils.Time().s()
         fname=f'{stime}.png'

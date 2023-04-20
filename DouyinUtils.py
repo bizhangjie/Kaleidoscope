@@ -48,10 +48,13 @@ def HostPieces(l,tab='作品'):
     Page=l[0]
     psn=TurnHostTab(l,tab)
     def func(ret,l):
-        登录验证(l)
-        l[0].click('//span[text()="刷新"]',strict=False,depth=10)
+        page=l[0]
+        登录验证([page])
+        page.click('//span[text()="刷新"]',strict=False,depth=10)
         # 草泥马得等久一点
+        page.Down(scale=1300,pause=1)
         MyUtils.sleep(10)
+
         if ret is None:
             ret=[]
         return ret+l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href')
