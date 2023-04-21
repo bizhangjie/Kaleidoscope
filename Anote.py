@@ -52,5 +52,5 @@ def calculateOverall():
     MyUtils.look(fall.path)
 
 if __name__ == '__main__':
-    # main()
-    calculateOverall()
+    main()
+    # calculateOverall()

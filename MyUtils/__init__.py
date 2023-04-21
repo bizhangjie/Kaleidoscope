@@ -3886,7 +3886,7 @@ class Edge():
         return scrollwidth([self.driver])
 
     def fullscreen(self, path=None, scale=100, autodown=True, pause=1, clip=True, clipinterval=0.6,
-                   cuttop=0, cutbottom=0, cutleft=0, cutright=0):
+                   cuttop=0, cutbottom=0, cutleft=0, cutright=0,maxheight=40000):
         """
         往上获取全屏。固定保存在basic_.png。
         @param path:路径名而不是文件名
@@ -3896,6 +3896,10 @@ class Edge():
         @param clip: 是否切片
         @param cuttop: 顶部固定浮动元素高度
         @param clipinterval: 切片时间间隔
+        @param cutbottom: 底部固定浮动元素高度
+        @param cutleft: 左边固定浮动元素宽度
+        @param cutright: 右边固定浮动元素宽度
+        @param maxheight: 最大高度
         @return:
         """
         if path == None:
@@ -3907,7 +3911,7 @@ class Edge():
         delog(f'将把 {self.url()} 的全屏保存到  {path}')
 
         if autodown:
-            self.down()
+            self.down(maxheight=maxheight)
 
         if clip:
             self.down()
@@ -3968,7 +3972,8 @@ class Edge():
                  clicktoextend=None, autodown=True, look=False, duplication=False, extrafunc=None,
                  pause=1,
                  overwrite=True, redownload=True, savevideo=False, clip=True,
-                 cuttop=0, cutbottom=0, cutleft=0, cutright=0, clipinterval=2):
+                 cuttop=0, cutbottom=0, cutleft=0, cutright=0, clipinterval=2,
+                 maxheight=40000):
         """
         保存整个网页，包括截图，图片（大小可过滤），视频（可选），地址默认集锦
         @param path:收藏路径后缀
@@ -3989,6 +3994,7 @@ class Edge():
         @param savevideo: 是否保存视频
         @param cuttop: 顶部固定浮动元素高度
         @param clipinterval: 切片时间间隔
+        @param maxheight:  网页的最大高度
         @return:
         """
         # region
@@ -4027,7 +4033,7 @@ class Edge():
             path = path + str(count) + '/'
             createpath(path)
 
-        # 展开页面
+        # 特殊点击展开页面
         if not clicktoextend == None:
             if type(clicktoextend) in (str,):
                 self.click(clicktoextend)

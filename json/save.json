@@ -35,5 +35,13 @@
     "cuttop": 135,
     "cutright": 100,
     "cutbottom": 0
+  },
+  "v2ex.com": {
+    "path": "v2ex/",
+    "titletail": " - V2EX",
+    "scale": 250,
+    "cuttop": 0,
+    "cutright": 90,
+    "cutbottom": 0
   }
 }
