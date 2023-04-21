@@ -102,7 +102,7 @@ def main():
         # endregion
 
         # 作品列表循环
-        for VideoElement in DouyinUtils.HostPieces([Host]):
+        for VideoElement in DouyinUtils.host_pieces([Host]):
             # 获取变量
             # region
             (elementurl, VideoNum) = DouyinUtils.piecetourlnum([VideoElement])
