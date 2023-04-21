@@ -4,8 +4,9 @@ import time
 
 from selenium.webdriver.common.by import By
 import MyUtils
-MyUtils.setrootpath(MyUtils.getsettings('douyin'))
-maxready=99
+if  __name__  in ['DouyinDownload']:
+    MyUtils.setrootpath(MyUtils.getsettings('douyin'))
+maxready=9999
 # 文件定义
 allusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/AllUsers.txt')
 specialusers = MyUtils.RefreshJson('D:/Kaleidoscope/抖音/SpecialUsers.txt')
@@ -18,54 +19,58 @@ missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
 expirepiecex=MyUtils.rjson(MyUtils.projectpath('./抖音/ExpiredPieces.txt'))
 history=MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
 
-def TurnHostTab(l,tab='作品'):
+def turn_host_tab(l, tab='作品'):
     """
     切换主页展示条目，并返回数目。失败返回False
     @param l:
     @param tab:
     @return: 建议作品数；False代表获取失败
     """
-    Page=l[0]
-    Page.click(f'//span[text()="{tab}"]')
+    page=l[0]
+    page.click(f'//span[text()="{tab}"]')
     try:
-        psn=Page.element(f"//span[text()='{tab}']/following-sibling::span/text()",strict=False)
+        psn=page.element(f"//span[text()='{tab}']/following-sibling::span/text()",strict=False)
         if psn==0:
-            MyUtils.warn(f'用户无作品。{Page.url()}')
+            MyUtils.warn(f'用户无作品。{page.url()}')
         if psn==None:
             return False
     except Exception as e:
-        MyUtils.warn(f'发现用户异常。{Page.url()}')
+        MyUtils.warn(f'发现用户异常。{page.url()}')
         # exceptuser.add(MyUtils.gettail(Page.url(),'/'))
         return False
     return int(psn)
 
-def HostPieces(l,tab='作品'):
+def host_pieces(l, tab='作品'):
     """
     获取主页的作品
     @param l:页面数组
-    @return: 所有作品url
+    @return: url数组
     """
-    Page=l[0]
-    psn=TurnHostTab(l,tab)
+    page=l[0]
+    psn=turn_host_tab(l, tab)
     def func(ret,l):
         page=l[0]
+        ret=MyUtils.Set(ret)
         登录验证([page])
-        page.click('//span[text()="刷新"]',strict=False,depth=10)
-        # 草泥马得等久一点
-        MyUtils.sleep(10)
-
+        if page.click('//span[text()="刷新"]',strict=False,depth=10):
+            MyUtils.sleep(1)
+        oldlen=len(ret)
         if ret is None:
             ret=[]
-        return ret+l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href')
+        ret=ret+l[0].elements('//div[contains(@data-e2e,"user-post-list") or contains(@data-e2e,"user-like-list")]//li//a/@href')
+        if len(ret)==oldlen:
+            # 触发服务器保护机制，长久停滞
+            MyUtils.sleep(10)
+        return ret
     ret=func([],l)
     # 如果数量获取失败就只获取一次
     if psn==False:
         psn=1
     MyUtils.delog(f'psn = {psn}',)
-    Page.Down(pause=2,scale=1000)
+    page.Down(pause=2,scale=1000)
     while psn and len(ret)<psn*0.9:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
-        ret=MyUtils.Set(ret+Page.Down(start=Page.getscrollheight(),scale=1300,pause=0,func=func))
+        ret=MyUtils.Set(ret+page.Down(start=page.getscrollheight(),scale=1300,pause=0,func=func))
 
     # 去重
     length1=len(ret)
@@ -297,7 +302,7 @@ def hostdata(l,tab='作品'):
     Host=l[0]
     登录验证([Host])
     author=MyUtils.rmtail(Host.title(),'的主页')
-    ps=HostPieces([Host],tab=tab)
+    ps=host_pieces([Host], tab=tab)
     return author,ps
 
 def piecepagedata(l):

@@ -49,6 +49,7 @@ def calculateOverall():
             f=MyUtils.txt(root+'/'+i)
             fall.l+=f.l
         fall.save()
+
     MyUtils.look(fall.path)
 
 if __name__ == '__main__':

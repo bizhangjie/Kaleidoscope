@@ -3782,7 +3782,7 @@ class Edge():
 
     def Down(self, *a, start=0, end=None, scale=100, func=None, pause=1, **b):
         """
-        边下滚边执行函数
+        每次下滚后执行函数。即使已经到底部也会来一次。
         @param start:
         @param end:
         @param scale:
@@ -3795,12 +3795,11 @@ class Edge():
         while True:
             if (not end == None and self.getscrolltop() < end):
                 break
-
+            self.scroll(scale + self.getscrolltop())
             if not func == None:
                 ret1 = func(ret, [self], *a, **b)
                 if not ret1 == None:
                     ret += ret1
-            self.scroll(scale + self.getscrolltop())
 
             if self.nearend():
                 break

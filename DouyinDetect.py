@@ -20,7 +20,6 @@ history = DouyinUtils.history
 # @retry(retry_on_exception=MyUtils.retry)
 def main():
     global host,page
-    # host=MyUtils.Chrome(mine=True)
     host=MyUtils.Chrome(mine=False)
     page=host
     while True:

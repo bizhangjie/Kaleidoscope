@@ -76,7 +76,7 @@ def main():
         Host.down(t=0.3)
 
         # 作品列表循环
-        for VideoElement in DouyinUtils.HostPieces([Host.driver]):
+        for VideoElement in DouyinUtils.host_pieces([Host.driver]):
             # 获取变量
             # region
             (elementurl, VideoNum) = DouyinUtils.piecetourlnum([VideoElement])
