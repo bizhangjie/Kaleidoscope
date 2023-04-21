@@ -1214,7 +1214,7 @@ def videolength(s):
 # 进程池与线程池
 # region
 def sleep(t=9999):
-    if t > 10:
+    if t >= 10:
         delog(f'睡眠 {t} 秒')
     time.sleep(t)
 
