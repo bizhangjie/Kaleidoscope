@@ -20,7 +20,7 @@ history = DouyinUtils.history
 # @retry(retry_on_exception=MyUtils.retry)
 def main():
     global host,page
-    host=MyUtils.Chrome(mine=False)
+    host=MyUtils.Chrome(mine=True)
     page=host
     while True:
         useruid = list(allusers.get()[0].keys())[0]

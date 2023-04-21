@@ -57,7 +57,7 @@ def host_pieces(l, tab='作品'):
         ret = MyUtils.Set(ret)
         登录验证([page])
         if page.click('//span[text()="刷新"]', strict=False, depth=10):
-            MyUtils.sleep(1)
+            MyUtils.sleep(5)
             #     上抬一下，以继续滚动
             page.setscrollheight(page.getscrollheight() - 100)
         oldlen = len(ret)
