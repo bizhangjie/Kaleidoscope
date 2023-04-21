@@ -9,7 +9,8 @@ import Maintainace
 
 # region
 allusers = DouyinUtils.allusers
-allusers.rollback()
+if MyUtils.debug:
+    allusers.rollback()
 allpieces = DouyinUtils.allpieces
 readytodownload = DouyinUtils.readytodownload
 ExceptionUser = DouyinUtils.exceptuser

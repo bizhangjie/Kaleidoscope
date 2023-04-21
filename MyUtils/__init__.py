@@ -4783,7 +4783,7 @@ def scrshot(l):
 
 # 初始化2
 # region
-user = getsettings('userName')
+user = os.environ['USerNAME']
 if setRootPath(d='d') == 'HerMAJESTY':
     Debug()
 consoletxt = Json('D:/Kaleidoscope/console.txt')
