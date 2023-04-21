@@ -18,7 +18,7 @@ def main():
     ispic = []
     urllist = []
     page = MyUtils.Chrome(f'https://www.douyin.com/user/{Account}',mine=True)
-    _,urls=DouyinUtils.hostdata([page],tab='喜欢')
+    author,urls=DouyinUtils.hostdata([page],tab='喜欢')
     for videourl in urls:
         useruid,author=DouyinUtils.load([page], videourl)
         if useruid==None or author==None:

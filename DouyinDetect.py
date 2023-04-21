@@ -9,6 +9,7 @@ import Maintainace
 
 # region
 allusers = DouyinUtils.allusers
+allusers.rollback()
 allpieces = DouyinUtils.allpieces
 readytodownload = DouyinUtils.readytodownload
 ExceptionUser = DouyinUtils.exceptuser
@@ -19,11 +20,12 @@ history = DouyinUtils.history
 # @retry(retry_on_exception=MyUtils.retry)
 def main():
     global host,page
-    host=MyUtils.Chrome()
+    # host=MyUtils.Chrome(mine=True)
+    host=MyUtils.Chrome(mine=False)
     page=host
     while True:
         useruid = list(allusers.get()[0].keys())[0]
-        host.get(f'https://douyin.com/user/{useruid}')
+        host.get(f'https://douyin.com/user/{useruid}?showTab=post')
         MyUtils.sleep(4)
         DouyinUtils.滑块验证([host])
         DouyinUtils.跳转验证([host])

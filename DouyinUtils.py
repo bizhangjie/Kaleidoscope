@@ -52,7 +52,6 @@ def HostPieces(l,tab='作品'):
         登录验证([page])
         page.click('//span[text()="刷新"]',strict=False,depth=10)
         # 草泥马得等久一点
-        page.Down(scale=1300,pause=1)
         MyUtils.sleep(10)
 
         if ret is None:
@@ -63,7 +62,7 @@ def HostPieces(l,tab='作品'):
     if psn==False:
         psn=1
     MyUtils.delog(f'psn = {psn}',)
-
+    Page.Down(pause=2,scale=1000)
     while psn and len(ret)<psn*0.9:
         MyUtils.warn(f'作品数量不匹配 {len(ret)}/{psn}')
         ret=MyUtils.Set(ret+Page.Down(start=Page.getscrollheight(),scale=1300,pause=0,func=func))
@@ -172,7 +171,8 @@ def load(l, videourl, author=None, readytoDownload=readytodownload,ispic=None,us
     @return:useruid（如果没有传入），author（如果没有传入）
     """
     page=l[0]
-    if skiprecorded(videourl):
+    if skiprecorded(videourl=videourl,author=author):
+        MyUtils.delog('已在记录中，跳过')
         return
     page.get(videourl)
     if author==None:
@@ -211,11 +211,19 @@ def dislike(l):
     time.sleep(3)
 
 
-def skiprecorded(videourl):
-    videourl,VideoNum = MyUtils.splittail(videourl, '/')
-    if (videourl+VideoNum in allpieces.d.keys()):
-        MyUtils.log(f'作品 {VideoNum} 在记录中，跳过')
-        return True
+def skiprecorded(videourl=None,author=None):
+    """
+    跳过记录中的
+    @param videourl:
+    @param author:
+    @return:
+    """
+    _,VideoNum = MyUtils.splittail(videourl, '/')
+    for i in allpieces.d.keys():
+        if VideoNum in i:
+            if allpieces.d[i][0]['author'] == author:
+                MyUtils.log(f'作品 {VideoNum} 在记录中，跳过')
+                return True
     return False
 
 
