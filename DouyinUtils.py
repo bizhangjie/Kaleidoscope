@@ -68,7 +68,7 @@ def host_pieces(l, tab='作品'):
         if len(ret) == oldlen:
             # 触发服务器保护机制，长久停滞
             # 这个问题似乎暂时无法解决
-            MyUtils.Exit('建议尼玛重启')
+            MyUtils.restart('建议尼玛重启')
             MyUtils.sleep(10)
         return ret
 

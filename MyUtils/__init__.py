@@ -613,6 +613,16 @@ def timearr(s=nowstr()):
 
 # 调试模式
 # region
+def restart(*a,t=3):
+    """
+    尝试重新运行
+    @param a:
+    @return:
+    """
+    warn(*a)
+    sleep(t)
+    raise(retrylist[0])
+
 def Exit(*a):
     """
     直接结束或者无限挂起，不再让程序运行
