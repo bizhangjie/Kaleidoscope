@@ -19,7 +19,7 @@ failed = MyUtils.Json('D:/Kaleidoscope/抖音/FailedPieces.txt')
 missing = MyUtils.rjson('D:/Kaleidoscope/抖音/Missing.txt')
 expirepiecex = MyUtils.rjson(MyUtils.projectpath('./抖音/ExpiredPieces.txt'))
 history = MyUtils.txt('D:/Kaleidoscope/抖音/History.txt')
-
+搜索栏=MyUtils.projectpath('/抖音/搜索栏.png')
 
 def turn_host_tab(l, tab='作品'):
     """
@@ -61,6 +61,7 @@ def host_pieces(l, tab='作品'):
             #     上抬一下，以继续滚动
             page.setscrollheight(page.getscrollheight() - 100)
         oldlen = len(ret)
+        MyUtils.delog(f'len oldlen = {len(oldlen)}')
         if ret is None:
             ret = []
         ret = MyUtils.Set(ret + l[0].elements(
@@ -348,3 +349,5 @@ def piecepagedata(l):
     title = MyUtils.rmtail(Page.title(), ' - 抖音')
     ispic = 'note' in Page.url()
     return title, ispic
+
+

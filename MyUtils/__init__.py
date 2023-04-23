@@ -1529,6 +1529,10 @@ def jspath(s=''):
 def cachepath(s=''):
     return get_base_path(projectpath('cache'), s)
 
+# 测试文件目录
+def testpath(s=''):
+    return get_base_path(projectpath('test'), s)
+
 
 # 用户配置文件目录
 def settingspath(s=''):
@@ -1806,98 +1810,6 @@ def filename(s):
     return standarlizedFileName(s)
 
 
-class table():
-    def __init__(self, path, title=True):
-        """
-        一定有表头
-        @param path:
-        @param title:表头数组
-        """
-        if not '.csv' in path:
-            path += '.csv'
-        self.path = standarlizedPath(path)
-
-        if not isfile(self.path):
-            if title == False:
-                Exit(f'{self.path} 不存在。')
-            self.create(*title)
-
-        if not isfile(self.path):
-            Exit()
-        self.read(title=title)
-
-    # 合并表格，忽略表头，默认表头一致
-    def merge(self, t):
-        for i in t.l:
-            self.l.append(i)
-        self.save()
-
-    def create(self, *a):
-        copyfile(projectpath('database/sample.csv'), self.path)
-        f = open(self.path, 'w')
-        writer = csv.writer(f)
-        writer.writerow(a)
-        f.close()
-        # Exit(f'已创建 {self.path} 完毕。强制停止程序以创建成功。似乎存在缓冲区？')
-
-    @consume
-    #         去重，去空，集合化
-    def set(self):
-        p = list(set(self.l))
-        p.sort(key=self.l.index)
-        self.l = p
-        if '' in self.l:
-            self.l.pop(self.l.index(''))
-        self.save(self)
-
-    def read(self, title=True):
-        f = open(self.path, encoding='utf-8-sig', mode='r')
-        f1 = open(self.path, encoding='utf-8-sig', mode='r')
-
-        if title:
-            self.reader = csv.DictReader(f)
-            self.l = []
-            self.d = {}
-            self.title = []
-            for i in next(csv.reader(f1)):
-                self.title.append(i)
-            for title in self.title:
-                self.d.update({title: []})
-            for i in self.reader:
-                self.l.append(i)
-            for d in self.l:
-                for k in d:
-                    self.d.update({k: self.d[k] + [d[k]]})
-
-    def save(self):
-        f = open(self.path, encoding='utf-8-sig', mode='w', newline="")
-        writer = self.writer = csv.DictWriter(f, self.title)
-        writer.writeheader()
-        writer.writerows(self.l)
-        log(f'saved {self.path}')
-
-    def add(self, d, withtitle=False, silent=True):
-        if type(d) in [dict]:
-            self.l.append(d)
-            for key in d:
-                if key in keys(self.d):
-                    self.d[key] += [d[key]]
-        if type(d) in [tuple, list]:
-            count = 0
-            newd = {}
-            for i in self.title:
-                if count + 1 > len(d):
-                    break
-                newd.update({i: d[count]})
-                count += 1
-            self.add(newd)
-            return
-        f = open(self.path, encoding='utf-8-sig', mode='a', newline="")
-        writer = self.writer = csv.DictWriter(f, self.title)
-        writer.writerows([self.l[-1]])
-        if not silent:
-            delog(f'added {self.path} {self.l[-1]}')
-
 
 def add_extension(path, extension, strict=True):
     """
@@ -1919,49 +1831,126 @@ def add_extension(path, extension, strict=True):
             path += f'.{extension}'
             return
     elif isinstance(extension, list):
-        if not any(path.endswith(ext) for ext in extension):
+        if not any(path.endswith('.'+ext) for ext in extension):
             path += '.' + extension[0]
     return path
 
 
-class excel():
+class table():
     """
     add，每次访问全部数据内容要内存开销
     save，read要磁盘开销
 
     """
+    def sheet(self):
+        """
+        这傻逼 sheet 老是变成None
+        @return:
+        """
+        if self.workbook.worksheets==[]:
+            self.workbook.create_sheet('Sheet1')
+        if self.workbook.active==None:
+            return self.workbook.worksheets[0]
+        return self.workbook.active
+
+    def __iter__(self):
+        return self.sheet().iter_rows()
+
+    def __len__(self):
+        return self.sheet()._max_row
+
+    def rows(self):
+        return self.sheet().rows
+
+    def columns(self):
+        return self.sheet().columns
 
     def __init__(self, path, title=False):
         """
-        当已有文件
+        不支持 csv
         @param path:
-        @param title:表头。一般是字符串数组。
+        @param title:默认无表头。None, False 代表无表头。
         """
-        self.path = add_extension(standarlizedPath(path), ['csv', 'xls', 'xlsx'])
+        self.path = add_extension(standarlizedPath(path), ['xlsx'])
 
         # 处理title
         if type(title) in [str]:
             title = [title]
         if title in [False, None]:
             self.title=False
-        if self.title==[]:
+        elif title==[]:
             self.title=['']
-
+        else:
+            self.title=title
 
         self.workbook = openpyxl.Workbook(self.path)
-        self.sheet = self.workbook.active
         if not isfile(self.path):
             if self.title:
-                self.sheet.append(self.title)
+                self.add(self.title)
+
+    def add(self,l):
+        """
+        并行
+        @return:
+        """
+        if type(l)in [dict]:
+            if not self.title:
+                Exit('无表头，无法添加字典')
+            newl = [l.get(k, None) for k in self.title]
+            self.add(newl)
+        elif type(l) in [list]:
+            self.sheet().append(l)
             self.save()
 
     def save(self):
         self.workbook.save(self.path)
 
 
-class Csv(table):
-    pass
+class Csv():
+    """
+    操作 csv
+    """
+    def __init__(self,path,title=True):
+        """
 
+        @param title:
+        """
+        self.path = add_extension(standarlizedPath(path), ['csv'])
+
+        # 处理title
+        if type(title) in [str]:
+            title = [title]
+        if title in [False, None]:
+            self.title = False
+        elif title == []:
+            self.title = ['']
+        else:
+            self.title = title
+
+        if not isfile(self.path):
+            if self.title:
+                self.add(self.title)
+            else:
+                self.save()
+
+    def add(self, l):
+        """
+        并行
+        @return:
+        """
+        if type(l) in [dict]:
+            if not self.title:
+                Exit('无表头，无法添加字典')
+            newl = [l.get(k, None) for k in self.title]
+            self.add(newl)
+        elif type(l) in [list]:
+            with open(self.path, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(l)
+
+
+class excel(table):
+    pass
 
 def deletedirandfile(l, silent=None):
     """
@@ -2190,6 +2179,9 @@ class txt():
     读写txt文件。l，可以不是字符串，自动追加空格。
     """
 
+    def __iter__(self):
+        return self.l.__iter__()
+
     @DebugConsume
     def __init__(self, path, encoding='utf-8', silent=None):
         self.silent = silent
@@ -2320,12 +2312,16 @@ class RefreshTXT(txt):
             f.save('refresh backup')
         # endregion
 
-    # 根据l并行写入
     @DebugConsume
     def save(self, silent=None):
+        """
+        并行保存
+        @param silent:
+        @return:
+        """
         if silent == None:
             silent = self.silent
-        self.l = Set(self.l + rtxt(self.path, silent=silent).l)
+        self.l = list(set(self.l + rtxt(self.path, silent=silent).l))
         RefreshTXT.set(self, silent=silent)
         txt.save(self, 'Rtxt 合并保存', silent=silent)
 
@@ -3001,8 +2997,12 @@ def Int(s):
     return int(s)
 
 
-# 实现包括列表元素为字典在内的集合化，不改变原来的顺序
 def Set(l):
+    """
+    实现包括列表元素为字典在内的集合化，不改变原来的顺序，性能不怎么样
+    @param l:
+    @return:
+    """
     res = []
     if l == None:
         return []
